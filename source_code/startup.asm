@@ -20,5 +20,20 @@ section .text ; standard name of the C memory segment for code
 start_kernel:
     mov eax, 0xFEEDBEEF ;a classic
 
+    ; NEXT TODO: to compile and jumpt to C program, need to
+    ;   - Reserverve the memory space for stack
+    ;       - since we are using and GRUB's ELF loader to load memory segments into adress space
+    ;         the safest way to do that is to place it to the .data or .bss memory segment
+    ;         The .bss is better choice since its content is not packed into the ELF binary
+    ;
+    ;   - Set the stack pointer to start of that space
+    ;
+    ;   - Clear all .bss memory section to zeros. 
+    ;       - Here we will need to do some tricks, since we will now the exact size of
+    ;         the .bss segment only after linking.
+    ;
+    ;   - Jump to C program entry
+    ;       jmp _kernel_c_main
+
 .loop:
     jmp .loop ;infinite loop

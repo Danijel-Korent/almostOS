@@ -20,7 +20,21 @@ SECTIONS
     .text :
     {
         *(.text)
+        *(.rotext)
+        *(.rodata)
         _end_of_text_seg = ABSOLUTE(.);
+    }
+
+    .data :
+    {
+        *(.data)
+        _end_of_data_seg = ABSOLUTE(.);
+    }
+
+    .bss :
+    {
+        *(.bss)
+        _end_of_bss_seg = ABSOLUTE(.);
     }
 }
 
