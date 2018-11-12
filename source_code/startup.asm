@@ -22,6 +22,8 @@
     ;
     ;
     ;    - Implement driver for text output
+    ;
+    ;    - Implement driver for the PIC
     ;    - Implement driver for text input
     ;
     ;    - Add the FAT file reader, shell and some FS image from the "FAT-filesystem-reader" git project
