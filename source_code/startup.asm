@@ -1,20 +1,32 @@
 
 
 
-    ; NEXT TODO: to compile and jumpt to C program, need to
-    ;   - Reserverve the memory space for stack
-    ;       - since we are using and GRUB's ELF loader to load memory segments into adress space
-    ;         the safest way to do that is to place it to the .data or .bss memory segment
-    ;         The .bss is better choice since its content is not packed into the ELF binary
+    ; NEXT TODO: 
     ;
-    ;   - Set the stack pointer to start of that space
+    ;    - Commit build files somewhere (maybe put bootloader image to ./bootloader_image or ./build/bootloader_image; makefiles and emulator configuration to ./build; OS image to ./build/os_image)
     ;
-    ;   - Clear all .bss memory section to zeros.
-    ;       - Here we will need to do some tricks, since we will now the exact size of
-    ;         the .bss segment only after linking.
+    ;    - Prepare C runtime
     ;
-    ;   - Jump to C program entry
-    ;       jmp _kernel_c_main
+	;        - Reserve the memory space for stack
+	;           - since we are using and GRUB's ELF loader to load memory segments into adress space
+	;             the safest way to do that is to place it to the .data or .bss memory segment
+	;             The .bss is better choice since its content is not packed into the ELF binary
+	;
+	;        - Setup the stack frame
+	;
+	;        - Clear all .bss memory section to zeros.
+	;            - Here we will need to do some tricks, since we will know the exact size of the .bss segment only after linking.
+    ;
+    ;        - Jump to C program entry
+    ;            - lets call it _kernel_c_main
+    ;
+    ;
+    ;    - Implement driver for text output
+    ;    - Implement driver for text input
+    ;
+    ;    - Add the FAT file reader, shell and some FS image from the "FAT-filesystem-reader" git project
+    ;        - So that OS at least looks like it could do something useful hehe 
+
 
 ; INFO:
 ;  - https://en.wikibooks.org/wiki/X86_Assembly/NASM_Syntax
