@@ -36,7 +36,8 @@
 ;  - http://kernfunny.org/x86/ (x86 Instruction Set Reference)
 ;
 
-MULITBOOT_FLAGS equ 0x0
+MULITBOOT_FLAGS        equ 0x0
+MULITBOOT_MAGIC_NUMBER equ 0x1BADB002
 
 global start_kernel ;GRUB will jump into this function
 
@@ -44,9 +45,9 @@ section .text ; standard name of the C memory segment for code
 
     ; per multiboot specification. Without this GRUB will not recognite this binary image as bootable
     align 4
-    dd 0x1BADB002 ;multiboot magic number
+    dd MULITBOOT_MAGIC_NUMBER
     dd MULITBOOT_FLAGS
-    dd -(0x1BADB002 + MULITBOOT_FLAGS) ; when be zero when magic_number+multiboot flags are summed with it
+    dd -(MULITBOOT_MAGIC_NUMBER + MULITBOOT_FLAGS) ; multiboot checksum: this number + MULITBOOT_MAGIC_NUMBER + MULITBOOT_FLAGS must equal zero
 
 hello_msg:
 	db "Starting AlmostOS kernel...", 0
