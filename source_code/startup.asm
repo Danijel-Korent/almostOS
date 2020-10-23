@@ -43,6 +43,7 @@ MULITBOOT_FLAGS        equ 0x0
 MULITBOOT_MAGIC_NUMBER equ 0x1BADB002
 VGA_RAM_ADDRESS        equ 0x000B8000 ;Video memory address for text mode - 32kb total
                                       ;Here we assume that VGA is set to the video mode 03 by the BIOS or bootloader
+                                      ;http://www.scs.stanford.edu/17wi-cs140/pintos/specs/freevga/vga/vgamem.htm
 
 global start_kernel ;GRUB will jump into this function
 
