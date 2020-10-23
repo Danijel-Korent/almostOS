@@ -3,7 +3,10 @@
 
     ; NEXT TODO: 
     ;
-    ;    - Commit build files somewhere (maybe put bootloader image to ./bootloader_image or ./build/bootloader_image; makefiles and emulator configuration to ./build; OS image to ./build/os_image)
+    ;    - Commit build files somewhere, maybe put:
+    ;       - bootloader image to ./bootloader_image or ./build/bootloader_image
+    ;       - makefiles and emulator configuration to ./build
+    ;       - OS image to ./build/os_image
     ;
     ;    - Prepare C runtime
     ;
@@ -38,6 +41,8 @@
 
 MULITBOOT_FLAGS        equ 0x0
 MULITBOOT_MAGIC_NUMBER equ 0x1BADB002
+VGA_RAM_ADDRESS        equ 0x000B8000 ;Video memory address for text mode - 32kb total
+                                      ;Here we assume that VGA is set to the video mode 03 by the BIOS or bootloader
 
 global start_kernel ;GRUB will jump into this function
 
@@ -56,7 +61,8 @@ start_kernel:
     mov eax, 0xFEEDBEEF ;a classic
 
     mov esi, hello_msg
-    mov edi, 0x000B8000
+    mov edi, VGA_RAM_ADDRESS
+
 
 .print_hello: 		;shit just got real
     mov cl, [esi]
