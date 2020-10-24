@@ -1,15 +1,14 @@
 
 // This needs to be compiled with -nostdlib since there is not standard lib available yet
 
-static int test_var1 = 0xaa;
-static int test_var2;
-static int test_var3;
 
-int kernel_c_main( void )
+void kernel_c_main( void )
 {
-	static int test_result;
-	
-	test_result = test_var1 + test_var2 + test_var3;
-	
-	return test_result;
+	unsigned char *VGA_RAM = 0x000B8000 + 320;
+
+	for (int i = 0; i < 1000;)
+	{
+		VGA_RAM[i++] = 'A';
+		VGA_RAM[i++] = 0x13;
+	}
 }

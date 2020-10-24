@@ -45,7 +45,18 @@ VGA_RAM_ADDRESS        equ 0x000B8000 ;Video memory address for text mode - 32kb
                                       ;Here we assume that VGA is set to the video mode 03 by the BIOS or bootloader
                                       ;http://www.scs.stanford.edu/17wi-cs140/pintos/specs/freevga/vga/vgamem.htm
 
-global start_kernel ;GRUB will jump into this function
+global start_kernel  ; GRUB will jump into this function
+extern kernel_c_main ; entry point for C code
+
+
+section .bss  ; standard name of the C memory segment for uninitialized data
+    align 4
+
+    ; Reserve memory for kernel stack
+    STACK_MEM_END:
+        resb 32768
+    STACK_MEM_START: ; on x86 stack grows from higher address to lower, so this is the beginning of the stack
+
 
 section .text ; standard name of the C memory segment for code
 
@@ -67,7 +78,7 @@ start_kernel:
 
 .print_hello: 		;shit just got real
     mov cl, [esi]
-    jcxz .loop 		;stop printing on null-terminator
+    jcxz .start_c_main 		;stop printing on null-terminator
 
     mov byte [edi], cl
     inc edi
@@ -78,6 +89,11 @@ start_kernel:
     inc esi
     jmp .print_hello
 
+    ; set up stack pointer for C code execution
+    mov esp, STACK_MEM_START
+
+.start_c_main:
+    call kernel_c_main
 
 .loop:
     jmp .loop ;infinite loop
