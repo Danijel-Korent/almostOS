@@ -45,7 +45,7 @@ VGA_RAM_ADDRESS        equ 0x000B8000 ;Video memory address for text mode - 32kb
                                       ;Here we assume that VGA is set to the video mode 03 by the BIOS or bootloader
                                       ;http://www.scs.stanford.edu/17wi-cs140/pintos/specs/freevga/vga/vgamem.htm
 
-global start_kernel  ; GRUB will jump into this function
+global start_kernel  ; GRUB will jump into this function (specified by the linker script)
 extern kernel_c_main ; entry point for C code
 
 
