@@ -1,18 +1,28 @@
 
 // This needs to be compiled with -nostdlib since there is not standard lib available
 
+//TODO: Add function for printing a string
+
+void output_char(int index, unsigned char ch);
+
 
 void kernel_c_main( void )
 {
-	unsigned char *VGA_RAM = 0x000B8000 + 320;
-
-	for (int i = 0; i < 1000;)
+	for (int i = 400; i < 1000; i++)
 	{
-		VGA_RAM[i++] = 'A';
-		VGA_RAM[i++] = 0x13;
+		output_char(i, 'A'); // Just to see if this function is actually executed
 	}
 }
 
+void output_char(int index, unsigned char ch)
+{
+	static unsigned char* const VGA_RAM = 0x000B8000;
+
+	index = index * 2; // One char takes 16 bits in VGA RAM (8bit char to display + 8bit for color)
+
+	VGA_RAM[index]   = ch;
+	VGA_RAM[index+1] = 0x13; // QTODO: hardcoded color - add arguments for foreground and background color
+}
 
 /*
 
