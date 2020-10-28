@@ -3,25 +3,37 @@
 
 //TODO: Add function for printing a string
 
-void output_char(int index, unsigned char ch);
-
+void output_char(int position, unsigned char ch);
+void print_string(int position, unsigned char* string, int string_size);
 
 void kernel_c_main( void )
 {
 	for (int i = 400; i < 1000; i++)
 	{
-		output_char(i, 'A'); // Just to see if this function is actually executed
+		//output_char(i, 'A'); // Just to see if this function is actually executed
 	}
+
+	unsigned char hello_msg[] = "Hello from C code!";
+
+	print_string(400, hello_msg, sizeof(hello_msg)-1);
 }
 
-void output_char(int index, unsigned char ch)
+void output_char(int position, unsigned char ch)
 {
 	static unsigned char* const VGA_RAM = 0x000B8000;
 
-	index = index * 2; // One char takes 16 bits in VGA RAM (8bit char to display + 8bit for color)
+	position = position * 2; // One char takes 16 bits in VGA RAM (8bit char to display + 8bit for color)
 
-	VGA_RAM[index]   = ch;
-	VGA_RAM[index+1] = 0x13; // QTODO: hardcoded color - add arguments for foreground and background color
+	VGA_RAM[position]   = ch;
+	VGA_RAM[position+1] = 0x13; // QTODO: hardcoded color - add arguments for foreground and background color
+}
+
+void print_string(int position, unsigned char* string, int string_size)
+{
+	for( int i = 0; i < string_size; i++)
+	{
+		output_char(position + i, string[i]);
+	}
 }
 
 /*
