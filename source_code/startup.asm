@@ -15,9 +15,7 @@
 	;             the safest way to do that is to place it to the .data or .bss memory segment
 	;             The .bss is better choice since its content is not packed into the ELF binary
 	;
-	;        - Setup the stack frame
-	;
-	;        - Clear all .bss memory section to zeros.
+	;        - Clear all .bss memory section to zeros. (done by bootloader??)
 	;            - Here we will need to do some tricks, since we will know the exact size of the .bss segment only after linking.
     ;
     ;        - Jump to C program entry
@@ -46,6 +44,9 @@ VGA_RAM_ADDRESS        equ 0x000B8000 ;Video memory address for text mode - 32kb
                                       ;http://www.scs.stanford.edu/17wi-cs140/pintos/specs/freevga/vga/vgamem.htm
 
 global start_kernel  ; GRUB will jump into this function (specified by the linker script)
+global test_func
+global read_byte_from_IO_port
+
 extern kernel_c_main ; entry point for C code
 
 
@@ -97,3 +98,32 @@ start_kernel:
 
 .loop:
     jmp .loop ;infinite loop
+
+
+; *** x86 INSTUCTION WRAPPER FUNCTIONS ***
+
+; By 'cdecl' calling convention, all arguments of a function are pushed onto the stack,
+; and return value from a function is passed by EAX register. Arguments are pushed to the stack
+; in left-to-right order, so first argument is pushed last on the stack and therefor closest to the stack pointer.
+; Registers EAX, ECX, and EDX are caller-saved, and the rest are callee-saved.
+;
+; x86 stack grows towards lower address, so first argument (last on stack) have lowest address and last arg highest address.
+test_func:
+    mov eax, [ESP+4]
+    mov ecx, [ESP+8]
+    mul ecx
+    add eax, [ESP+12]
+    ret
+
+
+; https://c9x.me/x86/html/file_module_x86_id_139.html
+; uint8_t read_byte_from_IO_port( uint16_t port_address)
+read_byte_from_IO_port:
+    mov dx, [ESP+4] ; move the argument to the DX register
+    mov eax, 0 ; is this actually neccessary?
+    in al, dx
+    ret
+
+
+write_byte_to_IO_port:
+    ret

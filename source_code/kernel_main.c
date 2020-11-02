@@ -1,10 +1,31 @@
 
 // This needs to be compiled with -nostdlib since there is not standard lib available
 
-//TODO: Add function for printing a string
+/*
+
+	TODO NEXT:
+		- Check the output of the IO port 0x60 (Keyboard data)
+		- Modify test code to only output single char on keypres
+		- Create a scancode-to-ascii conversion table
+
+	TODO LIST:
+		- TODO:    Create header for equivalent of stdint.h types
+		- FEATURE: Implement polling driver for a keyboard (reading + scancode conversion)
+		- FEATURE: Implement basic terminal emulator
+		- FEATURE: Implement timer support
+		- FEATURE: Implement support for the CPUID
+
+*/
+
 
 void output_char(int position, unsigned char ch);
 void print_string(int position, unsigned char* string, int string_size);
+
+// From startup.asm
+// TODO: move both implementation and declaration into seperate files
+int test_func(int base, int multiplier, int adder);
+unsigned char read_byte_from_IO_port( unsigned short port_address);
+
 
 void kernel_c_main( void )
 {
@@ -16,6 +37,25 @@ void kernel_c_main( void )
 	unsigned char hello_msg[] = "Hello from C code!";
 
 	print_string(400, hello_msg, sizeof(hello_msg)-1);
+
+	//int test = test_func(34, 2);
+
+	output_char(640, test_func(34, 2, 1));
+	output_char(642, test_func(35, 2, 1));
+	output_char(644, test_func(36, 2, 1));
+
+	int i = 800;
+	while(1)
+	{
+		if (i > 1200) i = 800;
+
+		unsigned char scan_code = read_byte_from_IO_port(0x60);
+
+		scan_code += 49 - 2;
+
+		output_char(i, scan_code);
+		i++;
+	}
 }
 
 void output_char(int position, unsigned char ch)
@@ -68,6 +108,12 @@ x86 IO BUS - General technical descriptions:
 Legacy IBM PC IO PORTS (XT, AT and PS/2 I/O port addresses)
 
 	(serial ports, parallel ports, PS/2 keyboard, floppy, CMOS, ??)
+
+	AT/PS2 Controler:
+			- http://helppc.netcore2k.net/hardware/8042
+			- https://www.tayloredge.com/reference/Interface/atkeyboard.pdf
+			- http://www.osdever.net/papers/view/wout-mertens-guide-to-keyboard-programming-v1.1-complete
+			- http://www.osdever.net/papers/view/ibm-pc-keyboard-information-for-software-developers
 
 	Serial	- https://sysplay.in/blog/pdfs/uart_pc16550d.pdf
 	EGA 	- http://www.minuszerodegrees.net/oa/OA%20-%20IBM%20Enhanced%20Graphics%20Adapter.pdf
