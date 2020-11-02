@@ -110,6 +110,7 @@ Legacy IBM PC IO PORTS (XT, AT and PS/2 I/O port addresses)
 	(serial ports, parallel ports, PS/2 keyboard, floppy, CMOS, ??)
 
 	AT/PS2 Controler:
+			- http://www.s100computers.com/My%20System%20Pages/MSDOS%20Board/PC%20Keyboard.pdf
 			- http://helppc.netcore2k.net/hardware/8042
 			- https://www.tayloredge.com/reference/Interface/atkeyboard.pdf
 			- http://www.osdever.net/papers/view/wout-mertens-guide-to-keyboard-programming-v1.1-complete
