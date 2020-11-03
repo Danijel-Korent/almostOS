@@ -44,6 +44,8 @@ void kernel_c_main( void )
 	output_char(642, test_func(35, 2, 1));
 	output_char(644, test_func(36, 2, 1));
 
+	// Keyboard test code
+	unsigned char previous_scan_code = 0;
 	int i = 800;
 	while(1)
 	{
@@ -53,8 +55,13 @@ void kernel_c_main( void )
 
 		scan_code += 49 - 2;
 
-		output_char(i, scan_code);
-		i++;
+		if ((previous_scan_code != scan_code) && ((scan_code & 0x80) == 0x80))
+		{
+			output_char(i, scan_code & ~0x80);
+			i++;
+		}
+
+		previous_scan_code = scan_code;
 	}
 }
 
