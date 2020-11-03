@@ -4,8 +4,8 @@
 /*
 
 	TODO NEXT:
-		- Check the output of the IO port 0x60 (Keyboard data)
-		- Modify test code to only output single char on keypres
+		- Move keyboard code to the function "keyboard_driver_poll()"
+		- Add function "event_on_keypress(key)" - a callback for hooking up a processing code
 		- Create a scancode-to-ascii conversion table
 
 	TODO LIST:
@@ -82,6 +82,12 @@ void print_string(int position, unsigned char* string, int string_size)
 		output_char(position + i, string[i]);
 	}
 }
+
+/*******************************************************************************
+ *                               Keyboard driver                               *
+ *******************************************************************************/
+
+
 
 /*
 
