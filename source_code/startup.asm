@@ -10,13 +10,13 @@
     ;
     ;    - Prepare C runtime
     ;
-	;        - Reserve the memory space for stack
-	;           - since we are using and GRUB's ELF loader to load memory segments into adress space
-	;             the safest way to do that is to place it to the .data or .bss memory segment
-	;             The .bss is better choice since its content is not packed into the ELF binary
-	;
-	;        - Clear all .bss memory section to zeros. (done by bootloader??)
-	;            - Here we will need to do some tricks, since we will know the exact size of the .bss segment only after linking.
+    ;        - Reserve the memory space for stack
+    ;           - since we are using and GRUB's ELF loader to load memory segments into adress space
+    ;             the safest way to do that is to place it to the .data or .bss memory segment
+    ;             The .bss is better choice since its content is not packed into the ELF binary
+    ;
+    ;        - Clear all .bss memory section to zeros. (done by bootloader??)
+    ;            - Here we will need to do some tricks, since we will know the exact size of the .bss segment only after linking.
     ;
     ;        - Jump to C program entry
     ;            - lets call it _kernel_c_main
@@ -68,7 +68,7 @@ section .text ; standard name of the C memory segment for code
     dd -(MULITBOOT_MAGIC_NUMBER + MULITBOOT_FLAGS) ; multiboot checksum: this number + MULITBOOT_MAGIC_NUMBER + MULITBOOT_FLAGS must equal zero
 
 hello_msg:
-	db "Starting AlmostOS kernel...", 0
+    db "Starting AlmostOS kernel...", 0
 
 start_kernel:
     mov eax, 0xFEEDBEEF ;a classic
@@ -77,9 +77,9 @@ start_kernel:
     mov edi, VGA_RAM_ADDRESS
 
 
-.print_hello: 		;shit just got real
+.print_hello:         ;shit just got real
     mov cl, [esi]
-    jcxz .start_c_main 		;stop printing on null-terminator
+    jcxz .start_c_main         ;stop printing on null-terminator
 
     mov byte [edi], cl
     inc edi
