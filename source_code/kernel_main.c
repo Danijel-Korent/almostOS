@@ -4,7 +4,6 @@
 /*
 
     TODO NEXT:
-        - Move keyboard code to the function "keyboard_driver_poll()"
         - Add function "event_on_keypress(key)" - a callback for hooking up a processing code
         - Create a scancode-to-ascii conversion table
 
@@ -13,6 +12,9 @@
         - TODO:    Create header for equivalent of stdint.h types
         - FEATURE: Implement polling driver for a keyboard (reading + scancode conversion)
         - FEATURE: Implement basic terminal emulator
+        - FEATURE: Integrate shell and FAT driver from "FAT-filesystem-driver" repo
+        - FEATURE: Implement logging facilities
+        - FEATURE: Implement serial/UART driver
         - FEATURE: Implement timer support
         - FEATURE: Implement support for the CPUID
 
