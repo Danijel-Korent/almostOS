@@ -6,6 +6,7 @@
     TODO NEXT:
         - Add function "event_on_keypress(key)" - a callback for hooking up a processing code
         - Create a scancode-to-ascii conversion table
+        - Try to boot the image on VMware and VirtualBox
 
     TODO LIST:
         - BUG:        Keyboard output is printed on key release instead on key press
@@ -77,21 +78,27 @@ void print_string(int position, unsigned char* string, int string_size)
  *                               Keyboard driver                               *
  *******************************************************************************/
 
-void keyboard_driver_poll(void)
+void event_on_keypress(unsigned char key)
 {
-    static unsigned char previous_scan_code = 0;
     static int i = 800;
 
     if (i > 1200) i = 800;
 
-    unsigned char scan_code = read_byte_from_IO_port(0x60);
+    output_char(i, key + 49 - 2);
+    i++;
+}
 
-    scan_code += 49 - 2;
+
+void keyboard_driver_poll(void)
+{
+    static unsigned char previous_scan_code = 0;
+
+    // TODO: Befor reading output, check the if data is available
+    unsigned char scan_code = read_byte_from_IO_port(0x60);
 
     if ((previous_scan_code != scan_code) && ((scan_code & 0x80) == 0x80))
     {
-        output_char(i, scan_code & ~0x80);
-        i++;
+        event_on_keypress(scan_code & ~0x80);
     }
 
     previous_scan_code = scan_code;
