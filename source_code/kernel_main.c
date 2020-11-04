@@ -9,6 +9,7 @@
 		- Create a scancode-to-ascii conversion table
 
 	TODO LIST:
+        - BUG: 	   Keyboard output is printed on key release instead on key press
 		- TODO:    Create header for equivalent of stdint.h types
 		- FEATURE: Implement polling driver for a keyboard (reading + scancode conversion)
 		- FEATURE: Implement basic terminal emulator
@@ -20,6 +21,7 @@
 
 void output_char(int position, unsigned char ch);
 void print_string(int position, unsigned char* string, int string_size);
+void keyboard_driver_poll(void);
 
 // From startup.asm
 // TODO: move both implementation and declaration into seperate files
@@ -44,24 +46,10 @@ void kernel_c_main( void )
 	output_char(642, test_func(35, 2, 1));
 	output_char(644, test_func(36, 2, 1));
 
-	// Keyboard test code
-	unsigned char previous_scan_code = 0;
-	int i = 800;
+
 	while(1)
 	{
-		if (i > 1200) i = 800;
-
-		unsigned char scan_code = read_byte_from_IO_port(0x60);
-
-		scan_code += 49 - 2;
-
-		if ((previous_scan_code != scan_code) && ((scan_code & 0x80) == 0x80))
-		{
-			output_char(i, scan_code & ~0x80);
-			i++;
-		}
-
-		previous_scan_code = scan_code;
+		keyboard_driver_poll();
 	}
 }
 
@@ -87,6 +75,25 @@ void print_string(int position, unsigned char* string, int string_size)
  *                               Keyboard driver                               *
  *******************************************************************************/
 
+void keyboard_driver_poll(void)
+{
+	static unsigned char previous_scan_code = 0;
+	static int i = 800;
+
+	if (i > 1200) i = 800;
+
+	unsigned char scan_code = read_byte_from_IO_port(0x60);
+
+	scan_code += 49 - 2;
+
+	if ((previous_scan_code != scan_code) && ((scan_code & 0x80) == 0x80))
+	{
+		output_char(i, scan_code & ~0x80);
+		i++;
+	}
+
+	previous_scan_code = scan_code;
+}
 
 
 /*
