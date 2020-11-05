@@ -1,19 +1,23 @@
 
-// This needs to be compiled with -nostdlib since there is not standard lib available
+// This needs to be compiled with -nostdlib since there is no standard lib available
 
 /*
 
     TODO NEXT:
-        - Add function "event_on_keypress(key)" - a callback for hooking up a processing code
-        - Create a scancode-to-ascii conversion table
-        - Try to boot the image on VMware and VirtualBox
+        - Create basic terminal/console functionality
+            - circular text buffer
+            - screen renderer
+            - scrollback
+            - input buffer
+            - cursor handling
+
 
     TODO LIST:
-        - BUG:        Keyboard output is printed on key release instead on key press
+        - BUG:     Keyboard output is printed on key release instead on key press
         - TODO:    Create header for equivalent of stdint.h types
-        - FEATURE: Implement polling driver for a keyboard (reading + scancode conversion)
-        - FEATURE: Implement basic terminal emulator
+        - FEATURE: Implement basic terminal functionality
         - FEATURE: Integrate shell and FAT driver from "FAT-filesystem-driver" repo
+        - FEATURE: Implement multiple terminal support (two terminals on one screen - kernel log + shell)
         - FEATURE: Implement logging facilities
         - FEATURE: Implement serial/UART driver
         - FEATURE: Implement timer support
@@ -56,6 +60,11 @@ void kernel_c_main( void )
     }
 }
 
+
+/*******************************************************************************
+ *                               Output functions                              *
+ *******************************************************************************/
+
 void output_char(int position, unsigned char ch)
 {
     static unsigned char* const VGA_RAM = 0x000B8000;
@@ -74,8 +83,9 @@ void print_string(int position, unsigned char* string, int string_size)
     }
 }
 
+
 /*******************************************************************************
- *                               Keyboard driver                               *
+ *                         Poor man's keyboard driver                          *
  *******************************************************************************/
 
 void event_on_keypress(unsigned char key)
@@ -84,8 +94,30 @@ void event_on_keypress(unsigned char key)
 
     if (i > 1200) i = 800;
 
-    output_char(i, key + 49 - 2);
+    output_char(i, key);
     i++;
+}
+
+
+unsigned char convert_scancode_to_ASCII(unsigned char scan_code)
+{
+
+    // Quick and dirty solution for reading at least letters and numbers
+    // Proper solution will need a lot more code to check/support scan code sets,
+    // support upper/lower cases, control/alt/shift combinations...
+    static unsigned char scancode_to_ASCII_table[128] =
+    {
+        0x3F, 0x3F,  '1',  '2',  '3',  '4',  '5',  '6',  '7',  '8',  '9',  '0',  '-',  '=', '\b', '\t',
+         'q',  'w',  'e',  'r',  't',  'y',  'u',  'i',  'o',  'p',  '[',  ']', '\n', 0x3F,  'a',  's',
+         'd',  'f',  'g',  'h',  'j',  'k',  'l',  ';', 0x27, 0x3F, 0x3F, '\\',  'z',  'x',  'c',  'v',
+         'b',  'n',  'm',  ',',  '.',  '/', 0x3F, 0x3F, 0x3F,  ' ', 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F,
+        0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F,
+        0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F,
+        0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F,
+        0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F,
+    };
+
+    return scancode_to_ASCII_table[scan_code & ~0x80];
 }
 
 
@@ -93,12 +125,13 @@ void keyboard_driver_poll(void)
 {
     static unsigned char previous_scan_code = 0;
 
-    // TODO: Befor reading output, check the if data is available
+    // TODO: Before reading output, check the if data is available
     unsigned char scan_code = read_byte_from_IO_port(0x60);
 
     if ((previous_scan_code != scan_code) && ((scan_code & 0x80) == 0x80))
     {
-        event_on_keypress(scan_code & ~0x80);
+        unsigned char ASCII_code = convert_scancode_to_ASCII(scan_code);
+        event_on_keypress(ASCII_code);
     }
 
     previous_scan_code = scan_code;
@@ -108,7 +141,7 @@ void keyboard_driver_poll(void)
 /*
 
  *******************************************************************************
- *                                 General IO                                  *
+ *                                 General IO                                  *
  *******************************************************************************
 
 Legacy IBM PC:
@@ -118,13 +151,13 @@ Legacy IBM PC:
 
 
  *******************************************************************************
- *                              Memory Mapped IO                               *
+ *                              Memory Mapped IO                               *
  *******************************************************************************
 
 
 
  *******************************************************************************
- *                                 x86 IO bus                                  *
+ *                                 x86 IO bus                                  *
  *******************************************************************************
 
 x86 IO BUS - General technical descriptions:
