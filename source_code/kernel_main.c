@@ -26,9 +26,12 @@
 */
 
 
-void output_char(int position, unsigned char ch);
-void print_string(int position, unsigned char* string, int string_size);
+void output_char_to_VGA_display(int position, unsigned char ch);
+void print_string_to_VGA_display(int position, unsigned char* string, int string_size);
 void keyboard_driver_poll(void);
+
+void terminal__init(void);
+
 
 // From startup.asm
 // TODO: move both implementation and declaration into seperate files
@@ -40,19 +43,20 @@ void kernel_c_main( void )
 {
     for (int i = 400; i < 1000; i++)
     {
-        //output_char(i, 'A'); // Just to see if this function is actually executed
+        //output_char_to_VGA_display(i, 'A'); // Just to see if this function is actually executed
     }
 
     unsigned char hello_msg[] = "Hello from C code!";
 
-    print_string(400, hello_msg, sizeof(hello_msg)-1);
+    print_string_to_VGA_display(400, hello_msg, sizeof(hello_msg)-1);
 
     //int test = test_func(34, 2);
 
-    output_char(640, test_func(34, 2, 1));
-    output_char(642, test_func(35, 2, 1));
-    output_char(644, test_func(36, 2, 1));
+    //output_char_to_VGA_display(640, test_func(34, 2, 1));
+    //output_char_to_VGA_display(642, test_func(35, 2, 1));
+    //output_char_to_VGA_display(644, test_func(36, 2, 1));
 
+    terminal__init();
 
     while(1)
     {
@@ -62,10 +66,38 @@ void kernel_c_main( void )
 
 
 /*******************************************************************************
+ *                              Terminal functions                             *
+ *******************************************************************************/
+
+void terminal__init(void)
+{
+    // Place terminal from line 15 to 23
+
+    // Text mode width: 80 chars
+}
+
+//void terminal__poll() // Is this needed? Probably all events will happen on keypress
+
+void terminal__on_keypress(unsigned char key)
+{
+    // Process the keypress event
+
+    // Update the screen
+    terminal__render_to_VGA_display();
+}
+
+// TODO: will be local/static functionvoid
+void terminal__render_to_VGA_display(void)
+{
+
+}
+
+
+/*******************************************************************************
  *                               Output functions                              *
  *******************************************************************************/
 
-void output_char(int position, unsigned char ch)
+void output_char_to_VGA_display(int position, unsigned char ch)
 {
     static unsigned char* const VGA_RAM = 0x000B8000;
 
@@ -75,11 +107,11 @@ void output_char(int position, unsigned char ch)
     VGA_RAM[position+1] = 0x13; // QTODO: hardcoded color - add arguments for foreground and background color
 }
 
-void print_string(int position, unsigned char* string, int string_size)
+void print_string_to_VGA_display(int position, unsigned char* string, int string_size)
 {
     for( int i = 0; i < string_size; i++)
     {
-        output_char(position + i, string[i]);
+        output_char_to_VGA_display(position + i, string[i]);
     }
 }
 
@@ -90,11 +122,11 @@ void print_string(int position, unsigned char* string, int string_size)
 
 void event_on_keypress(unsigned char key)
 {
-    static int i = 800;
+    static int i = 640;
 
-    if (i > 1200) i = 800;
+    if (i >= 640+400) i = 640; // Display it from line 8 to line 13
 
-    output_char(i, key);
+    output_char_to_VGA_display(i, key);
     i++;
 }
 
@@ -214,5 +246,14 @@ PORT LIST:
 
     http://bochs.sourceforge.net/techspec/PORTS.LST
     http://www.cs.cmu.edu/~ralf/files.html (PartD -> port.a, port.b, port.c)
+
+ *******************************************************************************
+ *                                   RANDOM                                    *
+ *******************************************************************************
+
+Terminal escape code:
+    - https://en.wikipedia.org/wiki/ANSI_escape_code ANSI X3.64 (ISO 6429)
+    - http://ascii-table.com/ansi-escape-sequences-vt-100.php
+
 
 */
