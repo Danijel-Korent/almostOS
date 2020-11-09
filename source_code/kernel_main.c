@@ -275,6 +275,10 @@ PORT LIST:
  *                                   RANDOM                                    *
  *******************************************************************************
 
+VESA VBE:
+    - http://www.13thmonkey.org/documentation/Graphics/vbe3.pdf
+    - http://www.neuraldk.org/cgi-bin/document.pl?djgppGraphics
+
 Terminal escape code:
     - https://en.wikipedia.org/wiki/ANSI_escape_code ANSI X3.64 (ISO 6429)
     - http://ascii-table.com/ansi-escape-sequences-vt-100.php
