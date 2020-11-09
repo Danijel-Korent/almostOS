@@ -4,12 +4,7 @@
 /*
 
     TODO NEXT:
-        - Create basic terminal/console functionality
-            - circular text buffer
-            - screen renderer
-            - scrollback
-            - input buffer
-            - cursor handling
+        - implement terminal__output_string()
 
 
     TODO LIST:
@@ -26,7 +21,7 @@
 */
 
 
-void output_char_to_VGA_display(int position, unsigned char ch);
+void output_char_to_VGA_display(unsigned int position, unsigned char ch);
 void print_string_to_VGA_display(int position, unsigned char* string, int string_size);
 void keyboard_driver_poll(void);
 
@@ -58,6 +53,8 @@ void kernel_c_main( void )
 
     terminal__init();
 
+    terminal__output_string("Test1\nTest2Test3");
+
     while(1)
     {
         keyboard_driver_poll();
@@ -69,8 +66,19 @@ void kernel_c_main( void )
  *                              Terminal functions                             *
  *******************************************************************************/
 
+// QTODO: replace hardcoded numbers with defines
+static unsigned char terminal__text_buffer[50][80];
+
+static unsigned int  terminal__window_start  = 15;
+static unsigned int  terminal__window_length = 8;
+
+static unsigned int  terminal__window_current_line  = 0;
+
+
 void terminal__init(void)
 {
+    terminal__text_buffer[0][0] = 'T';
+
     // Place terminal from line 15 to 23
 
     // Text mode width: 80 chars
@@ -89,15 +97,29 @@ void terminal__on_keypress(unsigned char key)
 // TODO: will be local/static functionvoid
 void terminal__render_to_VGA_display(void)
 {
+    // TODO: rename x and y to row and column
+    for (int line = 0; line < terminal__window_length; line++)
+    {
+        for (int column = 0; column < 80; column++)
+        {
+            unsigned char output_char = terminal__text_buffer[line][column];
+            unsigned int  output_position = (line*80) + column + (terminal__window_start*80);
 
+            output_char_to_VGA_display(output_position, output_char);
+        }
+    }
 }
 
+void terminal__output_string(unsigned char *string)
+{
+
+}
 
 /*******************************************************************************
  *                               Output functions                              *
  *******************************************************************************/
 
-void output_char_to_VGA_display(int position, unsigned char ch)
+void output_char_to_VGA_display(unsigned int position, unsigned char ch)
 {
     static unsigned char* const VGA_RAM = 0x000B8000;
 
@@ -128,6 +150,8 @@ void event_on_keypress(unsigned char key)
 
     output_char_to_VGA_display(i, key);
     i++;
+
+    terminal__on_keypress(key);
 }
 
 
