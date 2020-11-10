@@ -100,14 +100,14 @@ start_kernel:
     jmp .loop ;infinite loop
 
 
-; *** x86 INSTUCTION WRAPPER FUNCTIONS ***
+; *** x86 INSTRUCTION WRAPPER FUNCTIONS ***
 
 ; By 'cdecl' calling convention, all arguments of a function are pushed onto the stack,
 ; and return value from a function is passed by EAX register. Arguments are pushed to the stack
 ; in left-to-right order, so first argument is pushed last on the stack and therefor closest to the stack pointer.
 ; Registers EAX, ECX, and EDX are caller-saved, and the rest are callee-saved.
 ;
-; x86 stack grows towards lower address, so first argument (last on stack) have lowest address and last arg highest address.
+; x86 stack grows towards lower addresses, so first argument (last on stack) have lowest address and last arg highest address.
 test_func:
     mov eax, [ESP+4]
     mov ecx, [ESP+8]

@@ -4,7 +4,6 @@
 /*
 
     TODO NEXT:
-        - Implement terminal window "following" last outputed line instead of being fixed on first 8 lines
         - Implement input buffer
             - keypresses goes into input buffer
             - delete key deletes a char from buffer
@@ -65,9 +64,9 @@ void kernel_c_main( void )
     terminal__output_string("Test2");
     terminal__output_string("Test3");
     terminal__output_string("\n\n");
-    terminal__output_string("Test11\nTest22\nTest33\n");
-    terminal__output_string("Test44\nTest55\nTest66\n");
-    terminal__output_string("Test77\nTest88\nTest99\n");
+    //terminal__output_string("Test11\nTest22\nTest33\n");
+    //terminal__output_string("Test44\nTest55\nTest66\n");
+    //terminal__output_string("Test77\nTest88\nTest99\n");
 
 
     while(1)
@@ -85,6 +84,7 @@ void kernel_c_main( void )
 //       to have multiple active terminals simultaneously
 // QTODO: replace hardcoded numbers with defines
 static unsigned char terminal__textbuffer[50*80];
+//static unsigned int  terminal__textbuffer_start = 0;
 static unsigned int  terminal__textbuffer_end = 0;
 
 
@@ -117,14 +117,29 @@ void terminal__on_keypress(unsigned char key)
 // TODO: will be local/static functionvoid
 void terminal__render_to_VGA_display(void)
 {
+    unsigned char output_starting_line = 0;
+
+    // Calculate the starting line for outputing from the textbuffer if there is more text
+    // than the size of the terminal window
+    // TODO: And this is now offically a spaghetti code - but will be fixed when textbuffer
+    // is seperated into its own class
+    {
+        if (terminal__textbuffer_end >= terminal__window_length*80) // QTODO: hardcoded 80
+        {
+            int num_of_lines = terminal__textbuffer_end / 80 + 1;
+
+            output_starting_line = num_of_lines - terminal__window_length;
+        }
+    }
+
     // TODO: Replace hardcoded '80'
     for (int line = 0; line < terminal__window_length; line++)
     {
         for (int column = 0; column < 80; column++)
         {
-            // QTODO: ugly, make it nicer
-            unsigned char output_char = terminal__textbuffer[line*80+column];
-            unsigned int  output_position = (line*80) + column + (terminal__window_start*80);
+            // QTODO: sooooo ugly, make it nicer!
+            unsigned char output_char = terminal__textbuffer[(line+output_starting_line)*80+column];
+            unsigned int  output_position = (line*80) + column + (terminal__window_start*80); // QTODO: hardcoded 80
 
             output_char_to_VGA_display(output_position, output_char);
         }
@@ -143,6 +158,9 @@ void terminal__output_string(unsigned char *string)
         if (char_to_output == '\n')
         {
             unsigned int current_column = terminal__textbuffer_end % 80; // TODO: Replace hardcoded literal
+
+            // QTODO BUG: Space between current_column and the new line must be cleared with whitespaces,
+            //            otherwise old data will be showed when this buffer will be circular
 
             terminal__textbuffer_end += 80 - current_column; // TODO: Replace hardcoded literal
         }
@@ -194,6 +212,18 @@ void event_on_keypress(unsigned char key)
         i++;
     }
 
+    // Temporary test code
+    {
+        if (key > '0' && key < '6')
+        {
+            unsigned char number_string[2] = {key, 0};
+
+            terminal__output_string("New terminal test string ");
+            terminal__output_string(number_string);
+            terminal__output_string("\n");
+        }
+    }
+
     terminal__on_keypress(key);
 }
 
@@ -224,7 +254,7 @@ void keyboard_driver_poll(void)
 {
     static unsigned char previous_scan_code = 0;
 
-    // TODO: Before reading output, check the if data is available
+    // TODO: Before reading output, check if any data is actually pending
     unsigned char scan_code = read_byte_from_IO_port(0x60);
 
     if ((previous_scan_code != scan_code) && ((scan_code & 0x80) == 0x80))
