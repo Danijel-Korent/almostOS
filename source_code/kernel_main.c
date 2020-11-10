@@ -4,7 +4,14 @@
 /*
 
     TODO NEXT:
-        - implement terminal__output_string()
+        - Implement terminal window "following" last outputed line instead of being fixed on first 8 lines
+        - Implement input buffer
+            - keypresses goes into input buffer
+            - delete key deletes a char from buffer
+            - input buffer is rendered after texbuffer content
+        - Implement checks for buffer overflow
+        - Make textbuffer circular
+        - Move textbuffer into seperate class
 
 
     TODO LIST:
@@ -20,6 +27,7 @@
 
 */
 
+#define NULL (0) //TODO: Move this into seperate header (with stdint types?)
 
 void output_char_to_VGA_display(unsigned int position, unsigned char ch);
 void print_string_to_VGA_display(int position, unsigned char* string, int string_size);
@@ -53,7 +61,14 @@ void kernel_c_main( void )
 
     terminal__init();
 
-    terminal__output_string("Test1\nTest2Test3");
+    terminal__output_string("Test1 ");
+    terminal__output_string("Test2");
+    terminal__output_string("Test3");
+    terminal__output_string("\n\n");
+    terminal__output_string("Test11\nTest22\nTest33\n");
+    terminal__output_string("Test44\nTest55\nTest66\n");
+    terminal__output_string("Test77\nTest88\nTest99\n");
+
 
     while(1)
     {
@@ -66,18 +81,23 @@ void kernel_c_main( void )
  *                              Terminal functions                             *
  *******************************************************************************/
 
+// TODO: All this data will be part of a structure/handler
+//       to have multiple active terminals simultaneously
 // QTODO: replace hardcoded numbers with defines
-static unsigned char terminal__text_buffer[50][80];
+static unsigned char terminal__textbuffer[50*80];
+static unsigned int  terminal__textbuffer_end = 0;
+
 
 static unsigned int  terminal__window_start  = 15;
 static unsigned int  terminal__window_length = 8;
 
-static unsigned int  terminal__window_current_line  = 0;
-
 
 void terminal__init(void)
 {
-    terminal__text_buffer[0][0] = 'T';
+    terminal__textbuffer[0] = 'T';
+    terminal__textbuffer[80] = 'E';
+    terminal__textbuffer[160] = 'S';
+    terminal__textbuffer[240] = 'T';
 
     // Place terminal from line 15 to 23
 
@@ -97,12 +117,13 @@ void terminal__on_keypress(unsigned char key)
 // TODO: will be local/static functionvoid
 void terminal__render_to_VGA_display(void)
 {
-    // TODO: rename x and y to row and column
+    // TODO: Replace hardcoded '80'
     for (int line = 0; line < terminal__window_length; line++)
     {
         for (int column = 0; column < 80; column++)
         {
-            unsigned char output_char = terminal__text_buffer[line][column];
+            // QTODO: ugly, make it nicer
+            unsigned char output_char = terminal__textbuffer[line*80+column];
             unsigned int  output_position = (line*80) + column + (terminal__window_start*80);
 
             output_char_to_VGA_display(output_position, output_char);
@@ -112,7 +133,26 @@ void terminal__render_to_VGA_display(void)
 
 void terminal__output_string(unsigned char *string)
 {
+    if (string == NULL) return; // TODO: log error
 
+    while (*string != 0)
+    {
+        unsigned char char_to_output = *string;
+
+        // if char == '\' go to next line
+        if (char_to_output == '\n')
+        {
+            unsigned int current_column = terminal__textbuffer_end % 80; // TODO: Replace hardcoded literal
+
+            terminal__textbuffer_end += 80 - current_column; // TODO: Replace hardcoded literal
+        }
+        else
+        {
+            terminal__textbuffer[terminal__textbuffer_end++] = char_to_output;
+        }
+
+        string++;
+    }
 }
 
 /*******************************************************************************
@@ -144,12 +184,15 @@ void print_string_to_VGA_display(int position, unsigned char* string, int string
 
 void event_on_keypress(unsigned char key)
 {
-    static int i = 640;
+    // Temporary test code
+    {
+        static int i = 640;
 
-    if (i >= 640+400) i = 640; // Display it from line 8 to line 13
+        if (i >= 640+400) i = 640; // Display it from line 8 to line 13
 
-    output_char_to_VGA_display(i, key);
-    i++;
+        output_char_to_VGA_display(i, key);
+        i++;
+    }
 
     terminal__on_keypress(key);
 }
