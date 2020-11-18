@@ -133,6 +133,10 @@ Terminal escape code:
 
 #define NULL ((void*)0) //TODO: Move this into seperate header (with stdint types?)
 
+#define bool  unsigned int
+#define false (0)
+#define true  (1)
+
 
 /*******************************************************************************
  *                                    STUBS                                    *
@@ -173,7 +177,7 @@ void terminal__init(void);
 void terminal__print_string(unsigned char *string);
 void terminal__render_to_VGA_display(void);
 
-int run_textbox_unittests(void);
+bool run_textbox_unittests(void);
 
 // Functions implemented startup.asm
 // TODO: move both implementation and declaration into seperate files
@@ -206,11 +210,11 @@ void kernel_c_main( void )
     terminal__print_string("\nTextbuffer unittests: ");
     if (run_textbox_unittests())
     {
-        terminal__print_string("PASSED");
+        terminal__print_string("PASSED\n");
     }
     else
     {
-        terminal__print_string("FAILED");
+        terminal__print_string("FAILED\n");
     }
 
     while(1)
@@ -576,11 +580,11 @@ void output_textbuffer_to_memory(textbuffer_handle_t* const handle, unsigned cha
     *received_data_size = memory_iterator - memory;
 }
 
-int check_test_case(textbuffer_handle_t* const handle, const unsigned char* const expected_result, int expected_result_size)
+bool check_test_case(textbuffer_handle_t* const handle, const unsigned char* const expected_result, int expected_result_size)
 {
     if (handle == NULL || expected_result == NULL) return 0; //QTODO: Log an error
 
-    int test_case_passed = 1;
+    bool test_case_passed = true;
 
     unsigned char receive_buffer[TEXTBUFFER_NO_LINES * TERMINAL_WIDTH] = {0};
     int received_data_size = 0;
@@ -591,7 +595,7 @@ int check_test_case(textbuffer_handle_t* const handle, const unsigned char* cons
 
     if (! memory_is_equal(receive_buffer, received_data_size, expected_result, expected_result_size))
     {
-        test_case_passed = 0;
+        test_case_passed = false;
     }
 
     if (test_case_passed)
@@ -659,11 +663,11 @@ int get_string_size(const unsigned char* const buffer_ptr, int buffer_size)
 // TODO:
 //      Test are flexible to changes to TEXTBUFFER_NO_LINES, but with is fixed to 80.
 //      Not sure if it worth make it flexible since that would make test cases very hard to read
-int run_textbox_unittests(void)
+bool run_textbox_unittests(void)
 {
     puts("\n\n !! Running Unittests !!");
 
-    int all_unittest_passed = 1;
+    bool all_unittest_passed = true;
 
     textbuffer_handle_t test_handle;
 
@@ -677,7 +681,7 @@ int run_textbox_unittests(void)
 
         if( ! check_test_case(&test_handle, expected_result, sizeof(expected_result) - 1)) // -1 to exclude null terminator
         {
-            all_unittest_passed = 0;
+            all_unittest_passed = false;
         }
     }
 
@@ -691,7 +695,7 @@ int run_textbox_unittests(void)
 
         if( ! check_test_case(&test_handle, expected_result, sizeof(expected_result) - 1)) // -1 to exclude null terminator
         {
-            all_unittest_passed = 0;
+            all_unittest_passed = false;
         }
     }
 
@@ -705,7 +709,7 @@ int run_textbox_unittests(void)
 
         if( ! check_test_case(&test_handle, expected_result, sizeof(expected_result) - 1)) // -1 to exclude null terminator
         {
-            all_unittest_passed = 0;
+            all_unittest_passed = false;
         }
     }
 
@@ -720,7 +724,7 @@ int run_textbox_unittests(void)
 
         if( ! check_test_case(&test_handle, expected_result, sizeof(expected_result) - 1)) // -1 to exclude null terminator
         {
-            all_unittest_passed = 0;
+            all_unittest_passed = false;
         }
     }
 
@@ -735,7 +739,7 @@ int run_textbox_unittests(void)
 
         if( ! check_test_case(&test_handle, expected_result, sizeof(expected_result) - 1)) // -1 to exclude null terminator
         {
-            all_unittest_passed = 0;
+            all_unittest_passed = false;
         }
     }
 
@@ -766,7 +770,7 @@ int run_textbox_unittests(void)
 
         if( ! check_test_case(&test_handle, expected_result, sizeof(expected_result) - 1)) // -1 to exclude null terminator
         {
-            all_unittest_passed = 0;
+            all_unittest_passed = false;
         }
     }
 
@@ -794,7 +798,7 @@ int run_textbox_unittests(void)
 
         if( ! check_test_case(&test_handle, expected_result, get_string_size(expected_result, sizeof(expected_result))))
         {
-            all_unittest_passed = 0;
+            all_unittest_passed = false;
         }
     }
 
@@ -825,7 +829,7 @@ int run_textbox_unittests(void)
 
         if( ! check_test_case(&test_handle, expected_result, get_string_size(expected_result, sizeof(expected_result))))
         {
-            all_unittest_passed = 0;
+            all_unittest_passed = false;
         }
     }
 
