@@ -1,0 +1,5 @@
+    default=0
+    timeout=0
+
+    title AlmostOS
+    kernel /boot/AlmostOS_kernel.elf

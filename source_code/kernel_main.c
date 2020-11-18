@@ -1,5 +1,5 @@
 
-// This needs to be compiled with -nostdlib since there is no standard lib available
+// This needs to be compiled with -nostartfiles and -nostdlib since standard lib is not available
 
 /*
 
