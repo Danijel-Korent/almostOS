@@ -240,6 +240,8 @@ typedef int textbuffer_iterator_t;
 
 void textbuffer__add_char(textbuffer_handle_t* const handle, unsigned char character_to_add);
 
+
+
 void textbuffer__init(textbuffer_handle_t* const handle)
 {
     if (handle == NULL)
@@ -349,6 +351,25 @@ void textbuffer__add_char(textbuffer_handle_t* const handle, unsigned char chara
 
         textbuffer__increment_iterators_on_bytewrite(handle);
     }
+}
+
+void textbuffer__add_string(textbuffer_handle_t *handle, const unsigned char* const string)
+{
+    if (handle == NULL || string == NULL) return; //QTODO: Log an error
+
+    //puts("\nAdding string: ");
+
+    const unsigned char *string_itr = string;
+
+    while (*string_itr != 0)
+    {
+        //if (*string_itr == '\n') putchar('*');
+        //else putchar(*string_itr);
+
+        textbuffer__add_char(handle, *string_itr++);
+    }
+
+    //print_handle(handle);
 }
 
 unsigned int textbuffer__get_line_cout(textbuffer_handle_t* const handle)
@@ -507,25 +528,6 @@ void print_buffer(const unsigned char* const buffer, int buffer_size)
     }
 }
 
-void add_string(textbuffer_handle_t *handle, const unsigned char* const string)
-{
-    if (handle == NULL || string == NULL) return; //QTODO: Log an error
-
-    puts("\nAdding string: ");
-
-    const unsigned char *string_itr = string;
-
-    while (*string_itr != 0)
-    {
-        if (*string_itr == '\n') putchar('*');
-        else putchar(*string_itr);
-
-        textbuffer__add_char(handle, *string_itr++);
-    }
-
-    print_handle(handle);
-}
-
 // QTODO: add bool type as int. Add 0 as flase, 1 true
 int memory_is_equal(const unsigned char* const mem1, int mem1_size, const unsigned char* const mem2, int mem2_size)
 {
@@ -669,7 +671,7 @@ int run_textbox_unittests(void)
 
     // Test adding text
     {
-        add_string(&test_handle, "X");
+        textbuffer__add_string(&test_handle, "X");
 
         unsigned char expected_result[] = "X";
 
@@ -680,8 +682,8 @@ int run_textbox_unittests(void)
     }
 
     {
-        add_string(&test_handle,  "000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000");
-        add_string(&test_handle, "1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111");
+        textbuffer__add_string(&test_handle,  "000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000");
+        textbuffer__add_string(&test_handle, "1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111");
 
         unsigned char expected_result[] = "X000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000"
                                           "1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111"
@@ -694,7 +696,7 @@ int run_textbox_unittests(void)
     }
 
     {
-        add_string(&test_handle, "2");
+        textbuffer__add_string(&test_handle, "2");
 
         unsigned char expected_result[] = "X000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000"
                                           "1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111"
@@ -709,7 +711,7 @@ int run_textbox_unittests(void)
 
     // Test new line handling
     {
-        add_string(&test_handle, "2\n");
+        textbuffer__add_string(&test_handle, "2\n");
 
         unsigned char expected_result[] = "X000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000"
                                           "1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111"
@@ -724,7 +726,7 @@ int run_textbox_unittests(void)
 
     // Test that new line at end of line are ignored
     {
-        add_string(&test_handle, "\n\n\n");
+        textbuffer__add_string(&test_handle, "\n\n\n");
 
         unsigned char expected_result[] = "X000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000"
                                           "1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111"
@@ -744,7 +746,7 @@ int run_textbox_unittests(void)
         // Fill the textbuffer
         for (int i = 0; i < lines_to_fill_whole_buffer; i++)
         {
-            add_string(&test_handle, "AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA");
+            textbuffer__add_string(&test_handle, "AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA");
         }
 
         // Construct the expected answer
@@ -771,7 +773,7 @@ int run_textbox_unittests(void)
 
     // Test wrap-around
     {
-        add_string(&test_handle, "3");
+        textbuffer__add_string(&test_handle, "3");
 
         // Construct the expected answer
         unsigned char expected_result[TEXTBUFFER_NO_LINES * TERMINAL_WIDTH +1] =
@@ -801,7 +803,7 @@ int run_textbox_unittests(void)
         char string_to_add[] = "BBBBBBBBBB""BBBBBBBBBB""BBBBBBBBBB""BBBBBBBBBB""BBBBBBBBBB""BBBBBBBBBB""BBBBBBBBBB""BBBBBBBBBB"
                                "BB"
                                ;
-        add_string(&test_handle, string_to_add);
+        textbuffer__add_string(&test_handle, string_to_add);
 
 
         // Construct the expected answer
