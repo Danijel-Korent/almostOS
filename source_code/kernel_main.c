@@ -4,6 +4,8 @@
 /*
 
     TODO NEXT:
+        - Integrate textbuffer into terminal
+        - Reorganize terminal code into class
         - Implement input buffer
             - keypresses goes into input buffer
             - delete key deletes a char from buffer
@@ -19,6 +21,7 @@
         - FEATURE: Integrate shell and FAT driver from "FAT-filesystem-driver" repo
         - FEATURE: Implement multiple terminal support (two terminals on one screen - kernel log + shell)
         - FEATURE: Implement logging facilities
+        - FEATURE: Implement bucket heap allocator
         - FEATURE: Implement serial/UART driver
         - FEATURE: Implement timer support
         - FEATURE: Implement support for the CPUID
@@ -862,6 +865,7 @@ void terminal__init(void)
     terminal__textbuffer[240] = 'T';
 #endif
 
+    terminal__print_string("Terminal initialized"); // lol
     // Place terminal from line 15 to 23
 
     // Text mode width: 80 chars
@@ -983,6 +987,7 @@ void print_string_to_VGA_display_buffer(int position, unsigned char* string, int
 void event_on_keypress(unsigned char key)
 {
     // Temporary test code
+#if 0
     {
         static int i = 640;
 
@@ -991,6 +996,7 @@ void event_on_keypress(unsigned char key)
         print_char_to_VGA_display_buffer(i, key);
         i++;
     }
+#endif
 
     // Temporary test code
     {
