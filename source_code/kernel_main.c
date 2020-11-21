@@ -4,7 +4,9 @@
 /*
 
     TODO NEXT:
+        - Use pool allocator to implement binned heap allocator
         - Integrate textbuffer into terminal
+
         - Reorganize terminal code into class
         - Implement input buffer
             - keypresses goes into input buffer
@@ -17,6 +19,7 @@
     TODO LIST:
         - BUG:     Keyboard output is printed on key release instead on key press
         - TODO:    Create header for equivalent of stdint.h types
+        - TODO:    Split kernel_main.c into multiple files
         - FEATURE: Implement basic terminal functionality
         - FEATURE: Integrate shell and FAT driver from "FAT-filesystem-driver" repo
         - FEATURE: Implement multiple terminal support (two terminals on one screen - kernel log + shell)
@@ -137,30 +140,8 @@ Terminal escape code:
 #define NULL ((void*)0) //TODO: Move this into seperate header (with stdint types?)
 
 #define bool  unsigned int
-#define false (0)
+#define false (0) // Only zero is "false" in C, everything else is "true"
 #define true  (1)
-
-
-/*******************************************************************************
- *                                    STUBS                                    *
- *******************************************************************************/
-
-// These functions are not available yet
-
-int puts(const char *string)
-{
-    return 0;
-}
-
-int putchar ( int character )
-{
-    return 0;
-}
-
-int printf ( const char * format, ... )
-{
-    return 0;
-}
 
 
 /*******************************************************************************
@@ -180,12 +161,50 @@ void terminal__init(void);
 void terminal__print_string(unsigned char *string);
 void terminal__render_to_VGA_display(void);
 
+// Not really a heap allocator but a pool allocator, but will be turned into heap
+void* heap_malloc(int size);
+void heap_free(void* pointer);
+
 bool run_textbox_unittests(void);
+int run_unittests_stack(void);
+int run_unittests_heap_allocator(void);
 
 // Functions implemented startup.asm
 // TODO: move both implementation and declaration into seperate files
 int test_func(int base, int multiplier, int adder);
 unsigned char read_byte_from_IO_port( unsigned short port_address);
+
+
+/*******************************************************************************
+ *                                    STUBS                                    *
+ *******************************************************************************/
+
+void* malloc(int size)
+{
+    return heap_malloc(size);
+}
+
+void free(void* pointer)
+{
+    heap_free(pointer);
+}
+
+
+// These functions are not available yet
+int puts(const char *string)
+{
+    return 0;
+}
+
+int putchar ( int character )
+{
+    return 0;
+}
+
+int printf ( const char * format, ... )
+{
+    return 0;
+}
 
 
 /*******************************************************************************
@@ -210,6 +229,28 @@ void kernel_c_main( void )
     //terminal__print_string("Test44\nTest55\nTest66\n");
     //terminal__print_string("Test77\nTest88\nTest99\n");
 
+
+    // QTODO: this repeating code needs a function of its own
+    terminal__print_string("\nStack unittests: ");
+    if (run_unittests_stack() == 0)
+    {
+        terminal__print_string("PASSED");
+    }
+    else
+    {
+        terminal__print_string("FAILED");
+    }
+
+    terminal__print_string("\nMemory allocator unittests: ");
+    if (run_unittests_heap_allocator() == 0)
+    {
+        terminal__print_string("PASSED");
+    }
+    else
+    {
+        terminal__print_string("FAILED");
+    }
+
     terminal__print_string("\nTextbuffer unittests: ");
     if (run_textbox_unittests())
     {
@@ -226,6 +267,368 @@ void kernel_c_main( void )
     }
 }
 
+
+/*******************************************************************************
+ *                     stack declarations and definitions                      *
+ *******************************************************************************/
+
+typedef struct stack_handle_tag
+{
+    //int element_size; // Not used because implementation is harcoded to 1byte values
+    int buffer_size;
+    unsigned char* buffer_start;
+    unsigned char* stack_pointer;
+} stack_handle_t;
+
+bool stack_init(stack_handle_t* const handle, unsigned char* const buffer, unsigned int buffer_size);
+bool stack_push(stack_handle_t* const handle, unsigned char value);
+bool stack_pop(stack_handle_t* const handle, unsigned char* const value);
+
+
+/*******************************************************************************
+ *                            Binned heap allocator                            *
+ *  *actually currently just a pool memory allocator, but we will get there :3 *
+ *******************************************************************************/
+
+struct heap_bin_contex
+{
+    int block_size;
+    int block_count;
+    int buffer_size;
+    unsigned char* buffer_start;
+    stack_handle_t* free_blocks_stack;
+};
+
+static struct heap_bin_contex heap_bin;
+
+#define BIN_BLOCK_COUNT    (3)
+#define BIN_BLOCK_SIZE     (128)
+#define BIN_RED_ZONE_SIZE  (32)
+
+bool init_heap_memory_allocator(void)
+{
+    // Setup the buffer for heap storage
+    {
+        static unsigned char heap_buffer[BIN_BLOCK_COUNT*(BIN_BLOCK_SIZE+BIN_RED_ZONE_SIZE)];
+
+        heap_bin.block_count = BIN_BLOCK_COUNT;
+        heap_bin.block_size  = BIN_BLOCK_SIZE;
+
+        heap_bin.buffer_start = heap_buffer;
+        heap_bin.buffer_size  = sizeof(heap_buffer);
+
+        if (heap_bin.block_count * (heap_bin.block_size + BIN_RED_ZONE_SIZE) > heap_bin.buffer_size)
+        {
+            return false;
+        }
+    }
+
+    // Setup the stack for free blocks
+    {
+        static stack_handle_t free_blocks_stack;
+        static unsigned char stack_buffer[BIN_BLOCK_COUNT];
+
+        if ( ! stack_init(&free_blocks_stack, stack_buffer, sizeof(stack_buffer)))
+        {
+            return false;
+        }
+
+        // Populate free blocks list
+        for (int i = 0; i < BIN_BLOCK_COUNT; i++)
+        {
+            if ( ! stack_push(&free_blocks_stack, i))
+            {
+                return false;
+            }
+        }
+
+        heap_bin.free_blocks_stack = &free_blocks_stack;
+    }
+
+    return true;
+}
+
+void* heap_malloc(int size)
+{
+    if (size == 0) return NULL; // QTODO: Log an error
+
+    if (size > heap_bin.block_size)
+    {
+        return NULL; // QTODO: Log an error
+    }
+
+    unsigned char index = 0;
+    void* calculated_address = NULL;
+
+    if (stack_pop(heap_bin.free_blocks_stack, &index))
+    {
+        if (index >= heap_bin.block_count)
+        {
+            // QTODO: Log an error
+        }
+        else
+        {
+            unsigned int offset = index * (heap_bin.block_size + BIN_RED_ZONE_SIZE);
+
+            calculated_address = (void*)(heap_bin.buffer_start + offset);
+        }
+    }
+
+    return calculated_address;
+}
+
+void heap_free(void* pointer)
+{
+    if (pointer == NULL) return; // QTODO: Log an error
+
+    unsigned char index = 0;
+    unsigned int offset = 0;
+
+    offset = (unsigned char*)pointer - heap_bin.buffer_start;
+
+    index = offset / (heap_bin.block_size + BIN_RED_ZONE_SIZE);
+
+    if ( ! stack_push(heap_bin.free_blocks_stack, index))
+    {
+        // Log an error
+    }
+}
+
+int run_unittests_heap_allocator(void)
+{
+    int failed_test_counter = 0;
+
+    if (init_heap_memory_allocator())
+    {
+        // Must store all allocated addresses for freeing later
+        // -1 because buffer filled with 0xFF will be stored in separate var
+        void* returned_addresses[BIN_BLOCK_COUNT -1] = {0};
+
+        unsigned char* buffer_with_pattern_0xff = NULL;
+
+        // For this implementation this should not corrupt allocator
+        heap_free(NULL);
+
+        // Test for size limitation
+        if (heap_malloc(BIN_BLOCK_SIZE + 1) != NULL)
+        {
+            failed_test_counter++;
+        }
+
+        // Allocate first block and fill it with 0xFF pattern
+        // TODO: move this allocation between two other allocations
+        {
+            buffer_with_pattern_0xff = heap_malloc(BIN_BLOCK_SIZE);
+
+            if (buffer_with_pattern_0xff == NULL)
+            {
+                failed_test_counter++;
+            }
+
+            for (int i = 0; i < BIN_BLOCK_SIZE; i++)
+            {
+                buffer_with_pattern_0xff[i] = 0xff;
+            }
+        }
+
+        // Allocate all the rest of available blocks and color them with 0x11
+        {
+            for (int x = 0; x < BIN_BLOCK_COUNT -1; x++)
+            {
+                unsigned char* buffer = heap_malloc(BIN_BLOCK_SIZE);
+
+                if (buffer != NULL)
+                {
+                    for (int i = 0; i < BIN_BLOCK_SIZE; i++)
+                    {
+                        buffer[i] = 0x11;
+                    }
+                }
+                else
+                {
+                    failed_test_counter++;
+                }
+
+                returned_addresses[x] = buffer;
+            }
+        }
+
+        // All blocks are allocated and this malloc should fail
+        {
+            unsigned char* buffer = heap_malloc(BIN_BLOCK_SIZE);
+
+            if (buffer != NULL)
+            {
+                failed_test_counter++;
+            }
+        }
+
+        // Free one block and they try new allocation and fill the memory
+        {
+            void* pointer = returned_addresses[0];
+
+            heap_free(pointer);
+
+            unsigned char* buffer = heap_malloc(5);
+
+            if (buffer == NULL)
+            {
+                failed_test_counter++;
+            }
+
+            returned_addresses[0] = buffer;
+        }
+
+        // Free all memory blocks except the one with 0xFF pattern
+        {
+            for (int i = 0; i<sizeof(returned_addresses); i++)
+            {
+                heap_free(returned_addresses[i]);
+            }
+        }
+
+        // Check that the first allocation still holds the 0xFF pattern
+        {
+            for (int i = 0; i < BIN_BLOCK_SIZE; i++)
+            {
+                if (buffer_with_pattern_0xff[i] != 0xff)
+                {
+                    failed_test_counter++;
+                }
+            }
+
+            heap_free(buffer_with_pattern_0xff);
+        }
+    }
+    else
+    {
+        failed_test_counter++;
+    }
+
+    return failed_test_counter;
+}
+
+/*******************************************************************************
+ *                         simple stack implementation                         *
+ *******************************************************************************/
+
+// Add size parameter and check if buffer is big enough for it??
+bool stack_init(stack_handle_t* const handle, unsigned char* const buffer, unsigned int buffer_size)
+{
+    if (handle == NULL || buffer == NULL || buffer_size == 0) return false; // Log error
+
+    handle->buffer_start = buffer;
+    handle->buffer_size = buffer_size;
+
+    handle->stack_pointer = buffer;
+
+    return true;
+}
+
+bool stack_push(stack_handle_t* const handle, unsigned char value)
+{
+    if (handle == NULL) return false; // Log error
+
+    if (handle->stack_pointer > (handle->buffer_start + handle->buffer_size -1))
+    {
+        return false; // The stack is full
+    }
+
+    *handle->stack_pointer = value;
+     handle->stack_pointer++;
+
+     return true;
+}
+
+bool stack_pop(stack_handle_t* const handle, unsigned char* const value)
+{
+    if (handle == NULL || value == NULL) return false; // Log error
+
+    if (handle->stack_pointer == handle->buffer_start)
+    {
+        return false; // The stack is empty
+    }
+
+    handle->stack_pointer--;
+    *value = *handle->stack_pointer;
+
+    // Clean the garbage that is left behind. Not necessary, but to make potential bugs more predictable/reproducible
+    *handle->stack_pointer = 0;
+
+    return true;
+}
+
+
+int run_unittests_stack(void)
+{
+    int failed_test_counter = 0;
+
+    stack_handle_t handle;
+    static unsigned char buffer[3];
+
+    // TODO: test null pointer arguments
+
+    if (stack_init(&handle, buffer, sizeof(buffer)))
+    {
+        unsigned char returned_val = 0;
+
+        if (stack_pop(&handle, &returned_val))
+        {
+            failed_test_counter++; // Stack is empty and should not return value
+        }
+
+        if ( ! stack_push(&handle, 1))
+        {
+            failed_test_counter++; // Stack is NOT empty and should successfully push the value
+        }
+
+        if ( ! stack_push(&handle, 2))
+        {
+            failed_test_counter++; // Stack is NOT empty and should successfully push the value
+        }
+
+        if ( ! stack_push(&handle, 3))
+        {
+            failed_test_counter++; // Stack is NOT empty and should successfully push the value
+        }
+
+        if (stack_push(&handle, 4))
+        {
+            failed_test_counter++; // Stack is FULL and should fail to push the value
+        }
+
+
+        if ( ! stack_pop(&handle, &returned_val))
+        {
+            failed_test_counter++; // Stack is NOT empty and should return value
+        }
+
+        if (returned_val =! 3) failed_test_counter++; // Wrong value
+
+
+        if ( ! stack_pop(&handle, &returned_val))
+        {
+            failed_test_counter++; // Stack is NOT empty and should return value
+        }
+
+        if (returned_val =! 2) failed_test_counter++; // Wrong value
+
+
+        if ( ! stack_pop(&handle, &returned_val))
+        {
+            failed_test_counter++; // Stack is NOT empty and should return value
+        }
+
+        if (returned_val =! 1) failed_test_counter++; // Wrong value
+
+        if (stack_pop(&handle, &returned_val))
+        {
+            failed_test_counter++; // Stack is empty and should not return value
+        }
+    }
+
+    return failed_test_counter;
+}
 
 /*******************************************************************************
  *                               Textbuffer class                              *
@@ -852,8 +1255,8 @@ static unsigned char terminal__textbuffer[50*80];
 static unsigned int  terminal__textbuffer_end = 0;
 
 
-static unsigned int  terminal__window_start  = 15;
-static unsigned int  terminal__window_length = 8;
+static unsigned int  terminal__window_start  =  8;
+static unsigned int  terminal__window_length = 15;
 
 
 void terminal__init(void)
