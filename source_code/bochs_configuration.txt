@@ -1,12 +1,18 @@
+
+    # System settings
     megs:            32
     display_library: sdl2
-    romimage:        file=/usr/share/bochs/BIOS-bochs-legacy
-    vgaromimage:     file=/usr/share/bochs/VGABIOS-lgpl-latest
-    ata0-master:     type=cdrom, path=AlmostOS.iso, status=inserted
-    boot:            cdrom
     log:             bochslog.txt
     clock:           sync=realtime, time0=local
     cpu:             count=1, ips=1000000
+
+    # BIOS and VGA ROMs
+    romimage:        file=/usr/share/bochs/BIOS-bochs-legacy
+    vgaromimage:     file=/usr/share/bochs/VGABIOS-lgpl-latest
+
+    # OS image settings
+    ata0-master:     type=cdrom, path=AlmostOS.iso, status=inserted
+    boot:            cdrom
 
 
 # NOTES ON BOCHS BIOS:
