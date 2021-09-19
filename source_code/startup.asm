@@ -61,7 +61,7 @@ section .bss  ; standard name of the C memory segment for uninitialized data
 
 section .text ; standard name of the C memory segment for code
 
-    ; per multiboot specification. Without this GRUB will not recognite this binary image as bootable
+    ; per multiboot specification. Without this GRUB will not recognize this binary image as bootable
     align 4
     dd MULITBOOT_MAGIC_NUMBER
     dd MULITBOOT_FLAGS
@@ -94,9 +94,10 @@ start_kernel:
     mov esp, STACK_MEM_START
 
 .start_c_main:
-    call kernel_c_main
+    call kernel_c_main ; Call the main/entry function of the C code
 
 .loop:
+    ; TODO: print here "exiting kernel" or something similar
     jmp .loop ;infinite loop
 
 
@@ -104,10 +105,11 @@ start_kernel:
 
 ; By 'cdecl' calling convention, all arguments of a function are pushed onto the stack,
 ; and return value from a function is passed by EAX register. Arguments are pushed to the stack
-; in left-to-right order, so first argument is pushed last on the stack and therefor closest to the stack pointer.
+; in left-to-right order, so first argument is pushed last on the stack and therefore closest to the stack pointer.
 ; Registers EAX, ECX, and EDX are caller-saved, and the rest are callee-saved.
 ;
-; x86 stack grows towards lower addresses, so first argument (last on stack) have lowest address and last arg highest address.
+; x86's stack grows towards lower addresses, so first argument (last on stack) have lowest address and last arg highest address.
+; PROTO: int test_func(int base, int multiplier, int adder);
 test_func:
     mov eax, [ESP+4]
     mov ecx, [ESP+8]
@@ -117,11 +119,11 @@ test_func:
 
 
 ; https://c9x.me/x86/html/file_module_x86_id_139.html
-; uint8_t read_byte_from_IO_port( uint16_t port_address)
+; PROTO: uint8_t read_byte_from_IO_port( uint16_t port_address)
 read_byte_from_IO_port:
-    mov dx, [ESP+4] ; move the argument to the DX register
-    mov eax, 0 ; is this actually neccessary?
-    in al, dx
+    mov dx, [ESP+4] ; move the 'port_address' argument to the DX (16-bit) register
+    mov eax, 0      ; Clear whole 32 bits of reg for return value. Is this actually neccessary?
+    in al, dx       ; Perform reading of IO port into AL (8-bit) register using DX as port number
     ret
 
 
