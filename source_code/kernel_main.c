@@ -137,11 +137,25 @@ Terminal escape code:
  *                     Local defines, structs and typdefs                      *
  *******************************************************************************/
 
-#define NULL ((void*)0) //TODO: Move this into seperate header (with stdint types?)
+#define NULL ((void*)0) //TODO: Move this into separate header (with stdint types?)
 
 #define bool  unsigned int
 #define false (0) // Only zero is "false" in C, everything else is "true"
 #define true  (1)
+
+
+#define TERMINAL_MAX_X (80)
+#define TERMINAL_MAX_Y (25)
+
+typedef struct terminal_contex_tag
+{
+    char buffer[TERMINAL_MAX_Y][TERMINAL_MAX_X]; // Circular buffer
+    int  window_position_y;     // Physical position on the display (in text lines)
+    int  window_size_y;         // Size on the display (in text lines)
+    int  current_first_line;    // Position of the first line to be displayed
+    int  current_end_line;      // Position of the end of the buffer
+} terminal_contex_t;
+
 
 
 /*******************************************************************************
@@ -160,6 +174,11 @@ void keyboard_driver_poll(void);
 void terminal__init(void);
 void terminal__print_string(unsigned char *string);
 void terminal__render_to_VGA_display(void);
+
+void terminal_init          (terminal_contex_t *terminal_context, int window_position_y, int window_size_y);
+void terminal_printline     (terminal_contex_t *terminal_context, char* string);
+void terminal_render_to_VGA (terminal_contex_t *terminal_context);
+
 
 // Not really a heap allocator but a pool allocator, but will be turned into heap
 void* heap_malloc(int size);
@@ -211,6 +230,8 @@ int printf ( const char * format, ... )
  *                                  Functions                                  *
  *******************************************************************************/
 
+terminal_contex_t terminal;
+
 void kernel_c_main( void )
 {
     unsigned char hello_msg[] = "Hello from C code!";
@@ -224,6 +245,39 @@ void kernel_c_main( void )
     //print_char_to_VGA_display_buffer(644, test_func(36, 2, 1));
 
     terminal__init();
+
+    // New terminal
+    terminal_init(&terminal, 1, 3);
+
+    terminal_printline(&terminal, "Linija broj  1");
+    terminal_printline(&terminal, "Linija broj  2");
+    terminal_printline(&terminal, "Linija broj  3");
+    terminal_printline(&terminal, "Linija broj  4");
+    terminal_printline(&terminal, "Linija broj  5");
+    terminal_printline(&terminal, "Linija broj  6");
+    terminal_printline(&terminal, "Linija broj  7");
+    terminal_printline(&terminal, "Linija broj  8");
+    terminal_printline(&terminal, "Linija broj  9");
+    terminal_printline(&terminal, "Linija broj 10");
+    terminal_printline(&terminal, "Linija broj 11");
+    terminal_printline(&terminal, "Linija broj 12");
+    terminal_printline(&terminal, "Linija broj 13");
+    terminal_printline(&terminal, "Linija broj 14");
+    terminal_printline(&terminal, "Linija broj 15");
+    terminal_printline(&terminal, "Linija broj 16");
+    terminal_printline(&terminal, "Linija broj 17");
+    terminal_printline(&terminal, "Linija broj 18");
+    terminal_printline(&terminal, "Linija broj 19");
+    terminal_printline(&terminal, "Linija broj 20");
+    terminal_printline(&terminal, "Linija broj 21");
+    terminal_printline(&terminal, "Linija broj 22");
+    terminal_printline(&terminal, "Linija broj 23");
+    terminal_printline(&terminal, "broj 24");
+    terminal_printline(&terminal, "broj 25");
+    terminal_printline(&terminal, "broj 26");
+    terminal_printline(&terminal, "broj 27");
+
+
 
     //terminal__print_string("Test11\nTest22\nTest33\n");
     //terminal__print_string("Test44\nTest55\nTest66\n");
@@ -1247,6 +1301,155 @@ bool run_textbox_unittests(void)
  *                              Terminal functions                             *
  *******************************************************************************/
 
+
+void terminal_init(terminal_contex_t *terminal_context, int window_position_y, int window_size_y)
+{
+    if (terminal_context == NULL)
+    {
+        printf("ERROR: terminal_init() - terminal_context == NULL");
+        return;
+    }
+
+    if (window_position_y >= TERMINAL_MAX_Y)
+    {
+        printf("ERROR: terminal_init() - window_position_y >= TERMINAL_MAX_Y");
+        window_position_y = TERMINAL_MAX_Y;
+    }
+
+    if (window_size_y >= TERMINAL_MAX_Y)
+    {
+        printf("ERROR: terminal_init() - window_size_y >= TERMINAL_MAX_Y");
+        window_size_y = TERMINAL_MAX_Y;
+    }
+
+    // Clear the buffer
+    for (int y = 0; y < TERMINAL_MAX_Y; y++)
+    {
+        for (int x = 0; x < TERMINAL_MAX_X; x++)
+        {
+            terminal_context->buffer[y][x] = ' ';
+        }
+    }
+
+    terminal_context->window_size_y = window_size_y;
+    terminal_context->window_position_y = window_position_y;
+    terminal_context->current_first_line = 0;
+    terminal_context->current_end_line = 0;
+}
+
+static int terminal_get_current_line_count(terminal_contex_t *terminal_context)
+{
+    int first_line = terminal_context->current_first_line;
+    int end_line   = terminal_context->current_end_line;
+
+    if (end_line >= first_line) return end_line-first_line;
+
+    // TODO
+    return TERMINAL_MAX_Y - first_line + end_line;
+}
+
+static int terminal_get_next_line(terminal_contex_t *terminal_context, int current_line)
+{
+    int next_line = current_line + 1;
+
+    // Wrap-around
+    if (next_line >= TERMINAL_MAX_Y) next_line = 0;
+
+    return next_line;
+}
+
+
+static char* terminal_get_next_free_line(terminal_contex_t *terminal_context)
+{
+    int free_line_number = terminal_context->current_end_line;
+
+    if (free_line_number >= TERMINAL_MAX_Y)
+    {
+        printf("ERROR: terminal_get_next_free_line - current_end_line out of buffer bounds");
+        return NULL;
+    }
+
+    char* free_line = terminal_context->buffer[terminal_context->current_end_line];
+
+    // Forward the end line
+    terminal_context->current_end_line = terminal_get_next_line(terminal_context, terminal_context->current_end_line);
+
+    int line_count = terminal_get_current_line_count(terminal_context);
+
+    // If terminal holds more then max number of lines, forward also the first line
+    if (line_count > terminal_context->window_size_y)
+    {
+        terminal_context->current_first_line = terminal_get_next_line(terminal_context, terminal_context->current_first_line);
+    }
+
+    for(int i = 0; i < TERMINAL_MAX_X; i++)
+    {
+        free_line[i] = 0;
+    }
+
+    return free_line;
+}
+
+
+void terminal_render_to_VGA(terminal_contex_t *terminal_context)
+{
+    int current_line = terminal_context->current_first_line;
+
+    int line_counter = 0;
+
+    while (current_line != terminal_context->current_end_line)
+    {
+        for (int x = 0; x < TERMINAL_MAX_X; x++)
+        {
+            char character = terminal_context->buffer[current_line][x];
+
+            int y = terminal_context->window_position_y + line_counter;
+
+            print_char_to_VGA_display(x, y, character);
+        }
+
+        current_line = terminal_get_next_line(terminal_context, current_line);
+        line_counter++;
+    }
+}
+
+void terminal_printline(terminal_contex_t *terminal_context, char* string)
+{
+    if (terminal_context == NULL)
+    {
+        printf("ERROR: terminal_init() - terminal_context == NULL");
+        return;
+    }
+
+    if (string == NULL)
+    {
+        printf("ERROR: terminal_init() - string == NULL");
+        return;
+    }
+
+    char *line = terminal_get_next_free_line(terminal_context);
+
+    if (line == NULL)
+    {
+        printf("ERROR: terminal_init() - line == NULL");
+        return;
+    }
+
+    for (int i = 0; i < TERMINAL_MAX_X; i++)
+    {
+        if (string[i] == 0) break;
+
+        line[i] = string[i];
+    }
+
+    terminal_render_to_VGA(terminal_context);
+}
+
+
+/*******************************************************************************
+ *                              Terminal functions                             *
+ *******************************************************************************/
+
 // TODO: All this data will be part of a structure/handle
 //       to have multiple active terminals simultaneously
 // QTODO: replace hardcoded numbers with defines
@@ -1348,6 +1551,8 @@ void terminal__print_string(unsigned char *string)
 
         string++;
     }
+
+    terminal__render_to_VGA_display();
 }
 
 /*******************************************************************************
@@ -1367,13 +1572,14 @@ void print_char_to_VGA_display_buffer(unsigned int position, unsigned char ch)
     VGA_RAM[position+1] = 0x13; // QTODO: hardcoded color - add arguments for foreground and background color
 }
 
-void print_char_to_VGA_display(unsigned int x, unsigned y, unsigned char ch)
+void print_char_to_VGA_display(unsigned int x, unsigned int y, unsigned char ch)
 {
     unsigned int position = (y * VGA_TEXTMODE_WIDTH) + x;
 
     print_char_to_VGA_display_buffer(position, ch);
 }
 
+// TODO: This was only used for testing and can be removed now
 void print_string_to_VGA_display_buffer(int position, unsigned char* string, int string_size)
 {
     for( int i = 0; i < string_size; i++)
@@ -1416,6 +1622,11 @@ void event_on_keypress(unsigned char key)
     terminal__print_char(key);
 
     terminal__on_keypress(key);
+
+    char string[] = "Key is pressed:  ";
+    string[sizeof(string) -2] = key;
+
+    terminal_printline(&terminal, string);
 }
 
 
