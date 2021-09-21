@@ -4,10 +4,20 @@
 /*
 
     TODO NEXT:
-        - Use pool allocator to implement binned heap allocator
+        - Enable Wall i Werror
+        - Transform compile_and_run.sh into makefile
+        - Delete old terminal code
+        - Add a new terminal instance for logging and add LOG() function
+        - Move new terminal code to terminal.c/h
+        - Rename heap_malloc() to binned_mempool_malloc() / mempool_malloc()
+        - Add a script for installing all required APT packages
+            - Also add in to description / readme
+        - Add logging for malloc() memory usage
+        - Change GCC system include path to this folder or just disable it
+
+        - Use pool allocator to implement binned heap allocator (check if it's already done)
         - Integrate textbuffer into terminal
 
-        - Reorganize terminal code into class
         - Implement input buffer
             - keypresses goes into input buffer
             - delete key deletes a char from buffer
@@ -132,31 +142,12 @@ Terminal escape code:
 //#include <stdlib.h>  // Not available yet
 //#include <stdio.h>   // Not available yet
 
+#include "kernel_stddef.h"
+#include "terminal.h"
 
 /*******************************************************************************
  *                     Local defines, structs and typdefs                      *
  *******************************************************************************/
-
-#define NULL ((void*)0) //TODO: Move this into separate header (with stdint types?)
-
-#define bool  unsigned int
-#define false (0) // Only zero is "false" in C, everything else is "true"
-#define true  (1)
-
-
-#define TERMINAL_MAX_X (80)
-#define TERMINAL_MAX_Y (25)
-
-typedef struct terminal_contex_tag
-{
-    char buffer[TERMINAL_MAX_Y][TERMINAL_MAX_X]; // Circular buffer
-    int  window_position_y;     // Physical position on the display (in text lines)
-    int  window_size_y;         // Size on the display (in text lines)
-    int  current_first_line;    // Position of the first line to be displayed
-    int  current_end_line;      // Position of the end of the buffer
-} terminal_contex_t;
-
-
 
 /*******************************************************************************
  *                              Global variables                               *
@@ -174,11 +165,6 @@ void keyboard_driver_poll(void);
 void terminal__init(void);
 void terminal__print_string(unsigned char *string);
 void terminal__render_to_VGA_display(void);
-
-void terminal_init          (terminal_contex_t *terminal_context, int window_position_y, int window_size_y);
-void terminal_printline     (terminal_contex_t *terminal_context, char* string);
-void terminal_render_to_VGA (terminal_contex_t *terminal_context);
-
 
 // Not really a heap allocator but a pool allocator, but will be turned into heap
 void* heap_malloc(int size);
@@ -1298,156 +1284,7 @@ bool run_textbox_unittests(void)
 
 
 /*******************************************************************************
- *                              Terminal functions                             *
- *******************************************************************************/
-
-
-void terminal_init(terminal_contex_t *terminal_context, int window_position_y, int window_size_y)
-{
-    if (terminal_context == NULL)
-    {
-        printf("ERROR: terminal_init() - terminal_context == NULL");
-        return;
-    }
-
-    if (window_position_y >= TERMINAL_MAX_Y)
-    {
-        printf("ERROR: terminal_init() - window_position_y >= TERMINAL_MAX_Y");
-        window_position_y = TERMINAL_MAX_Y;
-    }
-
-    if (window_size_y >= TERMINAL_MAX_Y)
-    {
-        printf("ERROR: terminal_init() - window_size_y >= TERMINAL_MAX_Y");
-        window_size_y = TERMINAL_MAX_Y;
-    }
-
-    // Clear the buffer
-    for (int y = 0; y < TERMINAL_MAX_Y; y++)
-    {
-        for (int x = 0; x < TERMINAL_MAX_X; x++)
-        {
-            terminal_context->buffer[y][x] = ' ';
-        }
-    }
-
-    terminal_context->window_size_y = window_size_y;
-    terminal_context->window_position_y = window_position_y;
-    terminal_context->current_first_line = 0;
-    terminal_context->current_end_line = 0;
-}
-
-static int terminal_get_current_line_count(terminal_contex_t *terminal_context)
-{
-    int first_line = terminal_context->current_first_line;
-    int end_line   = terminal_context->current_end_line;
-
-    if (end_line >= first_line) return end_line-first_line;
-
-    // TODO
-    return TERMINAL_MAX_Y - first_line + end_line;
-}
-
-static int terminal_get_next_line(terminal_contex_t *terminal_context, int current_line)
-{
-    int next_line = current_line + 1;
-
-    // Wrap-around
-    if (next_line >= TERMINAL_MAX_Y) next_line = 0;
-
-    return next_line;
-}
-
-
-static char* terminal_get_next_free_line(terminal_contex_t *terminal_context)
-{
-    int free_line_number = terminal_context->current_end_line;
-
-    if (free_line_number >= TERMINAL_MAX_Y)
-    {
-        printf("ERROR: terminal_get_next_free_line - current_end_line out of buffer bounds");
-        return NULL;
-    }
-
-    char* free_line = terminal_context->buffer[terminal_context->current_end_line];
-
-    // Forward the end line
-    terminal_context->current_end_line = terminal_get_next_line(terminal_context, terminal_context->current_end_line);
-
-    int line_count = terminal_get_current_line_count(terminal_context);
-
-    // If terminal holds more then max number of lines, forward also the first line
-    if (line_count > terminal_context->window_size_y)
-    {
-        terminal_context->current_first_line = terminal_get_next_line(terminal_context, terminal_context->current_first_line);
-    }
-
-    for(int i = 0; i < TERMINAL_MAX_X; i++)
-    {
-        free_line[i] = 0;
-    }
-
-    return free_line;
-}
-
-
-void terminal_render_to_VGA(terminal_contex_t *terminal_context)
-{
-    int current_line = terminal_context->current_first_line;
-
-    int line_counter = 0;
-
-    while (current_line != terminal_context->current_end_line)
-    {
-        for (int x = 0; x < TERMINAL_MAX_X; x++)
-        {
-            char character = terminal_context->buffer[current_line][x];
-
-            int y = terminal_context->window_position_y + line_counter;
-
-            print_char_to_VGA_display(x, y, character);
-        }
-
-        current_line = terminal_get_next_line(terminal_context, current_line);
-        line_counter++;
-    }
-}
-
-void terminal_printline(terminal_contex_t *terminal_context, char* string)
-{
-    if (terminal_context == NULL)
-    {
-        printf("ERROR: terminal_init() - terminal_context == NULL");
-        return;
-    }
-
-    if (string == NULL)
-    {
-        printf("ERROR: terminal_init() - string == NULL");
-        return;
-    }
-
-    char *line = terminal_get_next_free_line(terminal_context);
-
-    if (line == NULL)
-    {
-        printf("ERROR: terminal_init() - line == NULL");
-        return;
-    }
-
-    for (int i = 0; i < TERMINAL_MAX_X; i++)
-    {
-        if (string[i] == 0) break;
-
-        line[i] = string[i];
-    }
-
-    terminal_render_to_VGA(terminal_context);
-}
-
-
-/*******************************************************************************
- *                              Terminal functions                             *
+ *                            OLD Terminal functions                           *
  *******************************************************************************/
 
 // TODO: All this data will be part of a structure/handle
