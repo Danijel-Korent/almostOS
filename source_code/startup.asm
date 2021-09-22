@@ -33,17 +33,19 @@
 
 ; INFO:
 ;  - https://en.wikibooks.org/wiki/X86_Assembly/NASM_Syntax
-;  - https://www.gnu.org/software/grub/manual/multiboot/multiboot.html
 ;  - http://kernfunny.org/x86/ (x86 Instruction Set Reference)
 ;
 
+; https://en.wikipedia.org/wiki/Multiboot_specification
 MULITBOOT_FLAGS        equ 0x0
 MULITBOOT_MAGIC_NUMBER equ 0x1BADB002
+
 VGA_RAM_ADDRESS        equ 0x000B8000 ;Video memory address for text mode - 32kb total
                                       ;Here we assume that VGA is set to the video mode 03 (80x25) by the BIOS or bootloader
                                       ;http://www.scs.stanford.edu/17wi-cs140/pintos/specs/freevga/vga/vgamem.htm
 
-global start_kernel  ; GRUB will jump into this function (specified by the linker script)
+; Export these as global functions
+global start_kernel  ; GRUB will jump into this function (specified in the linker script "kernel.ld")
 global test_func
 global read_byte_from_IO_port
 
@@ -61,11 +63,13 @@ section .bss  ; standard name of the C memory segment for uninitialized data
 
 section .text ; standard name of the C memory segment for code
 
-    ; per multiboot specification. Without this GRUB will not recognize this binary image as bootable
+    ; Per multiboot specification. Without this GRUB will not recognize this binary image as bootable
+    ; https://www.gnu.org/software/grub/manual/multiboot/multiboot.html
     align 4
     dd MULITBOOT_MAGIC_NUMBER
     dd MULITBOOT_FLAGS
-    dd -(MULITBOOT_MAGIC_NUMBER + MULITBOOT_FLAGS) ; multiboot checksum: this number + MULITBOOT_MAGIC_NUMBER + MULITBOOT_FLAGS must equal zero
+    dd -(MULITBOOT_MAGIC_NUMBER + MULITBOOT_FLAGS) ; multiboot checksum: this calculated number + MULITBOOT_MAGIC_NUMBER + MULITBOOT_FLAGS must equal zero
+
 
 hello_msg:
     db "Starting AlmostOS kernel...", 0
