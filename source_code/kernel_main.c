@@ -4,11 +4,12 @@
 /*
 
     TODO NEXT:
+        - Delete old terminal code
+        - Add headers for log and user terminal
+        - Fix all warnings
         - Enable Wall i Werror
         - Transform compile_and_run.sh into makefile
-        - Delete old terminal code
         - Add a new terminal instance for logging and add LOG() function
-        - Move new terminal code to terminal.c/h
         - Rename heap_malloc() to binned_mempool_malloc() / mempool_malloc()
         - Add a script for installing all required APT packages
             - Also add in to description / readme
@@ -217,6 +218,12 @@ int printf ( const char * format, ... )
  *******************************************************************************/
 
 terminal_contex_t terminal;
+terminal_contex_t log_terminal;
+
+void LOG(const unsigned char* const message)
+{
+    terminal_printline(&log_terminal, message);
+}
 
 void kernel_c_main( void )
 {
@@ -230,11 +237,13 @@ void kernel_c_main( void )
     //print_char_to_VGA_display_buffer(642, test_func(35, 2, 1));
     //print_char_to_VGA_display_buffer(644, test_func(36, 2, 1));
 
-    terminal__init();
+    //terminal__init();
 
     // New terminal
-    terminal_init(&terminal, 1, 3);
+    terminal_init(&terminal, 8, 8);
+    terminal_init(&log_terminal, 18, 5);
 
+#if 0
     terminal_printline(&terminal, "Linija broj  1");
     terminal_printline(&terminal, "Linija broj  2");
     terminal_printline(&terminal, "Linija broj  3");
@@ -262,43 +271,34 @@ void kernel_c_main( void )
     terminal_printline(&terminal, "broj 25");
     terminal_printline(&terminal, "broj 26");
     terminal_printline(&terminal, "broj 27");
-
-
-
-    //terminal__print_string("Test11\nTest22\nTest33\n");
-    //terminal__print_string("Test44\nTest55\nTest66\n");
-    //terminal__print_string("Test77\nTest88\nTest99\n");
-
+#endif
 
     // QTODO: this repeating code needs a function of its own
-    terminal__print_string("\nStack unittests: ");
     if (run_unittests_stack() == 0)
     {
-        terminal__print_string("PASSED");
+        LOG("Stack unittests: PASSED");
     }
     else
     {
-        terminal__print_string("FAILED");
+        LOG("Stack unittests: FAILED");
     }
 
-    terminal__print_string("\nMemory allocator unittests: ");
     if (run_unittests_heap_allocator() == 0)
     {
-        terminal__print_string("PASSED");
+        LOG("Memory allocator unittests: PASSED");
     }
     else
     {
-        terminal__print_string("FAILED");
+        LOG("Memory allocator unittests: FAILED");
     }
 
-    terminal__print_string("\nTextbuffer unittests: ");
     if (run_textbox_unittests())
     {
-        terminal__print_string("PASSED\n");
+        LOG("Textbuffer unittests: PASSED");
     }
     else
     {
-        terminal__print_string("FAILED\n");
+        LOG("Textbuffer unittests: FAILED");
     }
 
     while(1)
@@ -1448,22 +1448,24 @@ void event_on_keypress(unsigned char key)
     {
         if (key > '0' && key < '6')
         {
-            terminal__print_string("\nNew terminal test string ");
-            terminal__print_char(key);
-            //terminal__print_string("\n");
+            char string[] = "New terminal test string ";
+            string[sizeof(string) -2] = key;
+
+            terminal_printline(&terminal, string);
         }
     }
 
     // TEMP
-    terminal__print_string("\nKey is pressed: ");
-    terminal__print_char(key);
+    //terminal__print_string("\nKey is pressed: ");
+    //terminal__print_char(key);
 
-    terminal__on_keypress(key);
+    //terminal__on_keypress(key);
 
     char string[] = "Key is pressed:  ";
     string[sizeof(string) -2] = key;
 
     terminal_printline(&terminal, string);
+    //LOG(string);
 }
 
 
