@@ -8,6 +8,8 @@
 typedef struct terminal_contex_tag
 {
     char buffer[TERMINAL_MAX_Y][TERMINAL_MAX_X]; // Circular buffer
+    char input_line[TERMINAL_MAX_X - 2]; // Holding user input
+    int  input_cursor_position;
     int  window_position_y;     // Physical position on the display (in text lines)
     int  window_size_y;         // Size on the display (in text lines)
     int  current_first_line;    // Position of the first line to be displayed
@@ -17,6 +19,6 @@ typedef struct terminal_contex_tag
 void terminal_init          (terminal_contex_t *terminal_context, int window_position_y, int window_size_y);
 void terminal_printline     (terminal_contex_t *terminal_context, char* string);
 void terminal_render_to_VGA (terminal_contex_t *terminal_context);
-
+void terminal_on_keypress   (terminal_contex_t *terminal_context, unsigned char key);
 
 #endif // _TERMINAL_H_

@@ -1,6 +1,11 @@
 #include "terminal.h"
 #include "kernel_stddef.h"
 
+// https://en.wikipedia.org/wiki/ANSI_escape_code
+// https://en.wikipedia.org/wiki/VGA_text_mode
+
+
+
 // TEMP: TODO: Move this into some header
 int printf ( const char * format, ... );
 void print_char_to_VGA_display(unsigned int x, unsigned int y, unsigned char ch);
@@ -35,6 +40,21 @@ void terminal_init(terminal_contex_t *terminal_context, int window_position_y, i
             terminal_context->buffer[y][x] = ' ';
         }
     }
+
+    // Clear input line
+    for (int x = 0; x < sizeof(terminal_context->input_line); x++)
+    {
+        terminal_context->input_line[x] = 0;
+    }
+
+    terminal_context->input_cursor_position = 0;
+
+    terminal_context->input_line[0] = 'T';
+    terminal_context->input_line[1] = 'e';
+    terminal_context->input_line[2] = 's';
+    terminal_context->input_line[3] = 'T';
+    terminal_context->input_line[4] = '!';
+    terminal_context->input_cursor_position = 5;
 
     terminal_context->window_size_y = window_size_y;
     terminal_context->window_position_y = window_position_y;
@@ -102,6 +122,7 @@ void terminal_render_to_VGA(terminal_contex_t *terminal_context)
 
     int line_counter = 0;
 
+    // Draw current content of terminal
     while (current_line != terminal_context->current_end_line)
     {
         for (int x = 0; x < TERMINAL_MAX_X; x++)
@@ -115,6 +136,16 @@ void terminal_render_to_VGA(terminal_contex_t *terminal_context)
 
         current_line = terminal_get_next_line(terminal_context, current_line);
         line_counter++;
+    }
+
+    // Draw input line
+    for (int x = 0; x < sizeof(terminal_context->input_line); x++)
+    {
+        char character = terminal_context->input_line[x];
+
+        int y = terminal_context->window_position_y + line_counter;
+
+        print_char_to_VGA_display(x, y, character);
     }
 }
 
@@ -150,3 +181,41 @@ void terminal_printline(terminal_contex_t *terminal_context, char* string)
     terminal_render_to_VGA(terminal_context);
 }
 
+
+void terminal_on_keypress(terminal_contex_t *terminal_context, unsigned char key)
+{
+    if (key >= 32 && key < 127)
+    {
+        terminal_context->input_line[terminal_context->input_cursor_position] = key;
+
+        terminal_context->input_cursor_position++;
+    }
+
+    if (key == 8) // Backspace
+    {
+        if (terminal_context->input_cursor_position != 0)
+        {
+            terminal_context->input_cursor_position--;
+
+            terminal_context->input_line[terminal_context->input_cursor_position] = 0;
+        }
+    }
+
+    if (key == 10) // Enter
+    {
+        terminal_printline(terminal_context, terminal_context->input_line);
+
+        // Copy the line
+        // Pass the line to callback_process_input()
+
+        // Clear input line //TODO: Move to a function
+        for (int x = 0; x < sizeof(terminal_context->input_line); x++)
+        {
+            terminal_context->input_line[x] = 0;
+        }
+
+        terminal_context->input_cursor_position = 0;
+
+        terminal_render_to_VGA(terminal_context);
+    }
+}

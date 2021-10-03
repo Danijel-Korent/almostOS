@@ -4,6 +4,15 @@
 /*
 
     TODO NEXT:
+        - Add drivers folder
+        - Move to drivers folder
+            - poors_man_keyboard_driver.c
+            - poors_man_VGA_driver.c
+            - add folder integration with driver_callbacks.c
+        - Add folder user_applications
+        - move terminal to "user_applications"
+            - Rename terminal.c to poors_man_terminal
+            - Rename shell.c to poors_man_shell.c
         - Delete old terminal code
         - Add headers for log and user terminal
         - Fix all warnings
@@ -15,6 +24,13 @@
             - Also add in to description / readme
         - Add logging for malloc() memory usage
         - Change GCC system include path to this folder or just disable it
+
+        - Add process handler with 3 function pointers:
+            - init()
+            - service()
+            - on_event()
+            - standard input handler (stdin)
+            - standard output handler (stdout)
 
         - Use pool allocator to implement binned heap allocator (check if it's already done)
         - Integrate textbuffer into terminal
@@ -1465,6 +1481,7 @@ void event_on_keypress(unsigned char key)
     string[sizeof(string) -2] = key;
 
     terminal_printline(&terminal, string);
+    terminal_on_keypress(&terminal, key);
     //LOG(string);
 }
 
