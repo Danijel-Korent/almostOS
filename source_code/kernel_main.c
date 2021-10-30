@@ -233,12 +233,17 @@ int printf ( const char * format, ... )
  *                                  Functions                                  *
  *******************************************************************************/
 
-terminal_contex_t terminal;
+terminal_contex_t stdout_terminal;
 terminal_contex_t log_terminal;
 
 void LOG(const unsigned char* const message)
 {
     terminal_printline(&log_terminal, message);
+}
+
+void stdandard_println(const unsigned char* const message)
+{
+    terminal_printline(&stdout_terminal, message);
 }
 
 void kernel_c_main( void )
@@ -256,37 +261,37 @@ void kernel_c_main( void )
     //terminal__init();
 
     // New terminal
-    terminal_init(&terminal, 8, 8);
+    terminal_init(&stdout_terminal, 8, 8);
     terminal_init(&log_terminal, 18, 5);
 
 #if 0
-    terminal_printline(&terminal, "Linija broj  1");
-    terminal_printline(&terminal, "Linija broj  2");
-    terminal_printline(&terminal, "Linija broj  3");
-    terminal_printline(&terminal, "Linija broj  4");
-    terminal_printline(&terminal, "Linija broj  5");
-    terminal_printline(&terminal, "Linija broj  6");
-    terminal_printline(&terminal, "Linija broj  7");
-    terminal_printline(&terminal, "Linija broj  8");
-    terminal_printline(&terminal, "Linija broj  9");
-    terminal_printline(&terminal, "Linija broj 10");
-    terminal_printline(&terminal, "Linija broj 11");
-    terminal_printline(&terminal, "Linija broj 12");
-    terminal_printline(&terminal, "Linija broj 13");
-    terminal_printline(&terminal, "Linija broj 14");
-    terminal_printline(&terminal, "Linija broj 15");
-    terminal_printline(&terminal, "Linija broj 16");
-    terminal_printline(&terminal, "Linija broj 17");
-    terminal_printline(&terminal, "Linija broj 18");
-    terminal_printline(&terminal, "Linija broj 19");
-    terminal_printline(&terminal, "Linija broj 20");
-    terminal_printline(&terminal, "Linija broj 21");
-    terminal_printline(&terminal, "Linija broj 22");
-    terminal_printline(&terminal, "Linija broj 23");
-    terminal_printline(&terminal, "broj 24");
-    terminal_printline(&terminal, "broj 25");
-    terminal_printline(&terminal, "broj 26");
-    terminal_printline(&terminal, "broj 27");
+    terminal_printline(&stdout_terminal, "Linija broj  1");
+    terminal_printline(&stdout_terminal, "Linija broj  2");
+    terminal_printline(&stdout_terminal, "Linija broj  3");
+    terminal_printline(&stdout_terminal, "Linija broj  4");
+    terminal_printline(&stdout_terminal, "Linija broj  5");
+    terminal_printline(&stdout_terminal, "Linija broj  6");
+    terminal_printline(&stdout_terminal, "Linija broj  7");
+    terminal_printline(&stdout_terminal, "Linija broj  8");
+    terminal_printline(&stdout_terminal, "Linija broj  9");
+    terminal_printline(&stdout_terminal, "Linija broj 10");
+    terminal_printline(&stdout_terminal, "Linija broj 11");
+    terminal_printline(&stdout_terminal, "Linija broj 12");
+    terminal_printline(&stdout_terminal, "Linija broj 13");
+    terminal_printline(&stdout_terminal, "Linija broj 14");
+    terminal_printline(&stdout_terminal, "Linija broj 15");
+    terminal_printline(&stdout_terminal, "Linija broj 16");
+    terminal_printline(&stdout_terminal, "Linija broj 17");
+    terminal_printline(&stdout_terminal, "Linija broj 18");
+    terminal_printline(&stdout_terminal, "Linija broj 19");
+    terminal_printline(&stdout_terminal, "Linija broj 20");
+    terminal_printline(&stdout_terminal, "Linija broj 21");
+    terminal_printline(&stdout_terminal, "Linija broj 22");
+    terminal_printline(&stdout_terminal, "Linija broj 23");
+    terminal_printline(&stdout_terminal, "broj 24");
+    terminal_printline(&stdout_terminal, "broj 25");
+    terminal_printline(&stdout_terminal, "broj 26");
+    terminal_printline(&stdout_terminal, "broj 27");
 #endif
 
     // QTODO: this repeating code needs a function of its own
@@ -1415,14 +1420,19 @@ void terminal__print_string(unsigned char *string)
 #define VGA_TEXTMODE_WIDTH  (80)
 #define VGA_TEXTMODE_HEIGHT (25)
 
+// TODO: Add functions for moving blinking cursor
+
 void print_char_to_VGA_display_buffer(unsigned int position, unsigned char ch)
 {
     static unsigned char* const VGA_RAM = (unsigned char*) 0x000B8000;
 
     position = position * 2; // One char takes 16 bits in VGA RAM (8bit char to display + 8bit for color)
 
+    // QTODO: hardcoded color - add arguments for foreground and background color
     VGA_RAM[position]   = ch;
-    VGA_RAM[position+1] = 0x13; // QTODO: hardcoded color - add arguments for foreground and background color
+    VGA_RAM[position+1] = 0x13; // Blue + Cyan
+    VGA_RAM[position+1] = 0x0A; // Black + Light green
+    VGA_RAM[position+1] = 0x02; // Black + Green
 }
 
 void print_char_to_VGA_display(unsigned int x, unsigned int y, unsigned char ch)
@@ -1467,7 +1477,7 @@ void event_on_keypress(unsigned char key)
             char string[] = "New terminal test string ";
             string[sizeof(string) -2] = key;
 
-            terminal_printline(&terminal, string);
+            terminal_printline(&stdout_terminal, string);
         }
     }
 
@@ -1477,11 +1487,13 @@ void event_on_keypress(unsigned char key)
 
     //terminal__on_keypress(key);
 
+#if 0
     char string[] = "Key is pressed:  ";
     string[sizeof(string) -2] = key;
+    terminal_printline(&stdout_terminal, string);
+#endif
 
-    terminal_printline(&terminal, string);
-    terminal_on_keypress(&terminal, key);
+    terminal_on_keypress(&stdout_terminal, key);
     //LOG(string);
 }
 

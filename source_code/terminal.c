@@ -1,3 +1,10 @@
+/**
+ * @file terminal.c
+ *
+ * @brief New terminal code that suck little bit less than previous one. Has hardcoded input line, doesn't understand
+ *        CR and or LF chars, and will cut out lines longer than 80 chars
+ */
+
 #include "terminal.h"
 #include "kernel_stddef.h"
 
@@ -10,8 +17,12 @@
 int printf ( const char * format, ... );
 void print_char_to_VGA_display(unsigned int x, unsigned int y, unsigned char ch);
 
+// Local function defitions
+static void terminal_clear_input_line(terminal_contex_t *terminal_context);
+void input_callback(const char * input);
 
 
+// TODO: Add argument for no-input mode
 void terminal_init(terminal_contex_t *terminal_context, int window_position_y, int window_size_y)
 {
     if (terminal_context == NULL)
@@ -42,19 +53,14 @@ void terminal_init(terminal_contex_t *terminal_context, int window_position_y, i
     }
 
     // Clear input line
-    for (int x = 0; x < sizeof(terminal_context->input_line); x++)
-    {
-        terminal_context->input_line[x] = 0;
-    }
+    terminal_clear_input_line(terminal_context);
 
-    terminal_context->input_cursor_position = 0;
-
-    terminal_context->input_line[0] = 'T';
-    terminal_context->input_line[1] = 'e';
-    terminal_context->input_line[2] = 's';
-    terminal_context->input_line[3] = 'T';
-    terminal_context->input_line[4] = '!';
-    terminal_context->input_cursor_position = 5;
+    //terminal_context->input_line[0] = 'T';
+    //terminal_context->input_line[1] = 'e';
+    //terminal_context->input_line[2] = 's';
+    //terminal_context->input_line[3] = 'T';
+    //terminal_context->input_line[4] = '!';
+    //terminal_context->input_cursor_position = 5;
 
     terminal_context->window_size_y = window_size_y;
     terminal_context->window_position_y = window_position_y;
@@ -129,7 +135,7 @@ void terminal_render_to_VGA(terminal_contex_t *terminal_context)
         {
             char character = terminal_context->buffer[current_line][x];
 
-            int y = terminal_context->window_position_y + line_counter;
+            int y = terminal_context->window_position_y + line_counter; // TODO: Move out of loop
 
             print_char_to_VGA_display(x, y, character);
         }
@@ -143,7 +149,7 @@ void terminal_render_to_VGA(terminal_contex_t *terminal_context)
     {
         char character = terminal_context->input_line[x];
 
-        int y = terminal_context->window_position_y + line_counter;
+        int y = terminal_context->window_position_y + line_counter; // TODO: Move out of loop
 
         print_char_to_VGA_display(x, y, character);
     }
@@ -184,7 +190,7 @@ void terminal_printline(terminal_contex_t *terminal_context, char* string)
 
 void terminal_on_keypress(terminal_contex_t *terminal_context, unsigned char key)
 {
-    if (key >= 32 && key < 127)
+    if (key >= 32 && key < 127) // Non-special characters
     {
         terminal_context->input_line[terminal_context->input_cursor_position] = key;
 
@@ -207,15 +213,53 @@ void terminal_on_keypress(terminal_contex_t *terminal_context, unsigned char key
 
         // Copy the line
         // Pass the line to callback_process_input()
+        // I should really decouple this from terminal_on_keypress()
+        input_callback(terminal_context->input_line + 8);
 
-        // Clear input line //TODO: Move to a function
-        for (int x = 0; x < sizeof(terminal_context->input_line); x++)
-        {
-            terminal_context->input_line[x] = 0;
-        }
+        terminal_clear_input_line(terminal_context);
+    }
 
-        terminal_context->input_cursor_position = 0;
+    terminal_render_to_VGA(terminal_context);
+}
 
-        terminal_render_to_VGA(terminal_context);
+static void terminal_clear_input_line(terminal_contex_t *terminal_context)
+{
+    // Clear input line //TODO: Move to a function
+    terminal_context->input_line[0] = 's';
+    terminal_context->input_line[1] = 'h';
+    terminal_context->input_line[2] = 'e';
+    terminal_context->input_line[3] = 'l';
+    terminal_context->input_line[4] = 'l';
+    terminal_context->input_line[5] = ':';
+    terminal_context->input_line[6] = '>';
+    terminal_context->input_line[7] = ' ';
+    for (int x = 8; x < sizeof(terminal_context->input_line); x++)
+    {
+        terminal_context->input_line[x] = 0;
+    }
+
+    terminal_context->input_cursor_position = 8;
+}
+
+void stdandard_println(const unsigned char* const message); // TOOD: typo "stdandard"
+
+// TODO: Temp code for testing!
+void input_callback(const char * input)
+{
+    if (input == NULL) return;
+
+    if (input[0] == 'h')
+    {
+        stdandard_println("");
+        stdandard_println("Available commands:");
+        stdandard_println("");
+        stdandard_println("    help - prints this message");
+        stdandard_println("");
+    }
+    else
+    {
+        stdandard_println("");
+        stdandard_println("Unknown command!");
+        stdandard_println("");
     }
 }
