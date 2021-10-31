@@ -23,7 +23,7 @@ void input_callback(const char * input);
 
 
 // TODO: Add argument for no-input mode
-void terminal_init(terminal_contex_t *terminal_context, int window_position_y, int window_size_y)
+void terminal_init(terminal_contex_t *terminal_context, int window_position_y, int window_size_y, bool is_input_enabled)
 {
     if (terminal_context == NULL)
     {
@@ -42,6 +42,8 @@ void terminal_init(terminal_contex_t *terminal_context, int window_position_y, i
         printf("ERROR: terminal_init() - window_size_y >= TERMINAL_MAX_Y");
         window_size_y = TERMINAL_MAX_Y;
     }
+
+    terminal_context->is_input_enabled = is_input_enabled;
 
     // Clear the buffer
     for (int y = 0; y < TERMINAL_MAX_Y; y++)
@@ -144,14 +146,17 @@ void terminal_render_to_VGA(terminal_contex_t *terminal_context)
         line_counter++;
     }
 
-    // Draw input line
-    for (int x = 0; x < sizeof(terminal_context->input_line); x++)
+    if (terminal_context->is_input_enabled == ENABLE_INPUT_LINE)
     {
-        char character = terminal_context->input_line[x];
+        // Draw input line
+        for (int x = 0; x < sizeof(terminal_context->input_line); x++)
+        {
+            char character = terminal_context->input_line[x];
 
-        int y = terminal_context->window_position_y + line_counter; // TODO: Move out of loop
+            int y = terminal_context->window_position_y + line_counter; // TODO: Move out of loop
 
-        print_char_to_VGA_display(x, y, character);
+            print_char_to_VGA_display(x, y, character);
+        }
     }
 }
 
@@ -190,6 +195,11 @@ void terminal_printline(terminal_contex_t *terminal_context, char* string)
 
 void terminal_on_keypress(terminal_contex_t *terminal_context, unsigned char key)
 {
+    if (terminal_context->is_input_enabled == DISABLE_INPUT_LINE)
+    {
+        return;
+    }
+
     if (key >= 32 && key < 127) // Non-special characters
     {
         terminal_context->input_line[terminal_context->input_cursor_position] = key;

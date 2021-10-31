@@ -233,7 +233,7 @@ int printf ( const char * format, ... )
  *                                  Functions                                  *
  *******************************************************************************/
 
-terminal_contex_t stdout_terminal;
+terminal_contex_t shell_terminal;
 terminal_contex_t log_terminal;
 
 void LOG(const unsigned char* const message)
@@ -243,14 +243,21 @@ void LOG(const unsigned char* const message)
 
 void stdandard_println(const unsigned char* const message)
 {
-    terminal_printline(&stdout_terminal, message);
+    terminal_printline(&shell_terminal, message);
 }
 
 void kernel_c_main( void )
 {
     unsigned char hello_msg[] = "Hello from C code!";
-
     print_string_to_VGA_display_buffer(400, hello_msg, sizeof(hello_msg)-1);
+
+    //unsigned char shell_header[] = "-----------------------------------/ Shell /-----------------------------------";
+    unsigned char shell_header[] = "-----------------------------------/ SHELL /-----------------------------------";
+    print_string_to_VGA_display_buffer(560, shell_header, sizeof(shell_header)-1);
+
+    //unsigned char klog_header[] = "--------------------------------/ Kernel log /---------------------------------";
+    unsigned char klog_header[] = "--------------------------------/ KERNEL LOG /---------------------------------";
+    print_string_to_VGA_display_buffer(1360, klog_header, sizeof(klog_header)-1);
 
     //int test = test_func(34, 2);
 
@@ -261,37 +268,37 @@ void kernel_c_main( void )
     //terminal__init();
 
     // New terminal
-    terminal_init(&stdout_terminal, 8, 8);
-    terminal_init(&log_terminal, 18, 5);
+    terminal_init(&shell_terminal,  8, 8, ENABLE_INPUT_LINE);
+    terminal_init(&log_terminal,   18, 5, DISABLE_INPUT_LINE);
 
 #if 0
-    terminal_printline(&stdout_terminal, "Linija broj  1");
-    terminal_printline(&stdout_terminal, "Linija broj  2");
-    terminal_printline(&stdout_terminal, "Linija broj  3");
-    terminal_printline(&stdout_terminal, "Linija broj  4");
-    terminal_printline(&stdout_terminal, "Linija broj  5");
-    terminal_printline(&stdout_terminal, "Linija broj  6");
-    terminal_printline(&stdout_terminal, "Linija broj  7");
-    terminal_printline(&stdout_terminal, "Linija broj  8");
-    terminal_printline(&stdout_terminal, "Linija broj  9");
-    terminal_printline(&stdout_terminal, "Linija broj 10");
-    terminal_printline(&stdout_terminal, "Linija broj 11");
-    terminal_printline(&stdout_terminal, "Linija broj 12");
-    terminal_printline(&stdout_terminal, "Linija broj 13");
-    terminal_printline(&stdout_terminal, "Linija broj 14");
-    terminal_printline(&stdout_terminal, "Linija broj 15");
-    terminal_printline(&stdout_terminal, "Linija broj 16");
-    terminal_printline(&stdout_terminal, "Linija broj 17");
-    terminal_printline(&stdout_terminal, "Linija broj 18");
-    terminal_printline(&stdout_terminal, "Linija broj 19");
-    terminal_printline(&stdout_terminal, "Linija broj 20");
-    terminal_printline(&stdout_terminal, "Linija broj 21");
-    terminal_printline(&stdout_terminal, "Linija broj 22");
-    terminal_printline(&stdout_terminal, "Linija broj 23");
-    terminal_printline(&stdout_terminal, "broj 24");
-    terminal_printline(&stdout_terminal, "broj 25");
-    terminal_printline(&stdout_terminal, "broj 26");
-    terminal_printline(&stdout_terminal, "broj 27");
+    terminal_printline(&shell_terminal, "Linija broj  1");
+    terminal_printline(&shell_terminal, "Linija broj  2");
+    terminal_printline(&shell_terminal, "Linija broj  3");
+    terminal_printline(&shell_terminal, "Linija broj  4");
+    terminal_printline(&shell_terminal, "Linija broj  5");
+    terminal_printline(&shell_terminal, "Linija broj  6");
+    terminal_printline(&shell_terminal, "Linija broj  7");
+    terminal_printline(&shell_terminal, "Linija broj  8");
+    terminal_printline(&shell_terminal, "Linija broj  9");
+    terminal_printline(&shell_terminal, "Linija broj 10");
+    terminal_printline(&shell_terminal, "Linija broj 11");
+    terminal_printline(&shell_terminal, "Linija broj 12");
+    terminal_printline(&shell_terminal, "Linija broj 13");
+    terminal_printline(&shell_terminal, "Linija broj 14");
+    terminal_printline(&shell_terminal, "Linija broj 15");
+    terminal_printline(&shell_terminal, "Linija broj 16");
+    terminal_printline(&shell_terminal, "Linija broj 17");
+    terminal_printline(&shell_terminal, "Linija broj 18");
+    terminal_printline(&shell_terminal, "Linija broj 19");
+    terminal_printline(&shell_terminal, "Linija broj 20");
+    terminal_printline(&shell_terminal, "Linija broj 21");
+    terminal_printline(&shell_terminal, "Linija broj 22");
+    terminal_printline(&shell_terminal, "Linija broj 23");
+    terminal_printline(&shell_terminal, "broj 24");
+    terminal_printline(&shell_terminal, "broj 25");
+    terminal_printline(&shell_terminal, "broj 26");
+    terminal_printline(&shell_terminal, "broj 27");
 #endif
 
     // QTODO: this repeating code needs a function of its own
@@ -1477,7 +1484,7 @@ void event_on_keypress(unsigned char key)
             char string[] = "New terminal test string ";
             string[sizeof(string) -2] = key;
 
-            terminal_printline(&stdout_terminal, string);
+            terminal_printline(&shell_terminal, string);
         }
     }
 
@@ -1490,10 +1497,10 @@ void event_on_keypress(unsigned char key)
 #if 0
     char string[] = "Key is pressed:  ";
     string[sizeof(string) -2] = key;
-    terminal_printline(&stdout_terminal, string);
+    terminal_printline(&shell_terminal, string);
 #endif
 
-    terminal_on_keypress(&stdout_terminal, key);
+    terminal_on_keypress(&shell_terminal, key);
     //LOG(string);
 }
 
