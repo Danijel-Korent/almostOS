@@ -4,6 +4,14 @@
 /*
 
     TODO NEXT:
+        - Fix all compiler warnings
+        - integrate the hexdump impl. from the FAT project
+        - Read the information from the Multiboot
+            -> https://www.gnu.org/software/grub/manual/multiboot/multiboot.html#Machine-state
+        - FEATURE: Implement support for the CPUID
+        - FEATURE: Implement timer support
+        - Add logging for malloc() memory usage
+
         - Add drivers folder
         - Move to drivers folder
             - poors_man_keyboard_driver.c
@@ -15,14 +23,12 @@
             - Rename shell.c to poors_man_shell.c
         - Delete old terminal code
         - Add headers for log and user terminal
-        - Fix all warnings
         - Enable Wall i Werror
         - Transform compile_and_run.sh into makefile
-        - Add a new terminal instance for logging and add LOG() function
         - Rename heap_malloc() to binned_mempool_malloc() / mempool_malloc()
         - Add a script for installing all required APT packages
             - Also add in to description / readme
-        - Add logging for malloc() memory usage
+
         - Change GCC system include path to this folder or just disable it
 
         - Add process handler with 3 function pointers:
@@ -34,11 +40,6 @@
 
         - Use pool allocator to implement binned heap allocator (check if it's already done)
         - Integrate textbuffer into terminal
-
-        - Implement input buffer
-            - keypresses goes into input buffer
-            - delete key deletes a char from buffer
-            - input buffer is rendered after texbuffer content
         - Implement checks for buffer overflow
         - Move textbuffer into seperate file
 
@@ -49,7 +50,6 @@
         - TODO:    Split kernel_main.c into multiple files
         - FEATURE: Implement basic terminal functionality
         - FEATURE: Integrate shell and FAT driver from "FAT-filesystem-driver" repo
-        - FEATURE: Implement multiple terminal support (two terminals on one screen - kernel log + shell)
         - FEATURE: Implement logging facilities
         - FEATURE: Implement bucket heap allocator
         - FEATURE: Implement serial/UART driver
