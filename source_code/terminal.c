@@ -19,7 +19,7 @@ void print_char_to_VGA_display(unsigned int x, unsigned int y, unsigned char ch)
 
 // Local function defitions
 static void terminal_clear_input_line(terminal_contex_t *terminal_context);
-void input_callback(const char * input);
+void input_callback(char * input);
 
 
 // TODO: Add argument for no-input mode
@@ -160,7 +160,7 @@ void terminal_render_to_VGA(terminal_contex_t *terminal_context)
     }
 }
 
-void terminal_printline(terminal_contex_t *terminal_context, char* string)
+void terminal_printline(terminal_contex_t *terminal_context, const unsigned char* const string)
 {
     if (terminal_context == NULL)
     {
@@ -251,12 +251,170 @@ static void terminal_clear_input_line(terminal_contex_t *terminal_context)
     terminal_context->input_cursor_position = 8;
 }
 
+
+// --------------------------------- TEMP CODE -----------------------------------/
+
+#include "hexdump.h"
+
+void* malloc(int size); // TODO: Move into a header
+void free(void* pointer);
+void LOG(const unsigned char* const message); // TODO: Move into a header
+
+// TODO: Move this generic helper functions for length and trimming into a common file for helper functions
+int strlen(const char * input_string)
+{
+    if (input_string == NULL) return 0;
+
+    int i = 0;
+
+    //for(i = 0; input_string[i] != 0; i++)
+    while (input_string[i] != 0)
+    {
+        i++;
+
+        if (i > 100)
+        {
+            LOG("ERROR: strlen() smashed protection limit!");
+            return 0;
+        }
+    }
+
+    return i;
+}
+
+/**
+ * @brief Removes leading and trailing white-space
+ *
+ * @param input_string String to be trimmed
+ * @return char* String that is now trimmed
+ *
+ * @note The trimming is done 'in-place', meaning returned trimmed string is
+ *       in the same memory space in which the original string was
+ */
+char* trim_string(char* input_string)
+{
+    if (input_string == NULL)
+    {
+        LOG("ERROR: trim_string() - received NULL argument!");
+        return NULL;
+    }
+
+    char *trimmed_string = input_string;
+
+    // Trim leading whitespace
+    // Do it by just moving pointer along the orignal input string
+    // util the first non whitespace symbol
+    for(; *trimmed_string == ' '; trimmed_string++);
+
+    // Trim trailing whitespace
+    // Do it by null-terminating from end of string until
+    // stumble upon non-whitespace char
+    int len = strlen(trimmed_string);
+
+    while(len > 0)
+    {
+        if(trimmed_string[len -1] != ' ') break;
+
+        // If it is whitespace, nullterminate it
+        trimmed_string[len -1] = 0;
+
+        len--;
+    }
+
+    return trimmed_string;
+}
+
+/**
+ * @brief Parse raw input string and returns it in argv/argc format (array of strings/arguments)
+ *
+ * @param input_string The raw input string taken from command-line
+ * @param argc Number of arguments(strings) in the array "argv"
+ * @return char** Returns "argv", which is an array of string pointers
+ *
+ * @note The function just reuses and modifies input string, and all argv pointers
+ *       point to a memory space to which "input_string" is pointing
+ */
+char** parse_arguments(char* input_string, int* argc)
+{
+    if (input_string == NULL || argc == NULL)
+    {
+        LOG("ERROR: parse_arguments() - received NULL argument!");
+        return NULL;
+    }
+
+    char* trimmed_input = trim_string(input_string);
+
+    if (trimmed_input == NULL) return NULL;
+
+    // Count the number of args, by counting whitespaces between words,
+    // we need to know the length of the array before allocating it on heap
+    int len = strlen(trimmed_input);
+    int num_of_args = 0;
+
+    for(int i = 0; i < len; i++)
+    {
+        // Find whitespace
+        if( trimmed_input[i] == ' ' ) num_of_args++;
+
+        // Skip all consecutive whitespaces
+        for(; trimmed_input[i] == ' '; i++);
+    }
+
+    *argc = num_of_args +1; // +1 because cmd (first word) is also in the list
+
+    // Allocate argv array
+    char** argv = malloc(*argc * sizeof(const char*));
+
+    if (argv == NULL)
+    {
+        LOG("ERROR: parse_arguments() - No free memory!");
+    }
+    else
+    {
+        char *string_start = trimmed_input;
+        char *string_end =   trimmed_input;
+
+        for(int i = 0; i < *argc; i++)
+        {
+            // First whitespace symbol marks the end of argument
+            for(;(*string_end != ' ') && (*string_end != 0); string_end++);
+
+            // Null-terminate after every word
+            // because they will be used in-place
+            *string_end = 0;
+
+            argv[i] = string_start;
+
+            // Skip null-terminator and all consecutive whitespaces
+            string_end++;
+            for(; *string_end == ' '; string_end++);
+
+            string_start = string_end;
+        }
+    }
+
+    return argv;
+}
+
+
 void stdandard_println(const unsigned char* const message); // TOOD: typo "stdandard"
 
+
 // TODO: Temp code for testing!
-void input_callback(const char * input)
+void input_callback(char * input)
 {
     if (input == NULL) return;
+
+    int    argc = 0;
+    char** argv = NULL;
+
+    argv = parse_arguments(input, &argc);
+
+    if (argv == NULL)
+    {
+        stdandard_println("ERROR: Parsing arguments failed");
+        return;
+    }
 
     if (input[0] == 'h')
     {
@@ -266,10 +424,16 @@ void input_callback(const char * input)
         stdandard_println("    help - prints this message");
         stdandard_println("");
     }
+    if (input[0] == 'd')
+    {
+        execute__dump_data(argc, argv);
+    }
     else
     {
         stdandard_println("");
         stdandard_println("Unknown command!");
         stdandard_println("");
     }
+
+    free(argv);
 }

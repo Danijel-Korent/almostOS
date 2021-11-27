@@ -5,7 +5,8 @@
 
     TODO NEXT:
         - Fix all compiler warnings
-        - integrate the hexdump impl. from the FAT project
+        - Read the information from BIOS Data Area
+        - Print the memory allocator usage stats after every (de)allocation
         - Read the information from the Multiboot
             -> https://www.gnu.org/software/grub/manual/multiboot/multiboot.html#Machine-state
         - FEATURE: Implement support for the CPUID
@@ -184,6 +185,7 @@ void terminal__print_string(unsigned char *string);
 void terminal__render_to_VGA_display(void);
 
 // Not really a heap allocator but a pool allocator, but will be turned into heap
+bool init_heap_memory_allocator(void);
 void* heap_malloc(int size);
 void heap_free(void* pointer);
 
@@ -241,7 +243,7 @@ void LOG(const unsigned char* const message)
     terminal_printline(&log_terminal, message);
 }
 
-void stdandard_println(const unsigned char* const message)
+void stdandard_println(const unsigned char* const message) // TODO: tipfeler stdandard_println -> standard_println
 {
     terminal_printline(&shell_terminal, message);
 }
@@ -328,6 +330,9 @@ void kernel_c_main( void )
     {
         LOG("Textbuffer unittests: FAILED");
     }
+
+    // Re-initi memory allocator after tests
+    init_heap_memory_allocator();
 
     while(1)
     {
@@ -422,6 +427,7 @@ void* heap_malloc(int size)
 
     if (size > heap_bin.block_size)
     {
+        LOG("ERROR: heap_malloc() failed - size argument too big!");
         return NULL; // QTODO: Log an error
     }
 
@@ -432,15 +438,18 @@ void* heap_malloc(int size)
     {
         if (index >= heap_bin.block_count)
         {
-            // QTODO: Log an error
+            LOG("ERROR: heap_malloc() failed - invalid bin index!");
         }
         else
         {
             unsigned int offset = index * (heap_bin.block_size + BIN_RED_ZONE_SIZE);
 
             calculated_address = (void*)(heap_bin.buffer_start + offset);
+
+            LOG("INFO: heap_malloc() - memory successfully allocated");
         }
     }
+    else LOG("ERROR: heap_malloc() failed - No free memory!");
 
     return calculated_address;
 }
@@ -458,7 +467,11 @@ void heap_free(void* pointer)
 
     if ( ! stack_push(heap_bin.free_blocks_stack, index))
     {
-        // Log an error
+        LOG("ERROR: heap_free() failed - wrong index?");
+    }
+    else
+    {
+        LOG("INFO: heap_free() - memory successfully freed");
     }
 }
 

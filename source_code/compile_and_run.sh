@@ -15,12 +15,13 @@ fi
 # Compile the C code
 gcc -m32 -nostdlib -nostartfiles -c kernel_main.c -o kernel_main.o #-Wall
 gcc -m32 -nostdlib -nostartfiles -c terminal.c    -o terminal.o    #-Wall
+gcc -m32 -nostdlib -nostartfiles -c hexdump.c     -o hexdump.o     #-Wall
 if [ $? -ne 0 ]; then
     exit
 fi
 
 # Link compiled objects into ELF binary using custom linker script "kernel.ld"
-ld -T kernel.ld -melf_i386 startup.o kernel_main.o terminal.o -o iso_image_content/boot/AlmostOS_kernel.elf
+ld -T kernel.ld -melf_i386 startup.o kernel_main.o terminal.o hexdump.o -o iso_image_content/boot/AlmostOS_kernel.elf
 if [ $? -ne 0 ]; then
     exit
 fi
