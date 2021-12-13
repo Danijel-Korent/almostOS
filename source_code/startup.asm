@@ -48,6 +48,7 @@ VGA_RAM_ADDRESS        equ 0x000B8000 ;Video memory address for text mode - 32kb
 global start_kernel  ; GRUB will jump into this function (specified in the linker script "kernel.ld")
 global test_func
 global read_byte_from_IO_port
+global halt_cpu
 
 extern kernel_c_main ; entry point for C code
 
@@ -132,4 +133,8 @@ read_byte_from_IO_port:
 
 
 write_byte_to_IO_port:
+    ret
+
+halt_cpu:
+    hlt
     ret

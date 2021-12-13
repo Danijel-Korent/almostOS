@@ -197,6 +197,7 @@ int run_unittests_heap_allocator(void);
 // TODO: move both implementation and declaration into seperate files
 int test_func(int base, int multiplier, int adder);
 unsigned char read_byte_from_IO_port( unsigned short port_address);
+void halt_cpu(void);
 
 
 /*******************************************************************************
@@ -341,6 +342,9 @@ void kernel_c_main( void )
     while(1)
     {
         keyboard_driver_poll();
+
+        // TODO: First we need to program PIC otherwise the CPU will never be awaken
+        //halt_cpu();
     }
 }
 
