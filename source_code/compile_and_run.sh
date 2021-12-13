@@ -1,6 +1,18 @@
 
 # TODO: Will be replaced with make after code get big enough to be splitted into multiple files
 
+# For this script to work, install following packages:
+#
+# sudo apt update
+# sudo apt install nasm
+# sudo apt install build-essential
+# sudo apt install bochs
+# sudo apt install bochs-sdl
+# sudo apt install bochsbios
+# sudo apt install genisoimage
+
+
+
 # Clean everything before compiling
 rm *.iso &> /dev/null
 rm *.o   &> /dev/null
@@ -13,15 +25,16 @@ if [ $? -ne 0 ]; then
 fi
 
 # Compile the C code
-gcc -m32 -nostdlib -nostartfiles -c kernel_main.c -o kernel_main.o #-Wall
-gcc -m32 -nostdlib -nostartfiles -c terminal.c    -o terminal.o    #-Wall
-gcc -m32 -nostdlib -nostartfiles -c hexdump.c     -o hexdump.o     #-Wall
+gcc -m32 -nostdlib -nostartfiles -c kernel_main.c    -o kernel_main.o       #-Wall
+gcc -m32 -nostdlib -nostartfiles -c terminal.c       -o terminal.o          #-Wall
+gcc -m32 -nostdlib -nostartfiles -c hexdump.c        -o hexdump.o           #-Wall
+gcc -m32 -nostdlib -nostartfiles -c BIOS_Data_Area.c -o BIOS_Data_Area.o    # TODO: Convert into a Makefile!
 if [ $? -ne 0 ]; then
     exit
 fi
 
 # Link compiled objects into ELF binary using custom linker script "kernel.ld"
-ld -T kernel.ld -melf_i386 startup.o kernel_main.o terminal.o hexdump.o -o iso_image_content/boot/AlmostOS_kernel.elf
+ld -T kernel.ld -melf_i386 startup.o kernel_main.o terminal.o hexdump.o BIOS_Data_Area.o -o iso_image_content/boot/AlmostOS_kernel.elf
 if [ $? -ne 0 ]; then
     exit
 fi

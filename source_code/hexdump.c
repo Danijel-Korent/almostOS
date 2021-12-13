@@ -79,7 +79,7 @@ static char byte_to_hexchar(unsigned char byte)
     }
 }
 
-static void long_to_hex(long int number, char * string_buffer, int string_buffer_len, unsigned char base)
+void long_to_hex(long int number, char * string_buffer, int string_buffer_len, unsigned char base)
 {
     if (string_buffer == NULL)
     {

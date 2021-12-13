@@ -235,6 +235,8 @@ int printf ( const char * format, ... )
  *                                  Functions                                  *
  *******************************************************************************/
 
+void parse_BIOS_Data_Area(void);
+
 terminal_contex_t shell_terminal;
 terminal_contex_t log_terminal;
 
@@ -333,6 +335,8 @@ void kernel_c_main( void )
 
     // Re-initi memory allocator after tests
     init_heap_memory_allocator();
+
+    parse_BIOS_Data_Area();
 
     while(1)
     {
