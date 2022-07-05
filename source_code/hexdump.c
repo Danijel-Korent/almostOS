@@ -79,6 +79,8 @@ static char byte_to_hexchar(unsigned char byte)
     }
 }
 
+// Maybe this should be called long_to_string()
+// This func does not null-terminate. Should it?
 void long_to_hex(long int number, char * string_buffer, int string_buffer_len, unsigned char base)
 {
     if (string_buffer == NULL)

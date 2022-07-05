@@ -261,6 +261,7 @@ void free(void* pointer);
 void LOG(const unsigned char* const message); // TODO: Move into a header
 
 // TODO: Move this generic helper functions for length and trimming into a common file for helper functions
+// TODO: Add postfix "_unsafe" to all unbounded functions
 int strlen(const char * input_string)
 {
     if (input_string == NULL) return 0;

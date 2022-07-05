@@ -180,6 +180,7 @@ void print_string_to_VGA_display_buffer(int position, unsigned char* string, int
 
 void keyboard_driver_poll(void);
 
+// This is dead code now
 void terminal__init(void);
 void terminal__print_string(unsigned char *string);
 void terminal__render_to_VGA_display(void);
@@ -193,10 +194,15 @@ bool run_textbox_unittests(void);
 int run_unittests_stack(void);
 int run_unittests_heap_allocator(void);
 
+
+void append_string(unsigned char* const destination, int destination_size, const unsigned char* const source, int source_size);
+
+
 // Functions implemented startup.asm
 // TODO: move both implementation and declaration into seperate files
 int test_func(int base, int multiplier, int adder);
 unsigned char read_byte_from_IO_port( unsigned short port_address);
+int get_timestamp(void);
 void halt_cpu(void);
 
 
@@ -241,9 +247,45 @@ void parse_BIOS_Data_Area(void);
 terminal_contex_t shell_terminal;
 terminal_contex_t log_terminal;
 
+// TODO: Move this function to util.c and make a proper header
+void long_to_hex(long int number, char * string_buffer, int string_buffer_len, unsigned char base);
+
+// TODO: Move this function to util.c
+int strlen_logless(const char * input_string)
+{
+    if (input_string == NULL) return 0;
+
+    int i = 0;
+
+    //for(i = 0; input_string[i] != 0; i++)
+    while (input_string[i] != 0)
+    {
+        i++;
+
+        if (i > 100)
+        {
+            //LOG("ERROR: strlen() smashed protection limit!");
+            return 0;
+        }
+    }
+
+    return i;
+}
+
 void LOG(const unsigned char* const message)
 {
-    terminal_printline(&log_terminal, message);
+    int timestamp = get_timestamp();
+
+    char str_with_timestamp[TERMINAL_MAX_X] = "AbcdAbcd: ";
+
+    long_to_hex(timestamp, str_with_timestamp, 8, 16);
+
+    int message_size = strlen_logless(message);
+
+    // TODO: Add terminal_print() (without new line) so we can skip appending
+    append_string(str_with_timestamp, sizeof(str_with_timestamp), message, message_size+1); // TODO: +1 because append didn't null-terminate. Fix it
+
+    terminal_printline(&log_terminal, str_with_timestamp);
 }
 
 void stdandard_println(const unsigned char* const message) // TODO: tipfeler stdandard_println -> standard_println
@@ -1111,6 +1153,7 @@ bool check_test_case(textbuffer_handle_t* const handle, const unsigned char* con
     return test_case_passed;
 }
 
+// TODO: Move this to Util.c
 void mem_copy(unsigned char* const destination, int destination_size, const unsigned char* const source, int source_size)
 {
     if (destination == NULL || source == NULL) return; //QTODO: Log an error
@@ -1125,6 +1168,8 @@ void mem_copy(unsigned char* const destination, int destination_size, const unsi
     }
 }
 
+// TODO: Move this to Util.c
+// TODO: Add explicit null-terminator
 void append_string(unsigned char* const destination, int destination_size, const unsigned char* const source, int source_size)
 {
     if (destination == NULL || source == NULL) return; //QTODO: Log an error

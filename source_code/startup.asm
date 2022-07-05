@@ -48,6 +48,7 @@ VGA_RAM_ADDRESS        equ 0x000B8000 ;Video memory address for text mode - 32kb
 global start_kernel  ; GRUB will jump into this function (specified in the linker script "kernel.ld")
 global test_func
 global read_byte_from_IO_port
+global get_timestamp
 global halt_cpu
 
 extern kernel_c_main ; entry point for C code
@@ -132,7 +133,13 @@ read_byte_from_IO_port:
     ret
 
 
+; TODO
 write_byte_to_IO_port:
+    ret
+
+; PROTO: int get_timestamp(void)
+get_timestamp:
+    RDTSC   ; Timestamp is loaded into EDX:EAX. We just ignore high bits in EDX for now
     ret
 
 halt_cpu:
