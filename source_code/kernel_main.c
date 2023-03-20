@@ -157,11 +157,9 @@ Terminal escape code:
  *                                 Includes                                    *
  *******************************************************************************/
 
-//#include <stdlib.h>  // Not available yet
-//#include <stdio.h>   // Not available yet
-
 #include "kernel_stddef.h"
 #include "terminal.h"
+
 
 /*******************************************************************************
  *                     Local defines, structs and typdefs                      *
@@ -180,17 +178,12 @@ void print_string_to_VGA_display_buffer(int position, unsigned char* string, int
 
 void keyboard_driver_poll(void);
 
-// This is dead code now
-void terminal__init(void);
-void terminal__print_string(unsigned char *string);
-void terminal__render_to_VGA_display(void);
 
-// Not really a heap allocator but a pool allocator, but will be turned into heap
+// Not really a heap allocator but a pool allocator
 bool init_heap_memory_allocator(void);
 void* heap_malloc(int size);
 void heap_free(void* pointer);
 
-bool run_textbox_unittests(void);
 int run_unittests_stack(void);
 int run_unittests_heap_allocator(void);
 
@@ -210,6 +203,8 @@ void halt_cpu(void);
  *                                    STUBS                                    *
  *******************************************************************************/
 
+// Stubs for parts of code developed in userspace and then copied here
+
 void* malloc(int size)
 {
     return heap_malloc(size);
@@ -221,7 +216,7 @@ void free(void* pointer)
 }
 
 
-// These functions are not available yet
+// These functions are not available here
 int puts(const char *string)
 {
     return 0;
@@ -242,6 +237,7 @@ int printf ( const char * format, ... )
  *                                  Functions                                  *
  *******************************************************************************/
 
+// TODO: Make proper include
 void parse_BIOS_Data_Area(void);
 
 terminal_contex_t shell_terminal;
@@ -306,47 +302,11 @@ void kernel_c_main( void )
     unsigned char klog_header[] = "--------------------------------/ KERNEL LOG /---------------------------------";
     print_string_to_VGA_display_buffer(1360, klog_header, sizeof(klog_header)-1);
 
-    //int test = test_func(34, 2);
-
-    //print_char_to_VGA_display_buffer(640, test_func(34, 2, 1));
-    //print_char_to_VGA_display_buffer(642, test_func(35, 2, 1));
-    //print_char_to_VGA_display_buffer(644, test_func(36, 2, 1));
-
-    //terminal__init();
 
     // New terminal
     terminal_init(&shell_terminal,  8, 8, ENABLE_INPUT_LINE);
     terminal_init(&log_terminal,   18, 5, DISABLE_INPUT_LINE);
 
-#if 0
-    terminal_printline(&shell_terminal, "Linija broj  1");
-    terminal_printline(&shell_terminal, "Linija broj  2");
-    terminal_printline(&shell_terminal, "Linija broj  3");
-    terminal_printline(&shell_terminal, "Linija broj  4");
-    terminal_printline(&shell_terminal, "Linija broj  5");
-    terminal_printline(&shell_terminal, "Linija broj  6");
-    terminal_printline(&shell_terminal, "Linija broj  7");
-    terminal_printline(&shell_terminal, "Linija broj  8");
-    terminal_printline(&shell_terminal, "Linija broj  9");
-    terminal_printline(&shell_terminal, "Linija broj 10");
-    terminal_printline(&shell_terminal, "Linija broj 11");
-    terminal_printline(&shell_terminal, "Linija broj 12");
-    terminal_printline(&shell_terminal, "Linija broj 13");
-    terminal_printline(&shell_terminal, "Linija broj 14");
-    terminal_printline(&shell_terminal, "Linija broj 15");
-    terminal_printline(&shell_terminal, "Linija broj 16");
-    terminal_printline(&shell_terminal, "Linija broj 17");
-    terminal_printline(&shell_terminal, "Linija broj 18");
-    terminal_printline(&shell_terminal, "Linija broj 19");
-    terminal_printline(&shell_terminal, "Linija broj 20");
-    terminal_printline(&shell_terminal, "Linija broj 21");
-    terminal_printline(&shell_terminal, "Linija broj 22");
-    terminal_printline(&shell_terminal, "Linija broj 23");
-    terminal_printline(&shell_terminal, "broj 24");
-    terminal_printline(&shell_terminal, "broj 25");
-    terminal_printline(&shell_terminal, "broj 26");
-    terminal_printline(&shell_terminal, "broj 27");
-#endif
 
     // QTODO: this repeating code needs a function of its own
     if (run_unittests_stack() == 0)
@@ -367,16 +327,7 @@ void kernel_c_main( void )
         LOG("Memory allocator unittests: FAILED");
     }
 
-    if (run_textbox_unittests())
-    {
-        LOG("Textbuffer unittests: PASSED");
-    }
-    else
-    {
-        LOG("Textbuffer unittests: FAILED");
-    }
-
-    // Re-initi memory allocator after tests
+    // Re-init memory allocator after tests
     init_heap_memory_allocator();
 
     parse_BIOS_Data_Area();
@@ -761,313 +712,10 @@ int run_unittests_stack(void)
     return failed_test_counter;
 }
 
-/*******************************************************************************
- *                               Textbuffer class                              *
- *******************************************************************************/
-
-// A circular text buffer that is aware of lines and textbox size
-
-#define TERMINAL_WIDTH (80)
-#define TEXTBUFFER_NO_LINES (50)
-
-typedef struct textbuffer_handler_tag
-{
-    unsigned char buffer[TEXTBUFFER_NO_LINES * TERMINAL_WIDTH + 1]; // +1 because one location is always unused (buffer_end)
-    unsigned int  buffer_start;
-    unsigned int  buffer_end;
-} textbuffer_handle_t;
-
-typedef int textbuffer_iterator_t;
-
-void textbuffer__add_char(textbuffer_handle_t* const handle, unsigned char character_to_add);
-
-
-
-void textbuffer__init(textbuffer_handle_t* const handle)
-{
-    if (handle == NULL)
-    {
-        //QTODO: log error mesage
-        return; // QTODO: return error code
-    }
-
-    handle->buffer_start = 0;
-    handle->buffer_end   = 0;
-
-    // TODO: clear the buffer
-    // TODO: log init call
-}
-
-unsigned int textbuffer__get_content_length(textbuffer_handle_t* const handle)
-{
-    if (handle == NULL)
-    {
-        //QTODO: log error mesage
-        return 0; // QTODO: return error code
-    }
-
-    unsigned int result = 0;
-    unsigned int buffer_end   = handle->buffer_end;
-    unsigned int buffer_start = handle->buffer_start;
-
-    if (buffer_start < buffer_end) // No wrap-around
-    {
-        result = buffer_end - buffer_start;
-    }
-    else if (buffer_start > buffer_end) // wrap-around happend
-    {
-        result = (sizeof(handle->buffer) - buffer_start) + buffer_end;
-    }
-    else // if end == start
-    {
-        result = 0;
-    }
-
-    return result;
-}
-
-void textbuffer__increment_iterators_on_bytewrite(textbuffer_handle_t* const handle)
-{
-    if (handle == NULL)
-    {
-        //QTODO: log error mesage
-        return; // QTODO: return error code
-    }
-
-    unsigned int buffer_size    = sizeof(handle->buffer);
-
-     handle->buffer_end++;
-     handle->buffer_end = handle->buffer_end % buffer_size; // Wrape-around if neccessery
-
-     if(handle->buffer_end == handle->buffer_start)
-     {
-         handle->buffer_start += TERMINAL_WIDTH; // Remove a whole line from the beginning of the buffer
-         handle->buffer_start = handle->buffer_start % buffer_size; // Wrape-around if neccessery
-
-     }
-}
-
-void textbuffer__skip_to_next_line(textbuffer_handle_t* const handle)
-{
-    if (handle == NULL)
-    {
-        //QTODO: log error mesage
-        return; // QTODO: return error code
-    }
-
-    unsigned int last_row_length = textbuffer__get_content_length(handle) % TERMINAL_WIDTH;
-
-    if (last_row_length == 0)
-    {
-        return;
-    }
-
-    unsigned int num_of_chars_to_skip = TERMINAL_WIDTH - last_row_length;
-
-    while (num_of_chars_to_skip > 0)
-    {
-        textbuffer__add_char(handle, ' ');
-
-        num_of_chars_to_skip--;
-    }
-}
-
-void textbuffer__add_char(textbuffer_handle_t* const handle, unsigned char character_to_add)
-{
-    if (handle == NULL)
-    {
-        //QTODO: log error mesage
-        return; // QTODO: return error code
-    }
-
-    // TODO: escape characters should be handled by terminal code
-    if (character_to_add == '\n')
-    {
-        // TODO: circular call, but will be moved out anyway
-        textbuffer__skip_to_next_line(handle);
-    }
-    else
-    {
-        handle->buffer[handle->buffer_end] = character_to_add;
-
-        textbuffer__increment_iterators_on_bytewrite(handle);
-    }
-}
-
-void textbuffer__add_string(textbuffer_handle_t *handle, const unsigned char* const string)
-{
-    if (handle == NULL || string == NULL) return; //QTODO: Log an error
-
-    //puts("\nAdding string: ");
-
-    const unsigned char *string_itr = string;
-
-    while (*string_itr != 0)
-    {
-        //if (*string_itr == '\n') putchar('*');
-        //else putchar(*string_itr);
-
-        textbuffer__add_char(handle, *string_itr++);
-    }
-
-    //print_handle(handle);
-}
-
-unsigned int textbuffer__get_line_cout(textbuffer_handle_t* const handle)
-{
-    if (handle == NULL)
-    {
-        //QTODO: log error mesage
-        return 0; // QTODO: return error code
-    }
-
-    unsigned int content_length = textbuffer__get_content_length(handle);
-
-    unsigned int result   = content_length / TERMINAL_WIDTH;
-    unsigned int reminder = content_length % TERMINAL_WIDTH;
-
-    if (reminder > 0)
-    {
-        result++;
-    }
-
-    return result;
-}
-
-
-// Iterator becomes invalid if textbuffer is modified after getting iterator
-textbuffer_iterator_t textbuffer_get_iterator_at_line(textbuffer_handle_t* const handle, int line_num)
-{
-    if (handle == NULL || line_num >= TEXTBUFFER_NO_LINES)
-    {
-        //QTODO: log error mesage
-        return -1; // QTODO: add enum for error code
-    }
-
-    unsigned int offset         = line_num * TERMINAL_WIDTH;
-    unsigned int content_length = textbuffer__get_content_length(handle);
-
-    if (offset > content_length)
-    {
-        //QTODO: log error mesage
-        return -1; // QTODO: add enum for error code
-    }
-
-
-    // Calculate index from the offset
-    textbuffer_iterator_t index = handle->buffer_start + offset;
-
-    if (index > sizeof(handle->buffer))
-    {
-        index = index - sizeof(handle->buffer);
-    }
-
-    // TODO: assert that index is not bigger than buffer_start
-
-    return index;
-}
-
-int textbuffer__get_next_memblock(textbuffer_handle_t* const handle, textbuffer_iterator_t *iterator, unsigned char** const buffer, int* const buffer_size)
-{
-    if (handle == NULL || iterator == NULL || buffer == NULL || buffer_size == NULL) //QTODO: Hardcoded error code
-    {
-        //QTODO: log error mesage
-        return -1; // QTODO: add enum for error code
-    }
-
-    if (*iterator == -1 || *iterator == handle->buffer_end)
-    {
-        *buffer = NULL;
-        *buffer_size = 0;
-        return -1; // End of the iterator/buffer
-    }
-
-    unsigned int buffer_end   = handle->buffer_end;
-    unsigned int buffer_start = *iterator;
-
-    textbuffer_iterator_t next_iterator = 0;
-
-    if (buffer_start < buffer_end) // No wrap-around
-    {
-        next_iterator = buffer_end;
-        *buffer_size  = buffer_end - buffer_start;
-    }
-    else if (buffer_start > buffer_end) // wrap-around happend
-    {
-        next_iterator = 0;
-        *buffer_size  = sizeof(handle->buffer) - buffer_start;
-    }
-    else // if end == start
-    {
-        *buffer_size = 0;
-        *buffer      = NULL;
-        return -1;
-    }
-
-    *buffer = handle->buffer + *iterator;
-
-    *iterator = next_iterator;
-
-    return 0;
-}
-
-unsigned int textbuffer__get_current_x(textbuffer_handle_t* const handle)
-{
-    unsigned int content_length = textbuffer__get_content_length(handle);
-
-    return 0;
-}
-
-
-unsigned int textbuffer__get_current_y(textbuffer_handle_t* const handle)
-{
-    unsigned int content_length = textbuffer__get_content_length(handle);
-
-    return 0;
-}
-
 
 /*******************************************************************************
- *                             TEXTBUFFER UNITTESTS                            *
+ *                                     UTIL                                    *
  *******************************************************************************/
-
-void print_handle(textbuffer_handle_t* const handle)
-{
-    if (handle == NULL) return; //QTODO: Log an error
-
-    printf("\nBuffer start: %i", handle->buffer_start);
-    printf("\nBuffer end:   %i\n", handle->buffer_end);
-}
-
-void print_buffer(const unsigned char* const buffer, int buffer_size)
-{
-    if (buffer == NULL) return; //QTODO: Log an error
-
-    for (int y = 0; y < TEXTBUFFER_NO_LINES; y++)
-    {
-        for (int x = 0; x < TERMINAL_WIDTH; x++)
-        {
-            int offset = y * TERMINAL_WIDTH + x;
-
-            if (offset >= buffer_size) return;
-
-            signed char character = buffer[offset];
-
-            if (character == ' ') character = '_';
-
-            if (character < ' ')
-            {
-                if (character == 0)
-                    character = 176;
-                else
-                    character = 178;
-            }
-
-            putchar(character);
-        }
-        printf("|\n");
-    }
-}
 
 // QTODO: add bool type as int. Add 0 as flase, 1 true
 int memory_is_equal(const unsigned char* const mem1, int mem1_size, const unsigned char* const mem2, int mem2_size)
@@ -1089,69 +737,6 @@ int memory_is_equal(const unsigned char* const mem1, int mem1_size, const unsign
     return is_equal;
 }
 
-void output_textbuffer_to_memory(textbuffer_handle_t* const handle, unsigned char* const memory, int memory_size, int* const received_data_size)
-{
-    if (handle == NULL || memory == NULL || received_data_size == NULL) return; //QTODO: Log an error
-
-    unsigned char *buffer;
-    int buffer_size;
-
-    unsigned char *memory_iterator = memory;
-    unsigned char *memory_end = memory + memory_size;
-
-
-    textbuffer_iterator_t iter = textbuffer_get_iterator_at_line(handle, 0);
-
-    while (textbuffer__get_next_memblock(handle, &iter, &buffer, &buffer_size) == 0)
-    {
-        for (int i = 0; i < buffer_size; i++)
-        {
-            if(memory_iterator != memory_end)
-            {
-                *memory_iterator = buffer[i];
-                memory_iterator++;
-            }
-        }
-    }
-
-    *received_data_size = memory_iterator - memory;
-}
-
-bool check_test_case(textbuffer_handle_t* const handle, const unsigned char* const expected_result, int expected_result_size)
-{
-    if (handle == NULL || expected_result == NULL) return 0; //QTODO: Log an error
-
-    bool test_case_passed = true;
-
-    unsigned char receive_buffer[TEXTBUFFER_NO_LINES * TERMINAL_WIDTH] = {0};
-    int received_data_size = 0;
-
-    output_textbuffer_to_memory(handle, receive_buffer, sizeof(receive_buffer), &received_data_size);
-
-    //print_buffer(receive_buffer, sizeof(receive_buffer));
-
-    if (! memory_is_equal(receive_buffer, received_data_size, expected_result, expected_result_size))
-    {
-        test_case_passed = false;
-    }
-
-    if (test_case_passed)
-    {
-        puts("Test case passed!");
-    }
-    else
-    {
-        puts("\nReceived:");
-        print_buffer(receive_buffer, sizeof(receive_buffer));
-
-        puts("\nExpected:");
-        print_buffer(expected_result, expected_result_size);
-
-        puts("\n\nTest case FAILED!");
-    }
-
-    return test_case_passed;
-}
 
 // TODO: Move this to Util.c
 void mem_copy(unsigned char* const destination, int destination_size, const unsigned char* const source, int source_size)
@@ -1200,291 +785,6 @@ int get_string_size(const unsigned char* const buffer_ptr, int buffer_size)
     return end_of_first_string_ptr - buffer_ptr;
 }
 
-// TODO:
-//      Test are flexible to changes to TEXTBUFFER_NO_LINES, but with is fixed to 80.
-//      Not sure if it worth make it flexible since that would make test cases very hard to read
-bool run_textbox_unittests(void)
-{
-    puts("\n\n !! Running Unittests !!");
-
-    bool all_unittest_passed = true;
-
-    textbuffer_handle_t test_handle;
-
-    textbuffer__init(&test_handle);
-
-    // Test adding text
-    {
-        textbuffer__add_string(&test_handle, "X");
-
-        unsigned char expected_result[] = "X";
-
-        if( ! check_test_case(&test_handle, expected_result, sizeof(expected_result) - 1)) // -1 to exclude null terminator
-        {
-            all_unittest_passed = false;
-        }
-    }
-
-    {
-        textbuffer__add_string(&test_handle,  "000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000");
-        textbuffer__add_string(&test_handle, "1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111");
-
-        unsigned char expected_result[] = "X000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000"
-                                          "1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111"
-                                          ;
-
-        if( ! check_test_case(&test_handle, expected_result, sizeof(expected_result) - 1)) // -1 to exclude null terminator
-        {
-            all_unittest_passed = false;
-        }
-    }
-
-    {
-        textbuffer__add_string(&test_handle, "2");
-
-        unsigned char expected_result[] = "X000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000"
-                                          "1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111"
-                                          "2"
-                                          ;
-
-        if( ! check_test_case(&test_handle, expected_result, sizeof(expected_result) - 1)) // -1 to exclude null terminator
-        {
-            all_unittest_passed = false;
-        }
-    }
-
-    // Test new line handling
-    {
-        textbuffer__add_string(&test_handle, "2\n");
-
-        unsigned char expected_result[] = "X000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000"
-                                          "1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111"
-                                          "22        ""          ""          ""          ""          ""          ""          ""          "
-                                          ;
-
-        if( ! check_test_case(&test_handle, expected_result, sizeof(expected_result) - 1)) // -1 to exclude null terminator
-        {
-            all_unittest_passed = false;
-        }
-    }
-
-    // Test that new line at end of line are ignored
-    {
-        textbuffer__add_string(&test_handle, "\n\n\n");
-
-        unsigned char expected_result[] = "X000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000"
-                                          "1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111"
-                                          "22        ""          ""          ""          ""          ""          ""          ""          "
-                                          ;
-
-        if( ! check_test_case(&test_handle, expected_result, sizeof(expected_result) - 1)) // -1 to exclude null terminator
-        {
-            all_unittest_passed = false;
-        }
-    }
-
-    // Test filling the buffer to a full size
-    {
-        int lines_to_fill_whole_buffer = TEXTBUFFER_NO_LINES - 3;
-
-        // Fill the textbuffer
-        for (int i = 0; i < lines_to_fill_whole_buffer; i++)
-        {
-            textbuffer__add_string(&test_handle, "AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA");
-        }
-
-        // Construct the expected answer
-        unsigned char expected_result[TEXTBUFFER_NO_LINES * TERMINAL_WIDTH +1] =
-                                          "X000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000""0000000000"
-                                          "1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111"
-                                          "22        ""          ""          ""          ""          ""          ""          ""          "
-                                          ;
-
-
-        for (int i = 0; i < (lines_to_fill_whole_buffer); i++)
-        {
-            const char line_to_add[] = "AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA";
-
-            append_string(expected_result, sizeof(expected_result), line_to_add, sizeof(line_to_add));
-        }
-
-        if( ! check_test_case(&test_handle, expected_result, sizeof(expected_result) - 1)) // -1 to exclude null terminator
-        {
-            all_unittest_passed = false;
-        }
-    }
-
-
-    // Test wrap-around
-    {
-        textbuffer__add_string(&test_handle, "3");
-
-        // Construct the expected answer
-        unsigned char expected_result[TEXTBUFFER_NO_LINES * TERMINAL_WIDTH +1] =
-                                          "1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111""1111111111"
-                                          "22        ""          ""          ""          ""          ""          ""          ""          "
-                                          ;
-
-        int lines_to_fill_whole_buffer = TEXTBUFFER_NO_LINES - 3;
-
-        for (int i = 0; i < (lines_to_fill_whole_buffer); i++)
-        {
-            const char line_to_add[] = "AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA";
-
-            append_string(expected_result, sizeof(expected_result), line_to_add, sizeof(line_to_add));
-        }
-
-        append_string(expected_result, sizeof(expected_result), "3", 2);
-
-        if( ! check_test_case(&test_handle, expected_result, get_string_size(expected_result, sizeof(expected_result))))
-        {
-            all_unittest_passed = false;
-        }
-    }
-
-    // Another test for wrap-around
-    {
-        char string_to_add[] = "BBBBBBBBBB""BBBBBBBBBB""BBBBBBBBBB""BBBBBBBBBB""BBBBBBBBBB""BBBBBBBBBB""BBBBBBBBBB""BBBBBBBBBB"
-                               "BB"
-                               ;
-        textbuffer__add_string(&test_handle, string_to_add);
-
-
-        // Construct the expected answer
-        unsigned char expected_result[TEXTBUFFER_NO_LINES * TERMINAL_WIDTH +1] =
-                                          "22        ""          ""          ""          ""          ""          ""          ""          "
-                                          ;
-
-        int lines_to_fill_whole_buffer = TEXTBUFFER_NO_LINES - 3;
-
-        for (int i = 0; i < (lines_to_fill_whole_buffer); i++)
-        {
-            const char line_to_add[] = "AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA""AAAAAAAAAA";
-
-            append_string(expected_result, sizeof(expected_result), line_to_add, sizeof(line_to_add));
-        }
-
-        append_string(expected_result, sizeof(expected_result), "3", 2);
-        append_string(expected_result, sizeof(expected_result), string_to_add, sizeof(string_to_add));
-
-        if( ! check_test_case(&test_handle, expected_result, get_string_size(expected_result, sizeof(expected_result))))
-        {
-            all_unittest_passed = false;
-        }
-    }
-
-    return all_unittest_passed;
-}
-
-
-/*******************************************************************************
- *                            OLD Terminal functions                           *
- *******************************************************************************/
-
-// TODO: All this data will be part of a structure/handle
-//       to have multiple active terminals simultaneously
-// QTODO: replace hardcoded numbers with defines
-static unsigned char terminal__textbuffer[50*80];
-//static unsigned int  terminal__textbuffer_start = 0;
-static unsigned int  terminal__textbuffer_end = 0;
-
-
-static unsigned int  terminal__window_start  =  8;
-static unsigned int  terminal__window_length = 15;
-
-
-void terminal__init(void)
-{
-#if 0
-    terminal__textbuffer[0]   = 'T';
-    terminal__textbuffer[80]  = 'E';
-    terminal__textbuffer[160] = 'S';
-    terminal__textbuffer[240] = 'T';
-#endif
-
-    terminal__print_string("Terminal initialized"); // lol
-    // Place terminal from line 15 to 23
-
-    // Text mode width: 80 chars
-}
-
-//void terminal__poll() // Is this needed? Probably all events will happen on keypress
-
-void terminal__on_keypress(unsigned char key)
-{
-    // Process the keypress event
-
-    // Update the screen
-    terminal__render_to_VGA_display();
-}
-
-// TODO: will be local/static functionvoid
-void terminal__render_to_VGA_display(void)
-{
-    unsigned char output_starting_line = 0;
-
-    // Code for following the output of terminal
-    // Calculate the starting line for outputing from the textbuffer if there is more text
-    // to display than the size of the terminal window
-    // TODO: And this is now offically a spaghetti code - but will be fixed when textbuffer
-    // is seperated into its own class
-    {
-        if (terminal__textbuffer_end >= terminal__window_length*80) // QTODO: hardcoded 80
-        {
-            int num_of_lines = terminal__textbuffer_end / 80 + 1;
-
-            output_starting_line = num_of_lines - terminal__window_length;
-        }
-    }
-
-    // TODO: Replace hardcoded '80'
-    for (int line = 0; line < terminal__window_length; line++)
-    {
-        for (int column = 0; column < 80; column++)
-        {
-            // QTODO: sooooo ugly, make it nicer!
-            unsigned char output_char = terminal__textbuffer[(line+output_starting_line)*80+column];
-            unsigned int  output_position = (line*80) + column + (terminal__window_start*80); // QTODO: hardcoded 80
-
-            print_char_to_VGA_display(column, line+terminal__window_start, output_char);
-        }
-    }
-}
-
-
-
-void terminal__print_char(unsigned char char_to_output)
-{
-    // if char == '\n' go to next line
-    if (char_to_output == '\n')
-    {
-        unsigned int current_column = terminal__textbuffer_end % 80; // TODO: Replace hardcoded literal
-
-        // QTODO BUG: Space between current_column and the new line must be cleared with whitespaces,
-        //            otherwise old data will be showed when this buffer will be circular
-
-        terminal__textbuffer_end += 80 - current_column; // TODO: Replace hardcoded literal
-    }
-    else
-    {
-        terminal__textbuffer[terminal__textbuffer_end++] = char_to_output;
-    }
-
-}
-
-void terminal__print_string(unsigned char *string)
-{
-    if (string == NULL) return; // TODO: log error
-
-    while (*string != 0)
-    {
-        terminal__print_char(*string);
-
-        string++;
-    }
-
-    terminal__render_to_VGA_display();
-}
 
 /*******************************************************************************
  *                             VGA Output functions                            *
@@ -1531,49 +831,19 @@ void print_string_to_VGA_display_buffer(int position, unsigned char* string, int
 
 void event_on_keypress(unsigned char key)
 {
-    // Temporary test code
-#if 0
-    {
-        static int i = 640;
-
-        if (i >= 640+400) i = 640; // Display it from line 8 to line 13
-
-        print_char_to_VGA_display_buffer(i, key);
-        i++;
-    }
-#endif
-
-    // Temporary test code
-    {
-        if (key > '0' && key < '6')
-        {
-            char string[] = "New terminal test string ";
-            string[sizeof(string) -2] = key;
-
-            terminal_printline(&shell_terminal, string);
-        }
-    }
-
-    // TEMP
-    //terminal__print_string("\nKey is pressed: ");
-    //terminal__print_char(key);
-
-    //terminal__on_keypress(key);
+    terminal_on_keypress(&shell_terminal, key);
 
 #if 0
     char string[] = "Key is pressed:  ";
     string[sizeof(string) -2] = key;
     terminal_printline(&shell_terminal, string);
-#endif
-
-    terminal_on_keypress(&shell_terminal, key);
     //LOG(string);
+#endif
 }
 
 
 unsigned char convert_scancode_to_ASCII(unsigned char scan_code)
 {
-
     // Quick and dirty solution for reading at least letters and numbers
     // Proper solution will need a lot more code to check/support scan code sets,
     // support upper/lower cases, control/alt/shift combinations...
