@@ -17,8 +17,6 @@ CFLAGS = -m32 -nostdlib -nostartfiles
 
 obj_files = startup.o kernel_main.o terminal.o hexdump.o BIOS_Data_Area.o
 
-# Compilation rules
-
 .PHONY: all
 .PHONY: iso_image
 .PHONY: kernel
@@ -26,6 +24,7 @@ obj_files = startup.o kernel_main.o terminal.o hexdump.o BIOS_Data_Area.o
 .PHONY: bochs
 
 
+### Compilation rules
 all: iso_image
 
 iso_image: kernel
@@ -34,8 +33,6 @@ iso_image: kernel
 kernel: $(obj_files)
 	ld -T kernel.ld -melf_i386 $(obj_files) -o iso_image_content/boot/AlmostOS_kernel.elf
 
-
-
 startup.o: startup.asm
 	nasm -f elf32 startup.asm
 
@@ -43,14 +40,12 @@ startup.o: startup.asm
 %.o : %.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
+
+### Commands
+bochs: all
+	bochs -f bochs_configuration.txt -q
+
 clean:
 	rm *.o
 	rm *.iso
 	rm iso_image_content/boot/*.elf
-
-
-# Commands
-
-bochs: all
-	bochs -f bochs_configuration.txt -q
-
