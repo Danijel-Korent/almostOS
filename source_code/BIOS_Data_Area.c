@@ -15,7 +15,7 @@ short int read_16bit( const unsigned char *buffer, int offset)
 
 void parse_BIOS_Data_Area(void)
 {
-    char *BDA_base_address = 1024;
+    char *BDA_base_address = (char *) 1024;
 
     LOG("Parsing BIOS Data Area...");
 
