@@ -21,10 +21,11 @@ obj_files = startup.o kernel_main.o terminal.o hexdump.o BIOS_Data_Area.o
 .PHONY: iso_image
 .PHONY: kernel
 .PHONY: clean
+.PHONY: qemu
 .PHONY: bochs
 
 
-### Compilation rules
+##### Compilation rules #####
 all: iso_image
 
 iso_image: kernel
@@ -41,7 +42,10 @@ startup.o: startup.asm
 	$(CC) -c $(CFLAGS) $< -o $@
 
 
-### Commands
+##### Commands #####
+qemu: all
+	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d
+
 bochs: all
 	bochs -f bochs_configuration.txt -q
 
