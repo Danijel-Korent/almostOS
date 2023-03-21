@@ -65,7 +65,16 @@ static char byte_to_hexchar(unsigned char byte)
 {
     if (byte > 15)
     {
-        LOG("ERROR: byte_to_hexchar() - Input too big");
+        // Circular dependency :(
+        //
+        // By calling LOG() function can end-up in a state similar to endless recursion since LOG() is calling again
+        // byte_to_hexchar() to output CPU timestamp
+        //
+        // TODO:
+        //      Need to decouple the reception and outputing of the LOG messages, so that byte_to_hexchar() don't get
+        //      called in the LOG()
+        //LOG("ERROR: byte_to_hexchar() - Input too big");
+
         return 0;
     }
     
@@ -90,7 +99,7 @@ void long_to_hex(long int number, char * string_buffer, int string_buffer_len, u
     }
 
     int index = string_buffer_len - 1;
-    
+
     while (index >= 0)
     {
         unsigned char reminder = 0;
@@ -102,7 +111,7 @@ void long_to_hex(long int number, char * string_buffer, int string_buffer_len, u
 
         index--;
     }
-    
+
     if (number != 0)
     {
         LOG("ERROR: long_to_hex() - String buffer too small for input number!");

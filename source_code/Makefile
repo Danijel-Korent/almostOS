@@ -13,16 +13,17 @@
 
 
 C = gcc
-CFLAGS = -m32 -nostdlib -nostartfiles
+CFLAGS = -m32 -nostdlib -nostartfiles -g
 
 obj_files = startup.o kernel_main.o terminal.o hexdump.o BIOS_Data_Area.o
 
 .PHONY: all
 .PHONY: iso_image
 .PHONY: kernel
-.PHONY: clean
 .PHONY: qemu
 .PHONY: bochs
+.PHONY: gdb
+.PHONY: clean
 
 
 ##### Compilation rules #####
@@ -32,7 +33,7 @@ iso_image: kernel
 	genisoimage -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -A AlmostOS -input-charset utf8 -quiet -boot-info-table -o AlmostOS.iso iso_image_content
 
 kernel: $(obj_files)
-	ld -T kernel.ld -melf_i386 $(obj_files) -o iso_image_content/boot/AlmostOS_kernel.elf
+	ld -T kernel.ld -melf_i386 $(obj_files) -o iso_image_content/boot/AlmostOS_kernel.elf -Map=memory.map
 
 startup.o: startup.asm
 	nasm -f elf32 startup.asm
@@ -48,6 +49,9 @@ qemu: all
 
 bochs: all
 	bochs -f bochs_configuration.txt -q
+
+gdb: all
+	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -s -S &
 
 clean:
 	rm *.o
