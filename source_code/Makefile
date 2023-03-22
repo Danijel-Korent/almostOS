@@ -51,7 +51,7 @@ $(BUILD_DIR)/%.o : %.c
 
 ##### Commands #####
 qemu: all
-	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d
+	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -serial stdio
 
 bochs: all
 	bochs -f bochs_configuration.txt -q
