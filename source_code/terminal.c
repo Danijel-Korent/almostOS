@@ -8,6 +8,8 @@
 #include "terminal.h"
 #include "kernel_stddef.h"
 
+#include "poors_man_VGA_driver.h"
+
 // https://en.wikipedia.org/wiki/ANSI_escape_code
 // https://en.wikipedia.org/wiki/VGA_text_mode
 
@@ -15,8 +17,6 @@
 
 // TEMP: TODO: Move this into some header
 int printf ( const char * format, ... );
-void print_char_to_VGA_display(unsigned int x, unsigned int y, unsigned char ch);
-void set_cursor_position(unsigned short x, unsigned short y);
 
 // Local function defitions
 static void terminal_clear_input_line(terminal_contex_t *terminal_context);
