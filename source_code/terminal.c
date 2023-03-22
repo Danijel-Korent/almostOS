@@ -16,6 +16,7 @@
 // TEMP: TODO: Move this into some header
 int printf ( const char * format, ... );
 void print_char_to_VGA_display(unsigned int x, unsigned int y, unsigned char ch);
+void set_cursor_position(unsigned short x, unsigned short y);
 
 // Local function defitions
 static void terminal_clear_input_line(terminal_contex_t *terminal_context);
@@ -154,6 +155,8 @@ void terminal_render_to_VGA(terminal_contex_t *terminal_context)
             char character = terminal_context->input_line[x];
 
             int y = terminal_context->window_position_y + line_counter; // TODO: Move out of loop
+
+            set_cursor_position(terminal_context->input_cursor_position, y); // TODO: Move out of loop
 
             print_char_to_VGA_display(x, y, character);
         }

@@ -48,8 +48,10 @@ VGA_RAM_ADDRESS        equ 0x000B8000 ;Video memory address for text mode - 32kb
 global start_kernel  ; GRUB will jump into this function (specified in the linker script "kernel.ld")
 global test_func
 global read_byte_from_IO_port
+global write_byte_to_IO_port
 global get_timestamp
 global halt_cpu
+
 
 extern kernel_c_main ; entry point for C code
 
@@ -112,9 +114,20 @@ start_kernel:
 ; By 'cdecl' calling convention, all arguments of a function are pushed onto the stack,
 ; and return value from a function is passed by EAX register. Arguments are pushed to the stack
 ; in left-to-right order, so first argument is pushed last on the stack and therefore closest to the stack pointer.
+
 ; Registers EAX, ECX, and EDX are caller-saved, and the rest are callee-saved.
-;
+; Instruction "push" always pushes 4 bytes in 32-bit code, or 8 in 64-bit code
+
 ; x86's stack grows towards lower addresses, so first argument (last on stack) have lowest address and last arg highest address.
+
+; GDB commands:
+;   disass /r kernel_c_main
+;   info frame
+;   layout next
+;   nexti
+;   x/20x $esp
+
+
 ; PROTO: int test_func(int base, int multiplier, int adder);
 test_func:
     mov eax, [ESP+4]
@@ -122,7 +135,6 @@ test_func:
     mul ecx
     add eax, [ESP+12]
     ret
-
 
 ; https://c9x.me/x86/html/file_module_x86_id_139.html
 ; PROTO: uint8_t read_byte_from_IO_port( uint16_t port_address)
@@ -132,9 +144,12 @@ read_byte_from_IO_port:
     in al, dx       ; Perform reading of IO port into AL (8-bit) register using DX as port number
     ret
 
-
-; TODO
+; https://www.felixcloutier.com/x86/out
+; PROTO: void write_byte_to_IO_port( uint16_t port_address, uint8_t data)
 write_byte_to_IO_port:
+    mov dx, [ESP+4] ; IO port address
+    mov al, [ESP+8] ; data
+    out dx, al
     ret
 
 ; PROTO: int get_timestamp(void)

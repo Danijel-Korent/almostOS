@@ -4,29 +4,31 @@
 /*
 
     TODO NEXT:
-        - Fix all compiler warnings
+        - Rename heap_malloc() to binned_mempool_malloc() / mempool_malloc()
+
         - Read the information from BIOS Data Area
-        - Print the memory allocator usage stats after every (de)allocation
+
+        - Add logging for malloc() memory usage
+            - Print the memory allocator usage stats after every (de)allocation
+
+
         - Read the information from the Multiboot
             -> https://www.gnu.org/software/grub/manual/multiboot/multiboot.html#Machine-state
         - FEATURE: Implement support for the CPUID
         - FEATURE: Implement timer support
-        - Add logging for malloc() memory usage
 
         - Add drivers folder
         - Move to drivers folder
             - poors_man_keyboard_driver.c
             - poors_man_VGA_driver.c
             - add folder integration with driver_callbacks.c
-        - Add folder user_applications
-        - move terminal to "user_applications"
+        - Add folder tools
+        - move terminal to "tools"
             - Rename terminal.c to poors_man_terminal
             - Rename shell.c to poors_man_shell.c
-        - Delete old terminal code
         - Add headers for log and user terminal
         - Enable Wall i Werror
-        - Transform compile_and_run.sh into makefile
-        - Rename heap_malloc() to binned_mempool_malloc() / mempool_malloc()
+
         - Add a script for installing all required APT packages
             - Also add in to description / readme
 
@@ -39,10 +41,7 @@
             - standard input handler (stdin)
             - standard output handler (stdout)
 
-        - Use pool allocator to implement binned heap allocator (check if it's already done)
-        - Integrate textbuffer into terminal
         - Implement checks for buffer overflow
-        - Move textbuffer into seperate file
 
 
     TODO LIST:
@@ -195,6 +194,7 @@ void append_string(unsigned char* const destination, int destination_size, const
 // TODO: move both implementation and declaration into seperate files
 int test_func(int base, int multiplier, int adder);
 unsigned char read_byte_from_IO_port( unsigned short port_address);
+void write_byte_to_IO_port( unsigned short port_address, unsigned char data);
 int get_timestamp(void);
 void halt_cpu(void);
 
@@ -289,8 +289,25 @@ void stdandard_println(const unsigned char* const message) // TODO: tipfeler std
     terminal_printline(&shell_terminal, message);
 }
 
+int a = 0;
+
 void kernel_c_main( void )
 {
+    a = test_func(2,2,2);
+
+    write_byte_to_IO_port(0x3F8, 'T');
+    write_byte_to_IO_port(0x3F8, 'e');
+    write_byte_to_IO_port(0x3F8, 's');
+    write_byte_to_IO_port(0x3F8, 't');
+    write_byte_to_IO_port(0x3F8, '\n');
+    write_byte_to_IO_port(0x3F8, '\r');
+    write_byte_to_IO_port(0x3F8, 'T');
+    write_byte_to_IO_port(0x3F8, 'e');
+    write_byte_to_IO_port(0x3F8, 's');
+    write_byte_to_IO_port(0x3F8, 't');
+    write_byte_to_IO_port(0x3F8, '\n');
+    write_byte_to_IO_port(0x3F8, '\r');
+
     unsigned char hello_msg[] = "Hello from C code!";
     print_string_to_VGA_display_buffer(400, hello_msg, sizeof(hello_msg)-1);
 
@@ -335,6 +352,8 @@ void kernel_c_main( void )
     while(1)
     {
         keyboard_driver_poll();
+
+
 
         // TODO: First we need to program PIC otherwise the CPU will never be awaken
         //halt_cpu();
@@ -793,7 +812,32 @@ int get_string_size(const unsigned char* const buffer_ptr, int buffer_size)
 #define VGA_TEXTMODE_WIDTH  (80)
 #define VGA_TEXTMODE_HEIGHT (25)
 
-// TODO: Add functions for moving blinking cursor
+
+// Registers:
+// VGA has more than 300 registers but uses only cca. 18 IO ports. For that reason most registers are "indexed",
+// meaning that one port is used for selecting register by setting the index number of register, while another paired
+// port is used for writing or reading the data from selected register
+// http://www.osdever.net/FreeVGA/vga/portidx.htm
+
+#define CRTC_CONTROLLER_ADDRESS    (0x3D4)
+#define CRTC_CONTROLLER_DATA       (0x3D5)
+
+#define CRTC_REG_CURSOR_LOCATION_HIGH    (0xE)
+#define CRTC_REG_CURSOR_LOCATION_LOW     (0xF)
+
+
+void set_cursor_position(unsigned short x, unsigned short y)
+{
+    unsigned int offset = y * VGA_TEXTMODE_WIDTH + x;
+
+    // TODO: Name the addresses and values
+    write_byte_to_IO_port(CRTC_CONTROLLER_ADDRESS, CRTC_REG_CURSOR_LOCATION_LOW);
+    write_byte_to_IO_port(CRTC_CONTROLLER_DATA, (unsigned char) offset);
+
+    write_byte_to_IO_port(CRTC_CONTROLLER_ADDRESS, CRTC_REG_CURSOR_LOCATION_HIGH);
+    write_byte_to_IO_port(CRTC_CONTROLLER_DATA, (unsigned char)(offset >> 8));
+}
+
 
 void print_char_to_VGA_display_buffer(unsigned int position, unsigned char ch)
 {
@@ -803,8 +847,8 @@ void print_char_to_VGA_display_buffer(unsigned int position, unsigned char ch)
 
     // QTODO: hardcoded color - add arguments for foreground and background color
     VGA_RAM[position]   = ch;
-    VGA_RAM[position+1] = 0x13; // Blue + Cyan
-    VGA_RAM[position+1] = 0x0A; // Black + Light green
+    //VGA_RAM[position+1] = 0x13; // Blue + Cyan
+    //VGA_RAM[position+1] = 0x0A; // Black + Light green
     VGA_RAM[position+1] = 0x02; // Black + Green
 }
 
@@ -815,7 +859,6 @@ void print_char_to_VGA_display(unsigned int x, unsigned int y, unsigned char ch)
     print_char_to_VGA_display_buffer(position, ch);
 }
 
-// TODO: This was only used for testing and can be removed now
 void print_string_to_VGA_display_buffer(int position, unsigned char* string, int string_size)
 {
     for( int i = 0; i < string_size; i++)
