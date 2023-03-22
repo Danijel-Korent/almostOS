@@ -1,8 +1,12 @@
 # For this Makefile to work, install following packages:
 #
-# sudo apt update
 # sudo apt install nasm
 # sudo apt install build-essential
+
+# For Qemu
+# sudo apt install qemu-system
+
+# For Bochs
 # sudo apt install bochs
 # sudo apt install bochs-sdl
 # sudo apt install bochsbios
@@ -15,7 +19,9 @@
 C = gcc
 CFLAGS = -m32 -nostdlib -nostartfiles -g
 
-obj_files = startup.o kernel_main.o terminal.o hexdump.o BIOS_Data_Area.o
+BUILD_DIR = build
+
+obj_files =  $(addprefix $(BUILD_DIR)/, startup.o kernel_main.o terminal.o hexdump.o BIOS_Data_Area.o)
 
 .PHONY: all
 .PHONY: iso_image
@@ -30,16 +36,16 @@ obj_files = startup.o kernel_main.o terminal.o hexdump.o BIOS_Data_Area.o
 all: iso_image
 
 iso_image: kernel
-	genisoimage -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -A AlmostOS -input-charset utf8 -quiet -boot-info-table -o AlmostOS.iso iso_image_content
+	genisoimage -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -A AlmostOS -input-charset utf8 -boot-info-table -o AlmostOS.iso iso_image_content
 
 kernel: $(obj_files)
 	ld -T kernel.ld -melf_i386 $(obj_files) -o iso_image_content/boot/AlmostOS_kernel.elf -Map=memory.map
 
-startup.o: startup.asm
-	nasm -f elf32 startup.asm
+$(BUILD_DIR)/startup.o: startup.asm
+	nasm -f elf32 startup.asm -o $@
 
 # Define a pattern rule that compiles every .c file into a .o file
-%.o : %.c
+$(BUILD_DIR)/%.o : %.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
 
@@ -54,6 +60,6 @@ gdb_server: all
 	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -s -S
 
 clean:
-	rm *.o
+	rm $(BUILD_DIR)/*
 	rm *.iso
 	rm iso_image_content/boot/*.elf
