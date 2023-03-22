@@ -158,7 +158,7 @@ Terminal escape code:
 
 #include "kernel_stddef.h"
 #include "terminal.h"
-
+#include "instruction_wrappers.h"
 
 /*******************************************************************************
  *                     Local defines, structs and typdefs                      *
@@ -188,15 +188,6 @@ int run_unittests_heap_allocator(void);
 
 
 void append_string(unsigned char* const destination, int destination_size, const unsigned char* const source, int source_size);
-
-
-// Functions implemented startup.asm
-// TODO: move both implementation and declaration into seperate files
-int test_func(int base, int multiplier, int adder);
-unsigned char read_byte_from_IO_port( unsigned short port_address);
-void write_byte_to_IO_port( unsigned short port_address, unsigned char data);
-int get_timestamp(void);
-void halt_cpu(void);
 
 
 /*******************************************************************************

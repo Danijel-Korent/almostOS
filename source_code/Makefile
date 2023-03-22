@@ -21,7 +21,7 @@ CFLAGS = -m32 -nostdlib -nostartfiles -g
 
 BUILD_DIR = build
 
-obj_files =  $(addprefix $(BUILD_DIR)/, startup.o kernel_main.o terminal.o hexdump.o BIOS_Data_Area.o)
+obj_files =  $(addprefix $(BUILD_DIR)/, startup.o instruction_wrappers.o kernel_main.o terminal.o hexdump.o BIOS_Data_Area.o)
 
 .PHONY: all
 .PHONY: iso_image
@@ -41,10 +41,11 @@ iso_image: kernel
 kernel: $(obj_files)
 	ld -T kernel.ld -melf_i386 $(obj_files) -o iso_image_content/boot/AlmostOS_kernel.elf -Map=memory.map
 
-$(BUILD_DIR)/startup.o: startup.asm
-	nasm -f elf32 startup.asm -o $@
+# Define a pattern rule that compiles every .asm file into an .o file
+$(BUILD_DIR)/%.o : %.asm
+	nasm -f elf32 $< -o $@
 
-# Define a pattern rule that compiles every .c file into a .o file
+# Define a pattern rule that compiles every .c file into an .o file
 $(BUILD_DIR)/%.o : %.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
