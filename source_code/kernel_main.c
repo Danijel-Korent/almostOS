@@ -289,10 +289,31 @@ void stdandard_println(const unsigned char* const message) // TODO: tipfeler std
     terminal_printline(&shell_terminal, message);
 }
 
+void check_types(void)
+{
+    if (sizeof(u8) != 1) goto error;
+    if (sizeof(s8) != 1) goto error;
+    if (sizeof(u16) != 2) goto error;
+    if (sizeof(s16) != 2) goto error;
+    if (sizeof(u32) != 4) goto error;
+    if (sizeof(s32) != 4) goto error;
+
+    return;
+
+error:
+    {
+        unsigned char error_msg[] = "!!! ERROR: Wrong datatype size !!!";
+        print_string_to_VGA_display_buffer(400, error_msg, sizeof(error_msg)-1);
+        while(1);
+    }
+}
+
 int a = 0;
 
 void kernel_c_main( void )
 {
+    check_types();
+
     a = test_func(2,2,2);
 
     write_byte_to_IO_port(0x3F8, 'T');
