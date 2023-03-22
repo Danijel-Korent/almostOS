@@ -22,7 +22,7 @@ obj_files = startup.o kernel_main.o terminal.o hexdump.o BIOS_Data_Area.o
 .PHONY: kernel
 .PHONY: qemu
 .PHONY: bochs
-.PHONY: gdb
+.PHONY: gdb_server
 .PHONY: clean
 
 
@@ -50,8 +50,8 @@ qemu: all
 bochs: all
 	bochs -f bochs_configuration.txt -q
 
-gdb: all
-	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -s -S &
+gdb_server: all
+	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -s -S
 
 clean:
 	rm *.o
