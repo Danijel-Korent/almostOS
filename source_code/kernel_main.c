@@ -163,6 +163,7 @@ Terminal escape code:
 #include "instruction_wrappers.h"
 #include "malloc.h"
 
+#include "util.h"
 #include "string.h"
 #include "BIOS_Data_Area.h"
 #include "poors_man_VGA_driver.h"
@@ -225,9 +226,6 @@ int printf ( const char * format, ... )
 terminal_contex_t shell_terminal;
 terminal_contex_t log_terminal;
 
-// TODO: Move this function to util.c and make a proper header
-void long_to_hex(long int number, char * string_buffer, int string_buffer_len, unsigned char base);
-
 void LOG(const unsigned char* const message)
 {
     int timestamp = get_timestamp();
@@ -244,7 +242,7 @@ void LOG(const unsigned char* const message)
     terminal_printline(&log_terminal, str_with_timestamp);
 }
 
-void stdandard_println(const unsigned char* const message) // TODO: tipfeler stdandard_println -> standard_println
+void kernel_println(const unsigned char* const message)
 {
     terminal_printline(&shell_terminal, message);
 }

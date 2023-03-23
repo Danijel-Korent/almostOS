@@ -333,7 +333,7 @@ char** parse_arguments(char* input_string, int* argc)
 }
 
 
-void stdandard_println(const unsigned char* const message); // TOOD: typo "stdandard"
+void kernel_println(const unsigned char* const message); // TOOD: typo "stdandard"
 
 
 // TODO: Temp code for testing!
@@ -348,17 +348,17 @@ void input_callback(char * input)
 
     if (argv == NULL)
     {
-        stdandard_println("ERROR: Parsing arguments failed");
+        kernel_println("ERROR: Parsing arguments failed");
         return;
     }
 
     if (input[0] == 'h')
     {
-        stdandard_println("");
-        stdandard_println("Available commands:");
-        stdandard_println("");
-        stdandard_println("    help - prints this message");
-        stdandard_println("");
+        kernel_println("");
+        kernel_println("Available commands:");
+        kernel_println("");
+        kernel_println("    help - prints this message");
+        kernel_println("");
     }
     if (input[0] == 'd')
     {
@@ -366,9 +366,9 @@ void input_callback(char * input)
     }
     else
     {
-        stdandard_println("");
-        stdandard_println("Unknown command!");
-        stdandard_println("");
+        kernel_println("");
+        kernel_println("Unknown command!");
+        kernel_println("");
     }
 
     free(argv);

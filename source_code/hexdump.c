@@ -78,7 +78,7 @@ void execute__dump_data(int argc, char* argv[])
                 line[62 + char_no] = character;
             }
     
-            stdandard_println(line);
+            kernel_println(line);
         }
 
         offset += 16; // QTODO: Add name to magic number
