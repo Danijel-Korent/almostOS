@@ -8,15 +8,13 @@
 #include "terminal.h"
 
 #include "string.h"
+#include "kernel_main.h"
+#include "kernel_stdio.h"
 #include "poors_man_VGA_driver.h"
 
 // https://en.wikipedia.org/wiki/ANSI_escape_code
 // https://en.wikipedia.org/wiki/VGA_text_mode
 
-
-
-// TEMP: TODO: Move this into some header
-int printf ( const char * format, ... );
 
 // Local function defitions
 static void terminal_clear_input_line(terminal_contex_t *terminal_context);

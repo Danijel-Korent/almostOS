@@ -1,7 +1,8 @@
-#include "kernel_main.h"
+#include "BIOS_Data_Area.h"
 
+#include "util.h"
+#include "kernel_stdio.h"
 
-void long_to_hex(long int number, char * string_buffer, int string_buffer_len, unsigned char base);
 
 #define COM1_OFFSET         (0x00)
 #define LPT1_OFFSET         (0x08)

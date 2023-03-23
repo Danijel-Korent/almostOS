@@ -5,7 +5,7 @@
 #include "util.h"
 
 #include "string.h"
-#include "kernel_main.h" // TODO: We will need to add some LOG_safe() variant for
+#include "kernel_stdio.h" // TODO: We will need to add some LOG_safe() variant for
                          //       for usage in util functions
 
 

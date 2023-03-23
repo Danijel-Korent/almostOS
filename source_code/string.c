@@ -1,7 +1,7 @@
 #include "string.h"
 
 #include "util.h"
-#include "kernel_main.h"
+#include "kernel_stdio.h"
 
 
 // TODO: Add explicit null-terminator

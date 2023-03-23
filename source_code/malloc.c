@@ -6,7 +6,7 @@
 #include "malloc.h"
 
 #include "stack.h"
-#include "kernel_main.h"
+#include "kernel_stdio.h"
 
 struct heap_bin_contex
 {

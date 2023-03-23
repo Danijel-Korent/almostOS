@@ -10,7 +10,7 @@
 
 #include "util.h"
 #include "string.h"
-#include "kernel_main.h"
+#include "kernel_stdio.h"
 #include "kernel_stddef.h"
 
 
