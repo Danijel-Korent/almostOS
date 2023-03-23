@@ -160,6 +160,7 @@ Terminal escape code:
 #include "terminal.h"
 #include "instruction_wrappers.h"
 
+#include "string.h"
 #include "poors_man_VGA_driver.h"
 #include "poors_man_keyboard_driver.h"
 
@@ -176,9 +177,6 @@ Terminal escape code:
  *                                Declarations                                 *
  *******************************************************************************/
 
-void keyboard_driver_poll(void);
-
-
 // Not really a heap allocator but a pool allocator
 bool init_heap_memory_allocator(void);
 void* heap_malloc(int size);
@@ -186,9 +184,6 @@ void heap_free(void* pointer);
 
 int run_unittests_stack(void);
 int run_unittests_heap_allocator(void);
-
-
-void append_string(unsigned char* const destination, int destination_size, const unsigned char* const source, int source_size);
 
 
 /*******************************************************************************
@@ -238,28 +233,6 @@ terminal_contex_t log_terminal;
 // TODO: Move this function to util.c and make a proper header
 void long_to_hex(long int number, char * string_buffer, int string_buffer_len, unsigned char base);
 
-// TODO: Move this function to util.c
-int strlen_logless(const char * input_string)
-{
-    if (input_string == NULL) return 0;
-
-    int i = 0;
-
-    //for(i = 0; input_string[i] != 0; i++)
-    while (input_string[i] != 0)
-    {
-        i++;
-
-        if (i > 100)
-        {
-            //LOG("ERROR: strlen() smashed protection limit!");
-            return 0;
-        }
-    }
-
-    return i;
-}
-
 void LOG(const unsigned char* const message)
 {
     int timestamp = get_timestamp();
@@ -268,7 +241,7 @@ void LOG(const unsigned char* const message)
 
     long_to_hex(timestamp, str_with_timestamp, 8, 16);
 
-    int message_size = strlen_logless(message);
+    int message_size = strlen_unsafe_logless(message);
 
     // TODO: Add terminal_print() (without new line) so we can skip appending
     append_string(str_with_timestamp, sizeof(str_with_timestamp), message, message_size+1); // TODO: +1 because append didn't null-terminate. Fix it
@@ -365,8 +338,6 @@ void kernel_c_main( void )
     while(1)
     {
         keyboard_driver_poll();
-
-
 
         // TODO: First we need to program PIC otherwise the CPU will never be awaken
         //halt_cpu();
@@ -783,38 +754,6 @@ void mem_copy(unsigned char* const destination, int destination_size, const unsi
     {
         destination[i] = source[i];
     }
-}
-
-// TODO: Move this to Util.c
-// TODO: Add explicit null-terminator
-void append_string(unsigned char* const destination, int destination_size, const unsigned char* const source, int source_size)
-{
-    if (destination == NULL || source == NULL) return; //QTODO: Log an error
-
-    unsigned char *end_of_first_string = destination;
-
-    while (*end_of_first_string != 0 || (end_of_first_string-destination) >= destination_size)
-    {
-        end_of_first_string++;
-    }
-
-    int space_left_in_buffer = (destination + destination_size) - end_of_first_string;
-
-    mem_copy(end_of_first_string, space_left_in_buffer-1, source, source_size);
-}
-
-int get_string_size(const unsigned char* const buffer_ptr, int buffer_size)
-{
-    if (buffer_ptr == NULL) return 0; //QTODO: Log an error
-
-    const unsigned char *end_of_first_string_ptr = buffer_ptr;
-
-    while (*end_of_first_string_ptr != 0 || (end_of_first_string_ptr-buffer_ptr) >= buffer_size)
-    {
-        end_of_first_string_ptr++;
-    }
-
-    return end_of_first_string_ptr - buffer_ptr;
 }
 
 

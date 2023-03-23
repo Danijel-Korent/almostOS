@@ -22,7 +22,7 @@ CFLAGS = -m32 -nostdlib -nostartfiles -g
 BUILD_DIR = build
 
 obj_files =  $(addprefix $(BUILD_DIR)/, startup.o instruction_wrappers.o kernel_main.o terminal.o hexdump.o BIOS_Data_Area.o poors_man_VGA_driver.o \
-										poors_man_keyboard_driver.o)
+										poors_man_keyboard_driver.o string.o)
 
 .PHONY: all
 .PHONY: iso_image

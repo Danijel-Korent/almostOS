@@ -7,13 +7,14 @@
  */
 
 #include "kernel_stddef.h"
+#include "string.h"
 
-int strlen(const char * input_string);
+
 void LOG(const unsigned char* const message); // TODO: Create a header for this
 void stdandard_println(const unsigned char* const message); // TODO: Create a header for this
 
 
-static long int hex_to_long(const char* str)
+static long int hex_to_long(const char* str) // TODO: Replace with u/s typedef
 {
     if (str == NULL)
     {
@@ -24,7 +25,7 @@ static long int hex_to_long(const char* str)
     long int result = 0;
     long int multiplier = 1;
 
-    int index = strlen(str) - 1;
+    int index = strlen_unsafe(str) - 1;
 
     while( index >= 0)
     {
@@ -61,7 +62,7 @@ static long int hex_to_long(const char* str)
     return result;
 }
 
-static char byte_to_hexchar(unsigned char byte)
+static char byte_to_hexchar(unsigned char byte) // TODO: Replace with u/s typedef
 {
     if (byte > 15)
     {
@@ -90,7 +91,7 @@ static char byte_to_hexchar(unsigned char byte)
 
 // Maybe this should be called long_to_string()
 // This func does not null-terminate. Should it?
-void long_to_hex(long int number, char * string_buffer, int string_buffer_len, unsigned char base)
+void long_to_hex(long int number, char * string_buffer, int string_buffer_len, unsigned char base) // TODO: Replace with u/s typedef
 {
     if (string_buffer == NULL)
     {
