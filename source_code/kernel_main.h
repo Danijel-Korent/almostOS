@@ -6,7 +6,7 @@
 void LOG(const unsigned char* const message);
 void stdandard_println(const unsigned char* const message);
 
-void* malloc (int   size);
+void* malloc (u32   size);
 void  free   (void* pointer);
 
 
