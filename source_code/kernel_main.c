@@ -161,6 +161,8 @@ Terminal escape code:
 #include "instruction_wrappers.h"
 
 #include "poors_man_VGA_driver.h"
+#include "poors_man_keyboard_driver.h"
+
 
 /*******************************************************************************
  *                     Local defines, structs and typdefs                      *
@@ -817,10 +819,12 @@ int get_string_size(const unsigned char* const buffer_ptr, int buffer_size)
 
 
 /*******************************************************************************
- *                         Poor man's keyboard driver                          *
+ *                            Integration callbacks                            *
  *******************************************************************************/
 
-void event_on_keypress(unsigned char key)
+// TODO: Move this into callbacks/integration file
+
+void event_on_keypress(u8 key)
 {
     terminal_on_keypress(&shell_terminal, key);
 
@@ -831,42 +835,3 @@ void event_on_keypress(unsigned char key)
     //LOG(string);
 #endif
 }
-
-
-unsigned char convert_scancode_to_ASCII(unsigned char scan_code)
-{
-    // Quick and dirty solution for reading at least letters and numbers
-    // Proper solution will need a lot more code to check/support scan code sets,
-    // support upper/lower cases, control/alt/shift combinations...
-    static unsigned char scancode_to_ASCII_table[128] =
-    {
-        0x3F, 0x3F,  '1',  '2',  '3',  '4',  '5',  '6',  '7',  '8',  '9',  '0',  '-',  '=', '\b', '\t',
-         'q',  'w',  'e',  'r',  't',  'y',  'u',  'i',  'o',  'p',  '[',  ']', '\n', 0x3F,  'a',  's',
-         'd',  'f',  'g',  'h',  'j',  'k',  'l',  ';', 0x27, 0x3F, 0x3F, '\\',  'z',  'x',  'c',  'v',
-         'b',  'n',  'm',  ',',  '.',  '/', 0x3F, 0x3F, 0x3F,  ' ', 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F,
-        0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F,
-        0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F,
-        0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F,
-        0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F, 0x3F,
-    };
-
-    return scancode_to_ASCII_table[scan_code & ~0x80];
-}
-
-
-void keyboard_driver_poll(void)
-{
-    static unsigned char previous_scan_code = 0;
-
-    // TODO: Before reading output, check if any data is actually pending
-    unsigned char scan_code = read_byte_from_IO_port(0x60);
-
-    if ((previous_scan_code != scan_code) && ((scan_code & 0x80) == 0x80))
-    {
-        unsigned char ASCII_code = convert_scancode_to_ASCII(scan_code);
-        event_on_keypress(ASCII_code);
-    }
-
-    previous_scan_code = scan_code;
-}
-
