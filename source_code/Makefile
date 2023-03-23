@@ -62,6 +62,6 @@ gdb_server: all
 	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -s -S
 
 clean:
-	rm $(BUILD_DIR)/*
-	rm *.iso
-	rm iso_image_content/boot/*.elf
+	-rm $(BUILD_DIR)/*
+	-rm *.iso
+	-rm iso_image_content/boot/*.elf
