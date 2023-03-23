@@ -16,5 +16,6 @@ bool stack_init(stack_handle_t* const handle, u8* const buffer, u32 buffer_size)
 bool stack_push(stack_handle_t* const handle, u8 value);
 bool stack_pop (stack_handle_t* const handle, u8* const value);
 
+int run_unittests_stack(void);
 
 #endif // _STACK_H_
