@@ -1,4 +1,6 @@
-void LOG(const unsigned char* const message); // TODO
+#include "kernel_main.h"
+
+
 void long_to_hex(long int number, char * string_buffer, int string_buffer_len, unsigned char base);
 
 #define COM1_OFFSET         (0x00)

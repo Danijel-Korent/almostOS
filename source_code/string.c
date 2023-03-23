@@ -1,5 +1,8 @@
 #include "string.h"
 
+#include "util.h"
+#include "kernel_main.h"
+
 
 // TODO: Add explicit null-terminator
 void append_string(u8* const destination, u32 destination_size, const u8* const source, u32 source_size)

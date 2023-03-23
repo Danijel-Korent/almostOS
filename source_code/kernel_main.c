@@ -156,11 +156,14 @@ Terminal escape code:
  *                                 Includes                                    *
  *******************************************************************************/
 
+#include "kernel_main.h"
+
 #include "kernel_stddef.h"
 #include "terminal.h"
 #include "instruction_wrappers.h"
 
 #include "string.h"
+#include "BIOS_Data_Area.h"
 #include "poors_man_VGA_driver.h"
 #include "poors_man_keyboard_driver.h"
 
@@ -223,9 +226,6 @@ int printf ( const char * format, ... )
 /*******************************************************************************
  *                                  Functions                                  *
  *******************************************************************************/
-
-// TODO: Make proper include
-void parse_BIOS_Data_Area(void);
 
 terminal_contex_t shell_terminal;
 terminal_contex_t log_terminal;

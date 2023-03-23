@@ -6,12 +6,11 @@
  *  TODO: Helper functions are generic and should be moved together to a common file like "util.c" or something
  */
 
-#include "kernel_stddef.h"
+#include "hexdump.h"
+
 #include "string.h"
-
-
-void LOG(const unsigned char* const message); // TODO: Create a header for this
-void stdandard_println(const unsigned char* const message); // TODO: Create a header for this
+#include "kernel_main.h"
+#include "kernel_stddef.h"
 
 
 static long int hex_to_long(const char* str) // TODO: Replace with u/s typedef

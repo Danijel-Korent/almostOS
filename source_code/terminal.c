@@ -255,13 +255,10 @@ static void terminal_clear_input_line(terminal_contex_t *terminal_context)
 }
 
 
-// --------------------------------- TEMP CODE -----------------------------------/
+// --------------------------------- TODO: Move to different file -----------------------------------/
 
 #include "hexdump.h"
-
-void* malloc(int size); // TODO: Move into a header
-void free(void* pointer);
-void LOG(const unsigned char* const message); // TODO: Move into a header
+#include "kernel_main.h"
 
 /**
  * @brief Parse raw input string and returns it in argv/argc format (array of strings/arguments)
