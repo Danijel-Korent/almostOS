@@ -2,6 +2,7 @@
 #
 # sudo apt install nasm
 # sudo apt install build-essential
+# sudo apt install genisoimage
 
 # For Qemu
 # sudo apt install qemu-system
@@ -10,7 +11,6 @@
 # sudo apt install bochs
 # sudo apt install bochs-sdl
 # sudo apt install bochsbios
-# sudo apt install genisoimage
 
 # TODO: Replace AlmostOS.iso with variable
 # TODO: Replace AlmostOS_kernel.elf with variable
