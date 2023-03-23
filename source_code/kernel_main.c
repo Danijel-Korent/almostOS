@@ -717,47 +717,6 @@ int run_unittests_stack(void)
 
 
 /*******************************************************************************
- *                                     UTIL                                    *
- *******************************************************************************/
-
-// QTODO: add bool type as int. Add 0 as flase, 1 true
-int memory_is_equal(const unsigned char* const mem1, int mem1_size, const unsigned char* const mem2, int mem2_size)
-{
-    if (mem1 == NULL || mem2 == NULL) return 0; //QTODO: Log an error
-
-    if (mem1_size != mem2_size) return 0;
-
-    int is_equal = 1;
-
-    for (int i = 0; i < mem1_size; i++)
-    {
-        if (mem1[i] != mem2[i])
-        {
-            is_equal = 0;
-        }
-    }
-
-    return is_equal;
-}
-
-
-// TODO: Move this to Util.c
-void mem_copy(unsigned char* const destination, int destination_size, const unsigned char* const source, int source_size)
-{
-    if (destination == NULL || source == NULL) return; //QTODO: Log an error
-
-    int size = source_size;
-
-    if (source_size > destination_size) size = destination_size;
-
-    for (int i = 0; i < size; i++)
-    {
-        destination[i] = source[i];
-    }
-}
-
-
-/*******************************************************************************
  *                            Integration callbacks                            *
  *******************************************************************************/
 

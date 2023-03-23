@@ -8,115 +8,11 @@
 
 #include "hexdump.h"
 
+#include "util.h"
 #include "string.h"
 #include "kernel_main.h"
 #include "kernel_stddef.h"
 
-
-static long int hex_to_long(const char* str) // TODO: Replace with u/s typedef
-{
-    if (str == NULL)
-    {
-        LOG("ERROR: hex_to_long() - received NULL arg");
-        return 0;
-    }
-
-    long int result = 0;
-    long int multiplier = 1;
-
-    int index = strlen_unsafe(str) - 1;
-
-    while( index >= 0)
-    {
-        int chr_value = 0;
-        char chr = str[index];
-
-        index--;
-
-        if (chr >= '0' && chr <= '9')
-        {
-            chr_value = chr - '0';
-        }
-        else if (chr >= 'a' && chr <= 'f')
-        {
-            chr_value = chr - 'a' + 10;
-        }
-        else if (chr >= 'A' && chr <= 'F')
-        {
-            chr_value = chr - 'A' + 10;
-        }
-        else
-        {
-            LOG("WARNING: hex_to_long() - inappropriate character");
-            continue; // Don't update multiplier and result
-        }
-
-        result += chr_value * multiplier;
-
-        multiplier = multiplier * 16;
-    }
-
-    //printf("%s calculated to: %i \n", str, result);
-
-    return result;
-}
-
-static char byte_to_hexchar(unsigned char byte) // TODO: Replace with u/s typedef
-{
-    if (byte > 15)
-    {
-        // Circular dependency :(
-        //
-        // By calling LOG() function can end-up in a state similar to endless recursion since LOG() is calling again
-        // byte_to_hexchar() to output CPU timestamp
-        //
-        // TODO:
-        //      Need to decouple the reception and outputing of the LOG messages, so that byte_to_hexchar() don't get
-        //      called in the LOG()
-        //LOG("ERROR: byte_to_hexchar() - Input too big");
-
-        return 0;
-    }
-    
-    if(byte < 10)
-    {
-        return '0' + byte;
-    }
-    else
-    {
-        return 'A' + byte - 10;
-    }
-}
-
-// Maybe this should be called long_to_string()
-// This func does not null-terminate. Should it?
-void long_to_hex(long int number, char * string_buffer, int string_buffer_len, unsigned char base) // TODO: Replace with u/s typedef
-{
-    if (string_buffer == NULL)
-    {
-        LOG("ERROR: long_to_hex() - received NULL arg");
-        return;
-    }
-
-    int index = string_buffer_len - 1;
-
-    while (index >= 0)
-    {
-        unsigned char reminder = 0;
-
-        reminder = number % base;
-        number   = number / base;
-
-        string_buffer[index] = byte_to_hexchar(reminder);
-
-        index--;
-    }
-
-    if (number != 0)
-    {
-        LOG("ERROR: long_to_hex() - String buffer too small for input number!");
-    }
-}
 
 void execute__dump_data(int argc, char* argv[])
 {
