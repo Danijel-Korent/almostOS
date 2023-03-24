@@ -27,6 +27,8 @@ void kernel_stdio_init(void)
     terminal_init(&log_terminal,   18, 5, DISABLE_INPUT_LINE);
 }
 
+// TODO: Decouple logging with a queue to avoid circular calls to LOG
+// Prints to display in Log "window"
 void LOG(const unsigned char* const message)
 {
     int timestamp = get_timestamp();
@@ -43,6 +45,7 @@ void LOG(const unsigned char* const message)
     terminal_printline(&log_terminal, str_with_timestamp);
 }
 
+// Prints to display in Shell "window"
 void kernel_println(const unsigned char* const message)
 {
     terminal_printline(&shell_terminal, message);
