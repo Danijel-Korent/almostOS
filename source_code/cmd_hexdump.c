@@ -6,7 +6,7 @@
  *  TODO: Helper functions are generic and should be moved together to a common file like "util.c" or something
  */
 
-#include "hexdump.h"
+#include "cmd_hexdump.h"
 
 #include "util.h"
 #include "string.h"

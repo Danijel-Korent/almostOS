@@ -1,7 +1,7 @@
 #include "shell.h"
 
 #include "string.h"
-#include "hexdump.h"
+#include "cmd_hexdump.h"
 #include "kernel_main.h"
 #include "kernel_stdio.h"
 
