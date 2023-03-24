@@ -103,6 +103,8 @@ void shell_input(u8 * input)
     }
     else if (input[0] == 'd')
     {
+        // TODO: When we will be able to use COM1 then we will need to also pass pointer interface for read/write
+        //       function pointers, to that command read and writes back to correct interface
         execute__dump_data(argc, argv);
     }
     else
