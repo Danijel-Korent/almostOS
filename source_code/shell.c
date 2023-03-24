@@ -101,7 +101,7 @@ void shell_input(u8 * input)
         kernel_println("    help - prints this message");
         kernel_println("");
     }
-    if (input[0] == 'd')
+    else if (input[0] == 'd')
     {
         execute__dump_data(argc, argv);
     }
