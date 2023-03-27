@@ -44,9 +44,12 @@ VGA_RAM_ADDRESS        equ 0x000B8000 ;Video memory address for text mode - 32kb
                                       ;Here we assume that VGA is set to the video mode 03 (80x25) by the BIOS or bootloader
                                       ;http://www.scs.stanford.edu/17wi-cs140/pintos/specs/freevga/vga/vgamem.htm
 
-; Export these as global functions
+
+; Export these as global functions:
 global start_kernel  ; GRUB will jump into this function (specified in the linker script "kernel.ld")
 
+
+; declarations for outside functions:
 extern kernel_c_main ; entry point for C code
 
 
@@ -59,7 +62,7 @@ section .bss  ; standard name of the C memory segment for uninitialized data
     STACK_MEM_START: ; on x86 stack grows from higher address to lower, so this is the beginning of the stack
 
 
-section .text ; standard name of the C memory segment for code
+section .multiboot
 
     ; Per multiboot specification. Without this GRUB will not recognize this binary image as bootable
     ; https://www.gnu.org/software/grub/manual/multiboot/multiboot.html
@@ -69,6 +72,7 @@ section .text ; standard name of the C memory segment for code
     dd -(MULITBOOT_MAGIC_NUMBER + MULITBOOT_FLAGS) ; multiboot checksum: this calculated number + MULITBOOT_MAGIC_NUMBER + MULITBOOT_FLAGS must equal zero
 
 
+section .text ; standard name of the C memory segment for code
 hello_msg:
     db "Starting AlmostOS kernel...", 0
 
@@ -99,6 +103,6 @@ start_kernel:
     call kernel_c_main ; Call the main/entry function of the C code
 
 .loop:
-    ; TODO: print here "exiting kernel" or something similar
+    ; TODO: print here "Exited kernel C code" or something similar
     jmp .loop ;infinite loop
 

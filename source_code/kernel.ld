@@ -16,6 +16,10 @@ SECTIONS
      */
     . = 0x00100000; 
 
+    .multiboot :
+    {
+        *(.multiboot)   /* the Multiboot header must be in the first 8192 bytes for Multiboot and 32768 bytes for Multiboot2 */
+    }
 
     .text :
     {
