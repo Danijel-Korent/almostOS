@@ -28,7 +28,7 @@ SRC_DIR = .
 OBJ_DIR = ./build
 
 # Include directories
-INCLUDE_DIRS := . drivers utils memory
+INCLUDE_DIRS := . drivers utils memory commands
 INCLUDE_FLAGS := $(addprefix -I, $(INCLUDE_DIRS))
 
 
