@@ -18,7 +18,7 @@
 
 # Compiler, assembler and flags
 CC = gcc
-CFLAGS = -m32 -nostdlib -nostdinc -nostartfiles -I . -I drivers -g
+CFLAGS = -m32 -nostdlib -nostdinc -nostartfiles -g  # "nostartfiles" is probably unnecessary since I've defined entry point in the .ld
 
 AS = nasm
 ASFLAGS = -f elf32
