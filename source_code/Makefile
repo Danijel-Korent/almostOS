@@ -23,10 +23,14 @@ CFLAGS = -m32 -nostdlib -nostartfiles -I . -I drivers -g
 AS = nasm
 ASFLAGS = -f elf32
 
-
-# Directories
+# Source and compilation artifacts directories
 SRC_DIR = .
 OBJ_DIR = ./build
+
+# Include directories
+INCLUDE_DIRS := . drivers utils
+INCLUDE_FLAGS := $(addprefix -I, $(INCLUDE_DIRS))
+
 
 
 # Finding all .c and .asm files in subdirectories
@@ -66,7 +70,7 @@ $(OBJ_DIR)/%.o : %.asm
 # Define a pattern rule that compiles every .c file into an .o file
 $(OBJ_DIR)/%.o : %.c
 	@mkdir -p $(@D)  # Create the directory if it does not exist
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $(INCLUDE_FLAGS) $< -o $@
 
 
 ##### Commands #####
