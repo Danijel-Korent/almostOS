@@ -19,13 +19,20 @@
 C = gcc
 CFLAGS = -m32 -nostdlib -nostartfiles -g
 
-BUILD_DIR = build
+SRC_DIR = .
+OBJ_DIR = ./build
 
-obj_files =  $(addprefix $(BUILD_DIR)/, kernel_startup.o kernel_main.o instruction_wrappers.o kernel_stdio.o \
-										poors_man_VGA_driver.o poors_man_keyboard_driver.o BIOS_Data_Area.o \
-										malloc.o stack.o string.o util.o \
-										terminal.o shell.o cmd_hexdump.o \
-										)
+
+# Finding all .c and .asm files in subdirectories
+SRCS_C := $(shell find $(SRC_DIR) -type f -name "*.c")
+SRCS_ASM := $(shell find $(SRC_DIR) -type f -name "*.asm")
+
+# Replacing .c with .o and .asm with .o and adding the object directory prefix
+OBJS_C := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS_C))
+OBJS_ASM := $(patsubst $(SRC_DIR)/%.asm, $(OBJ_DIR)/%.o, $(SRCS_ASM))
+
+obj_files := $(OBJS_C) $(OBJS_ASM)
+
 
 .PHONY: all
 .PHONY: iso_image
@@ -46,11 +53,11 @@ kernel: $(obj_files)
 	ld -T kernel.ld -melf_i386 $(obj_files) -o iso_image_content/boot/AlmostOS_kernel.elf -Map=memory.map
 
 # Define a pattern rule that compiles every .asm file into an .o file
-$(BUILD_DIR)/%.o : %.asm
+$(OBJ_DIR)/%.o : %.asm
 	nasm -f elf32 $< -o $@
 
 # Define a pattern rule that compiles every .c file into an .o file
-$(BUILD_DIR)/%.o : %.c
+$(OBJ_DIR)/%.o : %.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
 
@@ -65,6 +72,6 @@ gdb_server: all
 	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -s -S
 
 clean:
-	-rm $(BUILD_DIR)/*
+	-rm $(OBJ_DIR)/*
 	-rm *.iso
 	-rm iso_image_content/boot/*.elf
