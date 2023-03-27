@@ -17,7 +17,7 @@
 
 
 C = gcc
-CFLAGS = -m32 -nostdlib -nostartfiles -g
+CFLAGS = -m32 -nostdlib -nostartfiles -I . -I drivers -g
 
 SRC_DIR = .
 OBJ_DIR = ./build
@@ -54,10 +54,12 @@ kernel: $(obj_files)
 
 # Define a pattern rule that compiles every .asm file into an .o file
 $(OBJ_DIR)/%.o : %.asm
+	@mkdir -p $(@D)  # Create the directory if it does not exist
 	nasm -f elf32 $< -o $@
 
 # Define a pattern rule that compiles every .c file into an .o file
 $(OBJ_DIR)/%.o : %.c
+	@mkdir -p $(@D)  # Create the directory if it does not exist
 	$(CC) -c $(CFLAGS) $< -o $@
 
 
@@ -72,6 +74,6 @@ gdb_server: all
 	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -s -S
 
 clean:
-	-rm $(OBJ_DIR)/*
+	-rm -r $(OBJ_DIR)/*
 	-rm *.iso
 	-rm iso_image_content/boot/*.elf
