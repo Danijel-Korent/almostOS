@@ -16,9 +16,15 @@
 # TODO: Replace AlmostOS_kernel.elf with variable
 
 
-C = gcc
+# Compiler, assembler and flags
+CC = gcc
 CFLAGS = -m32 -nostdlib -nostartfiles -I . -I drivers -g
 
+AS = nasm
+ASFLAGS = -f elf32
+
+
+# Directories
 SRC_DIR = .
 OBJ_DIR = ./build
 
@@ -55,7 +61,7 @@ kernel: $(obj_files)
 # Define a pattern rule that compiles every .asm file into an .o file
 $(OBJ_DIR)/%.o : %.asm
 	@mkdir -p $(@D)  # Create the directory if it does not exist
-	nasm -f elf32 $< -o $@
+	$(AS) $(ASFLAGS) $< -o $@
 
 # Define a pattern rule that compiles every .c file into an .o file
 $(OBJ_DIR)/%.o : %.c
