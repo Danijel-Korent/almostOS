@@ -18,7 +18,7 @@
 
 # Compiler, assembler and flags
 CC = gcc
-CFLAGS = -m32 -nostdlib -nostartfiles -I . -I drivers -g
+CFLAGS = -m32 -nostdlib -nostdinc -nostartfiles -I . -I drivers -g
 
 AS = nasm
 ASFLAGS = -f elf32
@@ -28,7 +28,7 @@ SRC_DIR = .
 OBJ_DIR = ./build
 
 # Include directories
-INCLUDE_DIRS := . drivers utils
+INCLUDE_DIRS := . drivers utils memory
 INCLUDE_FLAGS := $(addprefix -I, $(INCLUDE_DIRS))
 
 
