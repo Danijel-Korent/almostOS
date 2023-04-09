@@ -14,27 +14,15 @@
 
         - Read the information from the Multiboot
             -> https://www.gnu.org/software/grub/manual/multiboot/multiboot.html#Machine-state
-        - FEATURE: Implement support for the CPUID
-        - FEATURE: Implement timer support
 
-        - Add drivers folder
-        - Move to drivers folder
-            - poors_man_keyboard_driver.c
-            - poors_man_VGA_driver.c
-            - add folder integration with driver_callbacks.c
-        - Add folder tools
-        - move terminal to "tools"
-            - Rename terminal.c to poors_man_terminal
-            - Rename shell.c to poors_man_shell.c
-        - Add headers for log and user terminal
         - Enable Wall i Werror
 
-        - Add a script for installing all required APT packages
+        - Add makefile rule for installing all required APT packages
             - Also add in to description / readme
 
         - Change GCC system include path to this folder or just disable it
 
-        - Add process handler with 3 function pointers:
+        - Add kernel process handler with 3 function pointers:
             - init()
             - service()
             - on_event()
@@ -45,9 +33,6 @@
 
 
     TODO LIST:
-        - BUG:     Keyboard output is printed on key release instead on key press
-        - TODO:    Create header for equivalent of stdint.h types
-        - TODO:    Split kernel_main.c into multiple files
         - FEATURE: Implement basic terminal functionality
         - FEATURE: Integrate shell and FAT driver from "FAT-filesystem-driver" repo
         - FEATURE: Implement logging facilities
@@ -172,59 +157,6 @@ Terminal escape code:
 #include "poors_man_keyboard_driver.h"
 
 
-/*******************************************************************************
- *                     Local defines, structs and typdefs                      *
- *******************************************************************************/
-
-
-/*******************************************************************************
- *                              Global variables                               *
- *******************************************************************************/
-
-
-/*******************************************************************************
- *                                Declarations                                 *
- *******************************************************************************/
-
-
-/*******************************************************************************
- *                                    STUBS                                    *
- *******************************************************************************/
-
-// Stubs for parts of code developed in userspace and then copied here
-
-void* malloc(u32 size)
-{
-    return heap_malloc(size);
-}
-
-void free(void* pointer)
-{
-    heap_free(pointer);
-}
-
-
-// These functions are not available here
-int puts(const char *string)
-{
-    return 0;
-}
-
-int putchar ( int character )
-{
-    return 0;
-}
-
-int printf ( const char * format, ... )
-{
-    return 0;
-}
-
-
-/*******************************************************************************
- *                                  Functions                                  *
- *******************************************************************************/
-
 void check_types(void)
 {
     if (sizeof(u8) != 1) goto error;
@@ -244,12 +176,13 @@ error:
     }
 }
 
-int a = 0;
 
+// Entry point for kernel C code
 void kernel_c_main( void )
 {
     check_types();
 
+    static int a;
     a = test_func(2,2,2);
 
     write_byte_to_IO_port(0x3F8, 'T');
@@ -301,4 +234,38 @@ void kernel_c_main( void )
         // TODO: First we need to program PIC otherwise the CPU will never be awaken
         //halt_cpu();
     }
+}
+
+
+/*******************************************************************************
+ *                                    STUBS                                    *
+ *******************************************************************************/
+
+// Stubs for parts of code developed in userspace and then copied here
+
+void* malloc(u32 size)
+{
+    return heap_malloc(size);
+}
+
+void free(void* pointer)
+{
+    heap_free(pointer);
+}
+
+
+// These functions are not available here
+int puts(const char *string)
+{
+    return 0;
+}
+
+int putchar ( int character )
+{
+    return 0;
+}
+
+int printf ( const char * format, ... )
+{
+    return 0;
 }
