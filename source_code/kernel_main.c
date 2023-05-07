@@ -1,3 +1,8 @@
+/**
+ * @brief Contains kernel_c_main() a main entry point into C code from ASM code. Also contains type checks and
+ *        stubs for functions not yet implemented
+ *
+ */
 
 // This needs to be compiled with -nostartfiles and -nostdlib since standard lib is not available
 
@@ -6,11 +11,8 @@
     TODO NEXT:
         - Rename heap_malloc() to binned_mempool_malloc() / mempool_malloc()
 
-        - Read the information from BIOS Data Area
-
         - Add logging for malloc() memory usage
             - Print the memory allocator usage stats after every (de)allocation
-
 
         - Read the information from the Multiboot
             -> https://www.gnu.org/software/grub/manual/multiboot/multiboot.html#Machine-state
@@ -18,9 +20,9 @@
         - Enable Wall i Werror
 
         - Add makefile rule for installing all required APT packages
-            - Also add in to description / readme
+            - Also add it to description / readme
 
-        - Change GCC system include path to this folder or just disable it
+        - Makefile: set GCC system include path to this folder or just disable it
 
         - Add kernel process handler with 3 function pointers:
             - init()
@@ -34,8 +36,9 @@
 
     TODO LIST:
         - FEATURE: Implement basic terminal functionality
-        - FEATURE: Integrate shell and FAT driver from "FAT-filesystem-driver" repo
         - FEATURE: Implement logging facilities
+        - FEATURE: Integrate shell and FAT driver from "FAT-filesystem-driver" repo
+                    - Fat driver needs to be finished and also needs serious cleaning
         - FEATURE: Implement bucket heap allocator
         - FEATURE: Implement serial/UART driver
         - FEATURE: Implement timer support
@@ -50,7 +53,7 @@
 
 Legacy IBM PC:
 
-    http://www.cs.cmu.edu/~ralf/files.html (famous Ralf Brown's interrupt list)
+    http://www.cs.cmu.edu/~ralf/files.html (a comprehensive listing of interrupt calls, I/O ports, memory locations, far-call interfaces)
     http://opensecuritytraining.info/IntroBIOS_files/Day1_04_Advanced%20x86%20-%20BIOS%20and%20SMM%20Internals%20-%20IO.pdf
 
 
@@ -185,6 +188,7 @@ void kernel_c_main( void )
     static int a;
     a = test_func(2,2,2);
 
+    // A COM1 port test
     write_byte_to_IO_port(0x3F8, 'T');
     write_byte_to_IO_port(0x3F8, 'e');
     write_byte_to_IO_port(0x3F8, 's');
@@ -229,6 +233,9 @@ void kernel_c_main( void )
 
     while(1)
     {
+        // This is where currently all the actions takes place
+        // When the driver detects keypress, it call a callback for terminal input,
+        // and terminal then potentially calls other commands and updates the VGA display
         keyboard_driver_poll();
 
         // TODO: First we need to program PIC otherwise the CPU will never be awaken
