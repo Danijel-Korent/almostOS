@@ -11,6 +11,7 @@
 #include "kernel_stdio.h"
 #include "kernel_stddef.h"
 
+#define BYTES_PER_LINE (16)
 
 void execute__dump_data(int argc, char* argv[])
 {
@@ -33,6 +34,8 @@ void execute__dump_data(int argc, char* argv[])
     }
 
     {
+        // A small hack to continue dumping data from the last address of the previous incarnation,
+        // if no address is specified
         static int previous_offset = 0;
 
         if( argc == 1)
@@ -43,16 +46,19 @@ void execute__dump_data(int argc, char* argv[])
         previous_offset = offset;
     }
 
-    for (int row = 0; row < 8; row++) // QTODO: Replace hardcoded '20' with a variable 2/2
+    for (int row = 0; row < 8; row++)
     {
         {
-            char line[] = "addrnumb: XX XX XX XX XX XX XX XX  XX XX XX XX XX XX XX XX   |Place_ASCII_test|";
+            char line[] = "addrnumb: XX XX XX XX XX XX XX XX  XX XX XX XX XX XX XX XX   |Place_ASCII_text|";
+
+            const char START_OF_ASCII_TEXT = 62; // Offset in line string
 
             long_to_hex(offset, line, 8, 10);
 
-            int hex_line_offset = 10;
+            int hex_line_offset = 10; // Offset in line string
 
-            for(int hex_no = 0; hex_no < 16; hex_no++)
+            // Print hex values
+            for(int hex_no = 0; hex_no < BYTES_PER_LINE; hex_no++)
             {
                 unsigned char byte = data[offset+hex_no];
                 
@@ -65,7 +71,7 @@ void execute__dump_data(int argc, char* argv[])
             }
 
             // Print ASCII values
-            for(int char_no = 0; char_no < 16; char_no++)
+            for(int char_no = 0; char_no < BYTES_PER_LINE; char_no++)
             {
                 char character = data[offset+char_no];
 
@@ -73,12 +79,12 @@ void execute__dump_data(int argc, char* argv[])
                 if (character == 0) character = '.';
                 //if (character < 32) character = '*';
 
-                line[62 + char_no] = character;
+                line[START_OF_ASCII_TEXT + char_no] = character;
             }
 
             kernel_println(line);
         }
 
-        offset += 16; // QTODO: Add name to magic number
+        offset += BYTES_PER_LINE;
     }
 }
