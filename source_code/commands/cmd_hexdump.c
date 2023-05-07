@@ -2,8 +2,6 @@
  * @file hexdump.c
  *
  * @brief Implements the basic behavior of a popular Unix command "hexdump"
- *
- *  TODO: Helper functions are generic and should be moved together to a common file like "util.c" or something
  */
 
 #include "cmd_hexdump.h"
@@ -22,6 +20,7 @@ void execute__dump_data(int argc, char* argv[])
         return;
     }
 
+    // I've left it commented out in case I'll need it again
     //for( int i = 0; i < argc; i++ ) printf("\n argv[%i]: %s", i, argv[i]);
     //printf("\n");
 
@@ -30,7 +29,6 @@ void execute__dump_data(int argc, char* argv[])
 
     if( argc > 1)
     {
-        // QTODO: Replace hardcoded '20' with a variable 1/2
         offset = hex_to_long(argv[1]);
     }
 
@@ -49,11 +47,11 @@ void execute__dump_data(int argc, char* argv[])
     {
         {
             char line[] = "addrnumb: XX XX XX XX XX XX XX XX  XX XX XX XX XX XX XX XX   |Place_ASCII_test|";
-    
+
             long_to_hex(offset, line, 8, 10);
-            
+
             int hex_line_offset = 10;
-            
+
             for(int hex_no = 0; hex_no < 16; hex_no++)
             {
                 unsigned char byte = data[offset+hex_no];
@@ -65,19 +63,19 @@ void execute__dump_data(int argc, char* argv[])
                 
                 if (hex_no == 7) hex_line_offset++;
             }
-            
+
             // Print ASCII values
             for(int char_no = 0; char_no < 16; char_no++)
             {
                 char character = data[offset+char_no];
-    
+
                 // Replace control characters with a star and zero address with dot
                 if (character == 0) character = '.';
                 //if (character < 32) character = '*';
-    
+
                 line[62 + char_no] = character;
             }
-    
+
             kernel_println(line);
         }
 
