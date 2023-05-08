@@ -16,16 +16,16 @@ Install nasm, build-essential, genisoimage and qemu-system
 ### Running the OS
 Inside "source_code" directory run:
 
-make qemu
+`make qemu`
 
 This command will compile everything, create an ISO image containing the kernel and grub and then run QEMU with the image
 
 ### Available commands in the OS
 
-help
-dump 300  (dumps the data from the memory address 0x300)
+`help`
+`dump 300`  (dumps the data from the memory address 0x300)
 
-(Yep, that's everything. Will add more, I promise)
+(Yep, that's everything. Will add more, I promise!)
 
 ## Entry point
 
@@ -33,6 +33,8 @@ The kernel entry point is in the file "kernel_startup.asm" which sets Multiboot 
 
 ## Statistics
 
+```
 Lines of code:   1940
 Number of files:   28
 Number of users:    1
+```

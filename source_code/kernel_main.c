@@ -11,8 +11,8 @@
     TODO NEXT:
         - Create and load IDT table so I can use interrupts/PIC
             - and I need interrupts so I can use the "hlt" instruction
-            - and I need the "hlt" instructions so that the OS doesn't butcher the CPU which kind of annoys the users
-              of this woderful OS
+            - and I need the "hlt" instructions so that the OS doesn't butcher
+              the CPU, which kind of annoys the users of this wonderful, wonderful, OS
 
         - Enable Wall i Werror
 
