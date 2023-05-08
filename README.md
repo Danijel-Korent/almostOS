@@ -22,8 +22,8 @@ This command will compile everything, create an ISO image containing the kernel 
 
 ### Available commands in the OS
 
-`help`
-`dump 300`  (dumps the data from the memory address 0x300)
+`help`  
+`dump 300`  (dumps the 128 bytes of the memory starting from the memory address 0x300)
 
 (Yep, that's everything. Will add more, I promise!)
 
