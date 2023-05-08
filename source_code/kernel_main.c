@@ -9,13 +9,10 @@
 /*
 
     TODO NEXT:
-        - Rename heap_malloc() to binned_mempool_malloc() / mempool_malloc()
-
-        - Add logging for malloc() memory usage
-            - Print the memory allocator usage stats after every (de)allocation
-
-        - Read the information from the Multiboot
-            -> https://www.gnu.org/software/grub/manual/multiboot/multiboot.html#Machine-state
+        - Create and load IDT table so I can use interrupts/PIC
+            - and I need interrupts so I can use the "hlt" instruction
+            - and I need the "hlt" instructions so that the OS doesn't butcher the CPU which kind of annoys the users
+              of this woderful OS
 
         - Enable Wall i Werror
 
@@ -23,13 +20,6 @@
             - Also add it to description / readme
 
         - Makefile: set GCC system include path to this folder or just disable it
-
-        - Add kernel process handler with 3 function pointers:
-            - init()
-            - service()
-            - on_event()
-            - standard input handler (stdin)
-            - standard output handler (stdout)
 
         - Implement checks for buffer overflow
 

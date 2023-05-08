@@ -1,35 +1,6 @@
-
-
-
-    ; NEXT TODO: 
-    ;
-    ;    - Commit build files somewhere, maybe put:
-    ;       - bootloader image to ./bootloader_image or ./build/bootloader_image
-    ;       - makefiles and emulator configuration to ./build
-    ;       - OS image to ./build/os_image
-    ;
-    ;    - Prepare C runtime
-    ;
-    ;        - Reserve the memory space for stack
-    ;           - since we are using and GRUB's ELF loader to load memory segments into adress space
-    ;             the safest way to do that is to place it to the .data or .bss memory segment
-    ;             The .bss is better choice since its content is not packed into the ELF binary
-    ;
-    ;        - Clear all .bss memory section to zeros. (done by bootloader??)
-    ;            - Here we will need to do some tricks, since we will know the exact size of the .bss segment only after linking.
-    ;
-    ;        - Jump to C program entry
-    ;            - lets call it _kernel_c_main
-    ;
-    ;
-    ;    - Implement driver for text output
-    ;
-    ;    - Implement driver for the PIC
-    ;    - Implement driver for text input
-    ;
-    ;    - Add the FAT file reader, shell and some FS image from the "FAT-filesystem-reader" git project
-    ;        - So that OS at least looks like it could do something useful hehe 
-
+; Sets Multiboot signature and defines function start_kernel() which is in kernel.ld linker script "kernel.ld" set as
+; the entry point for the compiled artifact. The start_kernel() just outputs string "hello_msg", sets stack pointer and
+; then jumps to the first C code function: kernel_c_main()
 
 ; INFO:
 ;  - https://en.wikibooks.org/wiki/X86_Assembly/NASM_Syntax
@@ -53,6 +24,8 @@ global start_kernel  ; GRUB will jump into this function (specified in the linke
 extern kernel_c_main ; entry point for C code
 
 
+; I already forgot why I had put the stack inside the .bss segment. Maybe so that Grub will zero-initiate it
+; on image load?
 section .bss  ; standard name of the C memory segment for uninitialized data
     align 4
 
@@ -62,6 +35,8 @@ section .bss  ; standard name of the C memory segment for uninitialized data
     STACK_MEM_START: ; on x86 stack grows from higher address to lower, so this is the beginning of the stack
 
 
+; Had to create separate mem. segment for multiboot because position of the header would move as the build order changes
+; and at one point it moved out of the first 8192 bytes of the image, making the image unbootable
 section .multiboot
 
     ; Per multiboot specification. Without this GRUB will not recognize this binary image as bootable
