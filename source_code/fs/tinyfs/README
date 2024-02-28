@@ -1,0 +1,34 @@
+
+To run test:
+============
+
+make test
+
+(result is writen to disk_image_out.img)
+
+
+To mount FS on Linux
+====================
+
+make fuse
+
+(it mounts to tests/mountpoint_fuse)
+
+Need: apt-get install libfuse-dev
+
+
+Available action in mountpoint:
+-------------------------------
+
+reading file:
+cat file_1
+
+Appending file
+echo "something" >> file_1
+
+deleting file:
+rm file_1
+
+Creating file (it works but reports error as I have not implemented all callbacks)
+touch file
+echo "something" > file_1
