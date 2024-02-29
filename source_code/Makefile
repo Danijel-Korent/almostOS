@@ -25,6 +25,7 @@ ASFLAGS = -f elf32
 
 # Source and compilation artifacts directories
 SRC_DIR = .
+SKIP_DIR = fs
 OBJ_DIR = ./build
 
 # Include directories
@@ -34,11 +35,11 @@ INCLUDE_FLAGS := $(addprefix -I, $(INCLUDE_DIRS))
 
 
 # Finding all .c and .asm files in subdirectories
-SRCS_C := $(shell find $(SRC_DIR) -type f -name "*.c")
-SRCS_ASM := $(shell find $(SRC_DIR) -type f -name "*.asm")
+SRCS_C   := $(shell find $(SRC_DIR) -type d -name $(SKIP_DIR) -prune -o -type f -name "*.c" -print) # I don't like this anymore
+SRCS_ASM := $(shell find $(SRC_DIR) -type d -name $(SKIP_DIR) -prune -o -type f -name "*.asm" -print)
 
 # Replacing .c with .o and .asm with .o and adding the object directory prefix
-OBJS_C := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS_C))
+OBJS_C   := $(patsubst $(SRC_DIR)/%.c,   $(OBJ_DIR)/%.o, $(SRCS_C))
 OBJS_ASM := $(patsubst $(SRC_DIR)/%.asm, $(OBJ_DIR)/%.o, $(SRCS_ASM))
 
 obj_files := $(OBJS_C) $(OBJS_ASM)
