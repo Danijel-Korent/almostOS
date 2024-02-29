@@ -25,7 +25,7 @@ SKIP_DIR = fs
 OBJ_DIR = ./build
 
 # Include directories
-INCLUDE_DIRS := . drivers utils memory commands
+INCLUDE_DIRS := . drivers utils memory shell
 INCLUDE_FLAGS := $(addprefix -I, $(INCLUDE_DIRS))
 
 
