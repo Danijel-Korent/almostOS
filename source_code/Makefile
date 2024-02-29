@@ -1,19 +1,15 @@
 # For this Makefile to work, install following packages:
 #
-# sudo apt install nasm
-# sudo apt install build-essential
-# sudo apt install genisoimage
+# sudo apt install build-essential nasm genisoimage
 
 # For Qemu
 # sudo apt install qemu-system
 
 # For Bochs
-# sudo apt install bochs
-# sudo apt install bochs-sdl
-# sudo apt install bochsbios
+# sudo apt install bochs bochs-sdl bochsbios
 
-# TODO: Replace AlmostOS.iso with variable
-# TODO: Replace AlmostOS_kernel.elf with variable
+# TODO: Replace AlmostOS.iso with a variable
+# TODO: Replace AlmostOS_kernel.elf with a variable
 
 
 # Compiler, assembler and flags
