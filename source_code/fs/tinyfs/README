@@ -2,7 +2,7 @@
 To run test:
 ============
 
-make test
+make
 
 (result is writen to disk_image_out.img)
 
@@ -14,7 +14,7 @@ make fuse
 
 (it mounts to tests/mountpoint_fuse)
 
-Need: apt-get install libfuse-dev
+Prerequisite: apt install libfuse-dev
 
 
 Available action in mountpoint:

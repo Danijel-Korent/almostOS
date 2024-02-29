@@ -7,7 +7,7 @@ It's at a very early stage. It boots, but currently it can only output text to t
 
 Currently, I'm implementing a very simple file system named TinyFS. The file system at the moment has only the most basic functionality but is mature enough to be mounted on Linux. I still have to integrate it into this kernel - unlike in Linux, there is no framework/API for FS integration just yet
 
-#### It's ugly, but not ugly enough to be rejected by GRUB
+#### It is ugly, but not ugly enough to be rejected by GRUB
 ![almostOS](/almostOS.png?raw=true "almostOS")
 
 ## How to run it
