@@ -5,6 +5,8 @@
 #include <stdio.h> // for puts()
 #include <stdarg.h> // for va_args
 
+#ifdef LOCAL_COMPILE
+
 #include "../config/config.h"
 
 
@@ -55,6 +57,12 @@ void trace_impl(const char* func_name, const char* message, ...)
         fflush(stdout);
 }
 
+#else // LOCAL_COMPILE
+
+    #define LOG(...)
+    #define TRACE(...)
+    #define ERROR(condition) (condition)
+
+#endif
 
 #endif /* UTIL_H */
-

@@ -8,7 +8,7 @@
 #include "../code/cluster_operations.h"
 #include "../code/FAT_cluster.h"
 
-static void open_and_fill_file(const char* name, int count, const char* content_ptr, int content_size);
+//static void open_and_fill_file(const char* name, int count, const char* content_ptr, int content_size);
 
 void command_cat(const char* filename)
 {
@@ -254,6 +254,7 @@ int main(void)
     return 0;
 }
 
+#if 0
 static void open_and_fill_file(const char* name, int count, const char* content_ptr, int content_size)
 {
     int handle = fs_open(name);
@@ -270,3 +271,4 @@ static void open_and_fill_file(const char* name, int count, const char* content_
         }
     }
 }
+#endif

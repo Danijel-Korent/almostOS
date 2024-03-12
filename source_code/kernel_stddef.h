@@ -1,6 +1,8 @@
 #ifndef _KERNEL_STDDEF_H_
 #define _KERNEL_STDDEF_H_
 
+// TODO: Replace this with "system_headers"
+
 typedef signed   char s8;
 typedef unsigned char u8;
 

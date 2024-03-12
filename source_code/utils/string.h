@@ -1,6 +1,8 @@
 #ifndef _STRING_H_
 #define _STRING_H_
 
+// TODO: BIG PROBLEM -> I have two string.h files. Merge them
+
 #include "kernel_stddef.h"
 
 u32 strlen_unsafe(const u8* input_string);

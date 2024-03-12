@@ -124,6 +124,7 @@ int load_disk(const char* const image_filename)
 
 int store_disk(const char* const image_filename)
 {
+#ifdef LOCAL_COMPILE
     TRACE("Called with image_filename: %s", image_filename);
     TRACE("Disk image size: %i", s_disk_image_size);
 
@@ -144,7 +145,7 @@ int store_disk(const char* const image_filename)
 
     fclose(file);
     LOG("Storing image: successfully written to %s \n", image_filename);
-
+#endif // LOCAL_COMPILE
     return 0;
 }
 
@@ -159,10 +160,12 @@ void free_disk(void)
 
 
 
-static uint8_t* load_file_into_memory(const char *filename, uint32_t *size) {
-    FILE *file;
-    uint8_t *buffer;
+static uint8_t* load_file_into_memory(const char *filename, uint32_t *size)
+{
+    uint8_t *buffer = NULL;
 
+#ifdef LOCAL_COMPILE
+    FILE *file;
     TRACE("Called with name = %s, size_ptr = %p", filename, size);
 
     file = fopen(filename, "rb");
@@ -199,6 +202,7 @@ static uint8_t* load_file_into_memory(const char *filename, uint32_t *size) {
     }
 
     fclose(file);
+#endif // LOCAL_COMPILE
 
     return buffer;
 }

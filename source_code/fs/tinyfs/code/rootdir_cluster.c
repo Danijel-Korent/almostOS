@@ -1,6 +1,7 @@
 #include "rootdir_cluster.h"
 
-#include <string.h> // For strncpy
+#include <stddef.h> // For NULL
+#include <string.h> // For strlen, strncmp
 
 #include "util.h"
 #include "cluster_operations.h"

@@ -14,7 +14,7 @@
 
 # Compiler, assembler and flags
 CC = gcc
-CFLAGS = -m32 -nostdlib -nostdinc -nostartfiles -g  # "nostartfiles" is probably unnecessary since I've defined entry point in the .ld
+CFLAGS = -m32 -nostdlib -nostdinc -nostartfiles -isystem system_headers -I fs/tinyfs/api -g  # "nostartfiles" is probably unnecessary since I've defined entry point in the .ld
 
 AS = nasm
 ASFLAGS = -f elf32
@@ -28,7 +28,12 @@ OBJ_DIR = ./build
 INCLUDE_DIRS := . drivers utils memory shell
 INCLUDE_FLAGS := $(addprefix -I, $(INCLUDE_DIRS))
 
-
+###### TEMP TinyFS ######
+# Temp until I decide how I will include the TinyFS to this Makefile
+TINY_FS_DIR = ./fs/tinyfs
+TINY_FS_SRCS = $(TINY_FS_DIR)/code/cluster_operations.c $(TINY_FS_DIR)/code/disk_image.c $(TINY_FS_DIR)/code/FAT_cluster.c $(TINY_FS_DIR)/code/fs_operations.c $(TINY_FS_DIR)/code/rootdir_cluster.c $(TINY_FS_DIR)/code/util.c
+TINY_FS_OBJS = $(TINY_FS_SRCS:.c=.o) # Define the object files based on the source files
+###### TEMP TinyFS ######
 
 # Finding all .c and .asm files in subdirectories
 SRCS_C   := $(shell find $(SRC_DIR) -type d -name $(SKIP_DIR) -prune -o -type f -name "*.c" -print) # I don't like this anymore
@@ -38,7 +43,7 @@ SRCS_ASM := $(shell find $(SRC_DIR) -type d -name $(SKIP_DIR) -prune -o -type f 
 OBJS_C   := $(patsubst $(SRC_DIR)/%.c,   $(OBJ_DIR)/%.o, $(SRCS_C))
 OBJS_ASM := $(patsubst $(SRC_DIR)/%.asm, $(OBJ_DIR)/%.o, $(SRCS_ASM))
 
-obj_files := $(OBJS_C) $(OBJS_ASM)
+obj_files := $(OBJS_C) $(OBJS_ASM) $(TINY_FS_OBJS)
 
 
 .PHONY: all
