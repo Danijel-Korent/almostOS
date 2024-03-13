@@ -149,6 +149,9 @@ Terminal escape code:
 #include "poors_man_VGA_driver.h"
 #include "poors_man_keyboard_driver.h"
 
+#include "fs_operations.h"
+#include "fs/tinyfs/images/image__cluster_size_100.h"
+
 
 void check_types(void)
 {
@@ -220,6 +223,7 @@ void kernel_c_main( void )
     init_heap_memory_allocator();
 
     parse_BIOS_Data_Area();
+    fs_load_ramdisk(DISK_IMAGE);
 
     while(1)
     {
