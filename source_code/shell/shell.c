@@ -112,7 +112,10 @@ void shell_input(u8 * input)
         kernel_println("");
         kernel_println("Available commands:");
         kernel_println("");
-        kernel_println("    help - prints this message");
+        kernel_println("    ls     - List files");
+        kernel_println("    cat    - Output file");
+        kernel_println("    dump x - Dump content of the memory at address x");
+        kernel_println("    help   - Prints this message");
         kernel_println("");
     }
     else if (input[0] == 'l')
