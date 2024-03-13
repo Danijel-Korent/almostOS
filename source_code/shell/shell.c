@@ -1,9 +1,13 @@
 #include "shell.h"
 
 #include "string.h"
-#include "cmd_hexdump.h"
 #include "kernel_main.h"
 #include "kernel_stdio.h"
+
+#include "cmd_hexdump.h"
+#include "cmd_cat.h"
+#include "cmd_ls.h"
+
 
 /**
  * @brief Parse raw input string and returns it in argv/argc format (array of strings/arguments)
@@ -93,7 +97,17 @@ void shell_input(u8 * input)
         return;
     }
 
-    if (input[0] == 'h')
+    if (input[0] == 'c')
+    {
+        execute__cat(argc, argv);
+    }
+    else if (input[0] == 'd')
+    {
+        // TODO: When we will be able to use COM1 then we will need to also pass pointer interface for read/write
+        //       function pointers, to that command read and writes back to correct interface
+        execute__dump_data(argc, argv);
+    }
+    else if (input[0] == 'h')
     {
         kernel_println("");
         kernel_println("Available commands:");
@@ -101,11 +115,9 @@ void shell_input(u8 * input)
         kernel_println("    help - prints this message");
         kernel_println("");
     }
-    else if (input[0] == 'd')
+    else if (input[0] == 'l')
     {
-        // TODO: When we will be able to use COM1 then we will need to also pass pointer interface for read/write
-        //       function pointers, to that command read and writes back to correct interface
-        execute__dump_data(argc, argv);
+        execute__ls(argc, argv);
     }
     else
     {

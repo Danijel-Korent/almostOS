@@ -1,5 +1,5 @@
 /**
- * @file hexdump.c
+ * @file cmd_hexdump.c
  *
  * @brief Implements the basic behavior of a popular Unix command "hexdump"
  */
