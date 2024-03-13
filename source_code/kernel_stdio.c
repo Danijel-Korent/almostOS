@@ -51,6 +51,10 @@ void kernel_println(const unsigned char* const message)
     terminal_printline(&shell_terminal, message);
 }
 
+void kernel_putchar(const char new_char)
+{
+    terminal_putchar(&shell_terminal, new_char);
+}
 
 /*******************************************************************************
  *                            Integration callbacks                            *

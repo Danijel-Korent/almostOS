@@ -1,8 +1,12 @@
 /**
  * @file terminal.c
  *
- * @brief New terminal code that suck little bit less than previous one. Has hardcoded input line, doesn't understand
- *        CR and or LF chars, and will cut out lines longer than 80 chars
+ * @brief New terminal code that suck little bit less than the previous one. Has hardcoded input line, doesn't understand
+ *        CR and or LF chars, and will cut out lines longer than 80 chars (and doesn't understand any escape chars)
+ *
+ * @todo This terminal is based on a circular buffer of fixed-sized lines. That is easier to render on VGA but it's a bad
+ *       inflexible design, and should be replaced with just a regular char circular buffer, which is then being rendered
+ *       independently according to parameters of the terminal window
  */
 
 #include "terminal.h"
@@ -16,8 +20,10 @@
 // https://en.wikipedia.org/wiki/ANSI_escape_code
 // https://en.wikipedia.org/wiki/VGA_text_mode
 
+// TODO: This needs to be refactored as it is ugly and barely readable
+// TODO/BUG: You are not suposed to be able to delete the shell prompt :O
 
-// Local function defitions
+// Local function definitions
 static void terminal_clear_input_line(terminal_contex_t *terminal_context);
 
 
@@ -66,7 +72,8 @@ void terminal_init(terminal_contex_t *terminal_context, int window_position_y, i
     terminal_context->window_size_y = window_size_y;
     terminal_context->window_position_y = window_position_y;
     terminal_context->current_first_line = 0;
-    terminal_context->current_end_line = 0;
+    terminal_context->current_end_line = 0; // TODO: initialize with one (empty) line to avoid special case of empty
+                                            //       circular line buffer??
 }
 
 static int terminal_get_current_line_count(terminal_contex_t *terminal_context)
@@ -74,13 +81,13 @@ static int terminal_get_current_line_count(terminal_contex_t *terminal_context)
     int first_line = terminal_context->current_first_line;
     int end_line   = terminal_context->current_end_line;
 
-    if (end_line >= first_line) return end_line-first_line;
+    if (end_line >= first_line) return end_line - first_line;
 
     // TODO
     return TERMINAL_MAX_Y - first_line + end_line;
 }
 
-static int terminal_get_next_line(terminal_contex_t *terminal_context, int current_line)
+static int terminal_get_next_line_buffer(terminal_contex_t *terminal_context, int current_line)
 {
     int next_line = current_line + 1;
 
@@ -91,27 +98,29 @@ static int terminal_get_next_line(terminal_contex_t *terminal_context, int curre
 }
 
 
-static char* terminal_get_next_free_line(terminal_contex_t *terminal_context)
+static char* terminal_get_next_free_line_buffer(terminal_contex_t *terminal_context)
 {
     int free_line_number = terminal_context->current_end_line;
 
     if (free_line_number >= TERMINAL_MAX_Y)
     {
-        printf("ERROR: terminal_get_next_free_line - current_end_line out of buffer bounds");
+        printf("ERROR: terminal_get_next_free_line_buffer - current_end_line out of buffer bounds");
         return NULL;
     }
 
+    // TODO: what the hell is this??
+    // TODO: rename terminal_context to terminal_ctx
     char* free_line = terminal_context->buffer[terminal_context->current_end_line];
 
     // Forward the end line
-    terminal_context->current_end_line = terminal_get_next_line(terminal_context, terminal_context->current_end_line);
+    terminal_context->current_end_line = terminal_get_next_line_buffer(terminal_context, terminal_context->current_end_line);
 
     int line_count = terminal_get_current_line_count(terminal_context);
 
     // If terminal holds more then max number of lines, forward also the first line
     if (line_count > terminal_context->window_size_y)
     {
-        terminal_context->current_first_line = terminal_get_next_line(terminal_context, terminal_context->current_first_line);
+        terminal_context->current_first_line = terminal_get_next_line_buffer(terminal_context, terminal_context->current_first_line);
     }
 
     for(int i = 0; i < TERMINAL_MAX_X; i++)
@@ -141,7 +150,7 @@ void terminal_render_to_VGA(terminal_contex_t *terminal_context)
             print_char_to_VGA_display(x, y, character);
         }
 
-        current_line = terminal_get_next_line(terminal_context, current_line);
+        current_line = terminal_get_next_line_buffer(terminal_context, current_line);
         line_counter++;
     }
 
@@ -161,6 +170,7 @@ void terminal_render_to_VGA(terminal_contex_t *terminal_context)
     }
 }
 
+// TODO: If I reimplement this with terminal_putchar() it will automaticaly handle spliting lines that are too long
 void terminal_printline(terminal_contex_t *terminal_context, const unsigned char* const string)
 {
     if (terminal_context == NULL)
@@ -175,7 +185,7 @@ void terminal_printline(terminal_contex_t *terminal_context, const unsigned char
         return;
     }
 
-    char *line = terminal_get_next_free_line(terminal_context);
+    char *line = terminal_get_next_free_line_buffer(terminal_context);
 
     if (line == NULL)
     {
@@ -190,9 +200,48 @@ void terminal_printline(terminal_contex_t *terminal_context, const unsigned char
         line[i] = string[i];
     }
 
+    terminal_context->current_end_x = TERMINAL_MAX_X;
+
     terminal_render_to_VGA(terminal_context);
 }
 
+
+void terminal_putchar(terminal_contex_t *terminal_context, const char new_char)
+{
+    if (terminal_context == NULL)
+    {
+        printf("ERROR: terminal_init() - terminal_context == NULL");
+        return;
+    }
+
+    char *line_buf = NULL;
+
+    if (terminal_context->current_end_x >= TERMINAL_MAX_X)
+    {
+        line_buf = terminal_get_next_free_line_buffer(terminal_context);
+
+        if (line_buf == NULL)
+        {
+            printf("ERROR: terminal_init() - line == NULL");
+            return;
+        }
+    }
+    else
+    {
+        int last_line = terminal_context->current_end_line - 1;
+
+        if (last_line < 0) last_line = TERMINAL_MAX_Y - 1;
+
+        line_buf = terminal_context->buffer[last_line];
+    }
+
+    int pos_x = terminal_context->current_end_x % TERMINAL_MAX_X;
+
+    // TODO: implement CR and LF handling
+    line_buf[pos_x] = new_char;
+
+    terminal_context->current_end_x = pos_x + 1;
+}
 
 void terminal_on_keypress(terminal_contex_t *terminal_context, unsigned char key)
 {
@@ -239,7 +288,7 @@ static void terminal_clear_input_line(terminal_contex_t *terminal_context)
     terminal_context->input_line[0] = 's';
     terminal_context->input_line[1] = 'h';
     terminal_context->input_line[2] = 'e';
-    terminal_context->input_line[3] = 'l';
+    terminal_context->input_line[3] = 'l'; // I have no clue why I did it this way...
     terminal_context->input_line[4] = 'l';
     terminal_context->input_line[5] = ':';
     terminal_context->input_line[6] = '>';
