@@ -43,9 +43,11 @@ void print_char_to_VGA_display_buffer(u16 position, u8 ch)
 
     // QTODO: hardcoded color - add arguments for foreground and background color
     VGA_RAM[position]   = ch;
+
     //VGA_RAM[position+1] = 0x13; // Blue + Cyan
     //VGA_RAM[position+1] = 0x0A; // Black + Light green
-    VGA_RAM[position+1] = 0x02; // Black + Green
+    //VGA_RAM[position+1] = 0x02; // Black + Green // This is the correct way because it's how the Hollywood does it
+    VGA_RAM[position+1] = 0x07; // Black + White
 }
 
 void print_char_to_VGA_display(u8 x, u8 y, u8 ch)

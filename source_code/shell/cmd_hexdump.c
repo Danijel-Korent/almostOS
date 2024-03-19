@@ -87,4 +87,6 @@ void execute__dump_data(int argc, char* argv[])
 
         offset += BYTES_PER_LINE;
     }
+
+    kernel_println("");
 }

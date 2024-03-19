@@ -25,6 +25,7 @@
 
 // Local function definitions
 static void terminal_clear_input_line(terminal_contex_t *terminal_context);
+static void terminal_clear_VGA(terminal_contex_t *terminal_context);
 
 
 // TODO: Add argument for no-input mode
@@ -74,6 +75,9 @@ void terminal_init(terminal_contex_t *terminal_context, int window_position_y, i
     terminal_context->current_first_line = 0;
     terminal_context->current_end_line = 0; // TODO: initialize with one (empty) line to avoid special case of empty
                                             //       circular line buffer??
+
+    // Just to clear the screen
+    terminal_clear_VGA(terminal_context);
 }
 
 static int terminal_get_current_line_count(terminal_contex_t *terminal_context)
@@ -132,6 +136,20 @@ static char* terminal_get_next_free_line_buffer(terminal_contex_t *terminal_cont
 }
 
 
+static void terminal_clear_VGA(terminal_contex_t *terminal_context)
+{
+    int y_start = terminal_context->window_position_y;
+    int y_size =  terminal_context->window_size_y;
+
+    for (int y = y_start; y < y_start + y_size; y++)
+    {
+        for (int x = 0; x < TERMINAL_MAX_X; x++)
+        {
+            print_char_to_VGA_display(x, y, ' ');
+        }
+    }
+}
+
 void terminal_render_to_VGA(terminal_contex_t *terminal_context)
 {
     int current_line = terminal_context->current_first_line;
@@ -147,6 +165,7 @@ void terminal_render_to_VGA(terminal_contex_t *terminal_context)
 
             int y = terminal_context->window_position_y + line_counter; // TODO: Move out of loop
 
+            // TODO: I have no idead why I put 'x' arg first, but I don't like it (any more)
             print_char_to_VGA_display(x, y, character);
         }
 

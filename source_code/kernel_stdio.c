@@ -14,17 +14,12 @@ static terminal_contex_t log_terminal;
 void kernel_stdio_init(void)
 {
     // Draw screen outline
-    //unsigned char shell_header[] = "-----------------------------------/ Shell /-----------------------------------";
-    unsigned char shell_header[] = "-----------------------------------/ SHELL /-----------------------------------";
-    print_string_to_VGA_display_buffer(560, shell_header, sizeof(shell_header)-1);
-
-    //unsigned char klog_header[] = "--------------------------------/ Kernel log /---------------------------------";
     unsigned char klog_header[] = "--------------------------------/ KERNEL LOG /---------------------------------";
-    print_string_to_VGA_display_buffer(1360, klog_header, sizeof(klog_header)-1);
+    print_string_to_VGA_display_buffer(19 * 80, klog_header, sizeof(klog_header)-1);
 
     // New terminal
-    terminal_init(&shell_terminal,  8, 8, ENABLE_INPUT_LINE);
-    terminal_init(&log_terminal,   18, 5, DISABLE_INPUT_LINE);
+    terminal_init(&shell_terminal,  0, 17, ENABLE_INPUT_LINE);
+    terminal_init(&log_terminal,   20,  5, DISABLE_INPUT_LINE);
 }
 
 // TODO: Decouple logging with a queue to avoid circular calls to LOG
