@@ -3,10 +3,12 @@
 
 #include "kernel_stddef.h"
 
+#define DEFAULT_BACKGROUND_COLOR (0)
+#define DEFAULT_FOREGROUND_COLOR (7)
 
 void set_cursor_position(u16 x, u16 y);
 void print_char_to_VGA_display(u8 x, u8 y, u8 ch);
-void print_char_to_VGA_display_buffer(u16 position, u8 ch);
+void print_char_to_VGA_display_buffer(u16 position, u8 chr, u8 background_color, u8 foreground_color);
 void print_string_to_VGA_display_buffer(u16 position, unsigned char* string, int string_size);
 
 
