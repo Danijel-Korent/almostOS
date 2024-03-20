@@ -145,7 +145,7 @@ static void terminal_clear_VGA(terminal_contex_t *terminal_context)
     {
         for (int x = 0; x < TERMINAL_MAX_X; x++)
         {
-            print_char_to_VGA_display(x, y, ' ');
+            print_char_to_VGA_display(x, y, ' ', DEFAULT_BACKGROUND_COLOR, DEFAULT_FOREGROUND_COLOR);
         }
     }
 }
@@ -166,7 +166,7 @@ void terminal_render_to_VGA(terminal_contex_t *terminal_context)
             int y = terminal_context->window_position_y + line_counter; // TODO: Move out of loop
 
             // TODO: I have no idead why I put 'x' arg first, but I don't like it (any more)
-            print_char_to_VGA_display(x, y, character);
+            print_char_to_VGA_display(x, y, character, DEFAULT_BACKGROUND_COLOR, DEFAULT_FOREGROUND_COLOR);
         }
 
         current_line = terminal_get_next_line_buffer(terminal_context, current_line);
@@ -184,7 +184,7 @@ void terminal_render_to_VGA(terminal_contex_t *terminal_context)
 
             set_cursor_position(terminal_context->input_cursor_position, y); // TODO: Move out of loop
 
-            print_char_to_VGA_display(x, y, character);
+            print_char_to_VGA_display(x, y, character, DEFAULT_BACKGROUND_COLOR, DEFAULT_FOREGROUND_COLOR);
         }
     }
 }
@@ -303,7 +303,8 @@ void terminal_on_keypress(terminal_contex_t *terminal_context, unsigned char key
 
 static void terminal_clear_input_line(terminal_contex_t *terminal_context)
 {
-    // Clear input line //TODO: Move to a function
+
+    // TODO: This should not supposed to be done here, but need to implement more features to do it in shell.c
     terminal_context->input_line[0] = 's';
     terminal_context->input_line[1] = 'h';
     terminal_context->input_line[2] = 'e';
@@ -312,6 +313,8 @@ static void terminal_clear_input_line(terminal_contex_t *terminal_context)
     terminal_context->input_line[5] = ':';
     terminal_context->input_line[6] = '>';
     terminal_context->input_line[7] = ' ';
+
+    // Clear the rest of the input line
     for (int x = 8; x < sizeof(terminal_context->input_line); x++)
     {
         terminal_context->input_line[x] = 0;

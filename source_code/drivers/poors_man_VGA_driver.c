@@ -56,11 +56,11 @@ void print_char_to_VGA_display_buffer(u16 position, u8 chr, u8 background_color,
     VGA_RAM[position+1] = (background_color << 4) + foreground_color;
 }
 
-void print_char_to_VGA_display(u8 x, u8 y, u8 ch)
+void print_char_to_VGA_display(u8 x, u8 y, u8 chr, u8 background_color, u8 foreground_color)
 {
     unsigned int position = (y * VGA_TEXTMODE_WIDTH) + x;
 
-    print_char_to_VGA_display_buffer(position, ch, DEFAULT_BACKGROUND_COLOR, DEFAULT_FOREGROUND_COLOR);
+    print_char_to_VGA_display_buffer(position, chr, background_color, foreground_color);
 }
 
 void print_string_to_VGA_display_buffer(u16 position, unsigned char* string, int string_size)
