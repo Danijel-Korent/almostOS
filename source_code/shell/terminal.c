@@ -60,24 +60,15 @@ void terminal_init(terminal_contex_t *terminal_context, int window_position_y, i
         }
     }
 
-    // Clear input line
-    terminal_clear_input_line(terminal_context);
-
-    //terminal_context->input_line[0] = 'T';
-    //terminal_context->input_line[1] = 'e';
-    //terminal_context->input_line[2] = 's';
-    //terminal_context->input_line[3] = 'T';
-    //terminal_context->input_line[4] = '!';
-    //terminal_context->input_cursor_position = 5;
-
     terminal_context->window_size_y = window_size_y;
     terminal_context->window_position_y = window_position_y;
     terminal_context->current_first_line = 0;
     terminal_context->current_end_line = 0; // TODO: initialize with one (empty) line to avoid special case of empty
                                             //       circular line buffer??
 
-    // Just to clear the screen
     terminal_clear_VGA(terminal_context);
+    terminal_clear_input_line(terminal_context);
+    terminal_render_to_VGA(terminal_context);
 }
 
 static int terminal_get_current_line_count(terminal_contex_t *terminal_context)
