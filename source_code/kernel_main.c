@@ -200,30 +200,42 @@ void kernel_c_main( void )
 
     kernel_stdio_init();
 
+    kernel_println("Starting kernel...");
+
     // QTODO: this repeating code needs a function of its own
     if (run_unittests_stack() == 0)
     {
-        LOG("Stack unittests: PASSED");
+        kernel_println("Stack unittests: PASSED");
     }
     else
     {
-        LOG("Stack unittests: FAILED");
+        kernel_println("Stack unittests: FAILED");
     }
 
     if (run_unittests_heap_allocator() == 0)
     {
-        LOG("Memory allocator unittests: PASSED");
+        kernel_println("Memory allocator unittests: PASSED");
     }
     else
     {
-        LOG("Memory allocator unittests: FAILED");
+        kernel_println("Memory allocator unittests: FAILED");
     }
 
     // Re-init memory allocator after tests
     init_heap_memory_allocator();
 
     parse_BIOS_Data_Area();
-    fs_load_ramdisk(DISK_IMAGE);
+
+    if (fs_load_ramdisk(DISK_IMAGE) == 0)
+    {
+        kernel_println("Loading initial RAM disk: SUCCESS");
+    }
+    else
+    {
+        kernel_println("Loading initial RAM disk: FAILED");
+    }
+
+    kernel_println("");
 
     while(1)
     {

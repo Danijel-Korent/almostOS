@@ -56,7 +56,7 @@ obj_files := $(OBJS_C) $(OBJS_ASM) $(TINY_FS_OBJS)
 
 
 ##### Compilation rules #####
-all: iso_image
+all: qemu
 
 iso_image: kernel
 	genisoimage -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -A AlmostOS -input-charset utf8 -boot-info-table -o AlmostOS.iso iso_image_content
