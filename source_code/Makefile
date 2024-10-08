@@ -76,13 +76,13 @@ $(OBJ_DIR)/%.o : %.c
 
 
 ##### Commands #####
-qemu: all
+qemu: iso_image
 	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -serial stdio
 
-bochs: all
+bochs: iso_image
 	bochs -f bochs_configuration.txt -q
 
-gdb_server: all
+gdb_server: iso_image
 	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -s -S
 
 clean:
