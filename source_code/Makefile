@@ -21,7 +21,10 @@ ASFLAGS = -f elf32
 
 # Source and compilation artifacts directories
 SRC_DIR = .
-SKIP_DIR = fs
+ARCH_X86_32_DIR = ./arch/x86-32/
+ARCH_RISC_V_DIR = ./arch/risc-v/
+SKIP_DIR_1 = fs
+SKIP_DIR_2 = arch
 OBJ_DIR = ./build
 
 # Include directories
@@ -36,8 +39,15 @@ TINY_FS_OBJS = $(TINY_FS_SRCS:.c=.o) # Define the object files based on the sour
 ###### TEMP TinyFS ######
 
 # Finding all .c and .asm files in subdirectories
-SRCS_C   := $(shell find $(SRC_DIR) -type d -name $(SKIP_DIR) -prune -o -type f -name "*.c" -print) # I don't like this anymore
-SRCS_ASM := $(shell find $(SRC_DIR) -type d -name $(SKIP_DIR) -prune -o -type f -name "*.asm" -print)
+SRCS_C_COMMON   := $(shell find $(SRC_DIR) -type d \( -name $(SKIP_DIR_1) -o -name $(SKIP_DIR_2) \) -prune -o -type f -name "*.c" -print) # I don't like this anymore
+
+# Arch specific
+SRCS_C_X86_32   := $(shell find $(ARCH_X86_32_DIR) -type d -name $(SKIP_DIR_1) -prune -o -type f -name "*.c" -print)
+SRCS_ASM_X86_32 := $(shell find $(ARCH_X86_32_DIR) -type d -name $(SKIP_DIR_1) -prune -o -type f -name "*.asm" -print)
+
+# Currently hardcoded to x86, but will later add rules and env var to chose between x86 and RISC-V 
+SRCS_C   := $(SRCS_C_COMMON) $(SRCS_C_X86_32)
+SRCS_ASM := $(SRCS_ASM_X86_32)
 
 # Replacing .c with .o and .asm with .o and adding the object directory prefix
 OBJS_C   := $(patsubst $(SRC_DIR)/%.c,   $(OBJ_DIR)/%.o, $(SRCS_C))
