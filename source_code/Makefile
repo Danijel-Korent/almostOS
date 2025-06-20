@@ -63,6 +63,8 @@ obj_files := $(OBJS_C) $(OBJS_ASM) $(TINY_FS_OBJS)
 .PHONY: bochs
 .PHONY: gdb_server
 .PHONY: clean
+.PHONY: linux_risc_v_test
+.PHONY: baremetal_risc_v_test
 
 
 ##### Compilation rules #####
@@ -99,3 +101,16 @@ clean:
 	-rm -r $(OBJ_DIR)/*
 	-rm *.iso
 	-rm iso_image_content/boot/*.elf
+
+linux_risc_v_test:
+	riscv64-unknown-elf-as -march=rv32i -o linux_riscv_test.o user-space/risc-v/linux_riscv_test.S
+	riscv64-unknown-elf-ld -m elf32lriscv -o linux_riscv_test linux_riscv_test.o
+	riscv64-unknown-elf-objdump -d -M numeric linux_riscv_test > linux_riscv_test.dis
+	qemu-riscv32 ./linux_riscv_test # -strace
+
+baremetal_risc_v_test:
+	riscv64-unknown-elf-as -march=rv32i -o baremetal_riscv_test.o baremetal_riscv_test.S
+	riscv64-unknown-elf-ld -m elf32lriscv -T baremetal_riscv_test.ld -o baremetal_riscv_test.elf baremetal_riscv_test.o
+	riscv64-unknown-elf-objdump -d baremetal_riscv_test.elf > baremetal_riscv_test.dis # -M numeric
+	riscv64-unknown-elf-objcopy -O binary baremetal_riscv_test.elf baremetal_riscv_test.bin
+	qemu-system-riscv32 -nographic -machine virt -bios none -kernel baremetal_riscv_test.bin # -d guest_errors
