@@ -46,7 +46,7 @@ SRCS_ASM_X86_32 := $(shell find $(ARCH_X86_32_DIR) -type d -name $(SKIP_DIR_1) -
 SRCS_C   := $(SRCS_C_COMMON) $(SRCS_C_X86_32)
 SRCS_ASM := $(SRCS_ASM_X86_32)
 
-# Replacing .c with .o and .asm with .o and adding the object directory prefix
+# Replacing .c/.asm with .o, and adding the object directory prefix
 OBJS_C   := $(patsubst $(SRC_DIR)/%.c,   $(OBJ_DIR)/%.o, $(SRCS_C))
 OBJS_ASM := $(patsubst $(SRC_DIR)/%.asm, $(OBJ_DIR)/%.o, $(SRCS_ASM))
 
@@ -67,10 +67,10 @@ obj_files := $(OBJS_C) $(OBJS_ASM) $(TINY_FS_OBJS)
 all: qemu
 
 iso_image: kernel
-	genisoimage -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -A AlmostOS -input-charset utf8 -boot-info-table -o AlmostOS.iso iso_image_content
+	genisoimage -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -A AlmostOS -input-charset utf8 -boot-info-table -o AlmostOS.iso arch/x86-32/iso_image_content
 
 kernel: $(obj_files)
-	ld -T kernel.ld -melf_i386 $(obj_files) -o iso_image_content/boot/AlmostOS_kernel.elf -Map=memory.map
+	ld -T kernel.ld -melf_i386 $(obj_files) -o arch/x86-32/iso_image_content/boot/AlmostOS_kernel.elf -Map=memory.map
 
 # Define a pattern rule that compiles every .asm file into an .o file
 $(OBJ_DIR)/%.o : %.asm
@@ -84,6 +84,11 @@ $(OBJ_DIR)/%.o : %.c
 
 
 ##### Commands #####
+
+# TODO:
+#   In theory I could run the kernel with just "qemu-system-x86_64 -kernel arch/x86-32/iso_image_content/boot/AlmostOS_kernel.elf -serial stdio"
+#   But for that I would need to implemented some x86 specific setup and init already done by grub (like setting segment regs, VGA mode),
+#   and I don't want to waste my time on this right now
 qemu: iso_image
 	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -serial stdio
 
@@ -91,11 +96,13 @@ gdb_server: iso_image
 	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -s -S
 
 clean:
-	rm -rf ./$(OBJ_DIR)
+	rm -rf ./$(OBJ_DIR)/*
+	rm -f fs/tinyfs/code/*.o
 	rm -f *.iso
 	rm -f *.bin
 	rm -f *.dis
-	rm -f iso_image_content/boot/*.elf
+	rm -f *.map
+	rm -f arch/x86-32/iso_image_content/boot/*.elf
 
 
 linux_risc_v_test:
