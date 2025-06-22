@@ -44,11 +44,22 @@ void LOG(const unsigned char* const message)
 void kernel_println(const unsigned char* const message)
 {
     terminal_printline(&shell_terminal, message);
+
+    for (int i = 0; true; i++)
+    {
+        if (message[i] == 0) break;
+
+        COM_port_TX(message[i]);
+    }
+
+    COM_port_TX('\n');
 }
 
 void kernel_putchar(const char new_char)
 {
     terminal_putchar(&shell_terminal, new_char);
+
+    COM_port_TX(new_char);
 }
 
 /*******************************************************************************
@@ -58,7 +69,11 @@ void kernel_putchar(const char new_char)
 // TODO: Move this into callbacks/integration file
 void event_on_keypress(u8 key)
 {
+    // TODO: I have to rip out this "terminal" monstrosity that is lodged between the kernel and the shell
+    //       And move it into x86-32 (although it is arch agnostic, it will never be used on RISC-V)
     terminal_on_keypress(&shell_terminal, key);
+
+    COM_port_TX(key);
 
 #if 0
     char string[] = "Key is pressed:  ";

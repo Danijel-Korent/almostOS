@@ -296,6 +296,14 @@ static void terminal_clear_input_line(terminal_contex_t *terminal_context)
 {
 
     // TODO: This should not supposed to be done here, but need to implement more features to do it in shell.c
+    // TODO2: For some reason a newline is outputed on COM port after the prompt. Need to see where
+    COM_port_TX('\n');
+    const char shell_prompt[] = "shell:> ";
+    for (int i = 0; i < sizeof(shell_prompt) -1; i++)
+    {
+        COM_port_TX(shell_prompt[i]);
+    }
+
     terminal_context->input_line[0] = 's';
     terminal_context->input_line[1] = 'h';
     terminal_context->input_line[2] = 'e';
