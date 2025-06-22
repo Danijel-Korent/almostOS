@@ -5,9 +5,6 @@
 # For Qemu
 # sudo apt install qemu-system
 
-# For Bochs
-# sudo apt install bochs bochs-sdl bochsbios
-
 # TODO: Replace AlmostOS.iso with a variable
 # TODO: Replace AlmostOS_kernel.elf with a variable
 
@@ -60,7 +57,6 @@ obj_files := $(OBJS_C) $(OBJS_ASM) $(TINY_FS_OBJS)
 .PHONY: iso_image
 .PHONY: kernel
 .PHONY: qemu
-.PHONY: bochs
 .PHONY: gdb_server
 .PHONY: clean
 .PHONY: linux_risc_v_test
@@ -90,9 +86,6 @@ $(OBJ_DIR)/%.o : %.c
 ##### Commands #####
 qemu: iso_image
 	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -serial stdio
-
-bochs: iso_image
-	bochs -f bochs_configuration.txt -q
 
 gdb_server: iso_image
 	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -s -S
