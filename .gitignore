@@ -1,4 +1,7 @@
 build/
+*.o
+*.map
 *.iso
 *.bin
+*.elf
 *.dis
