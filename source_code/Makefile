@@ -98,15 +98,18 @@ gdb_server: iso_image
 	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -s -S
 
 clean:
-	-rm -r $(OBJ_DIR)/*
-	-rm *.iso
-	-rm iso_image_content/boot/*.elf
+	rm -rf ./$(OBJ_DIR)
+	rm -f *.iso
+	rm -f *.bin
+	rm -f *.dis
+	rm -f iso_image_content/boot/*.elf
+
 
 linux_risc_v_test:
 	riscv64-unknown-elf-as -march=rv32i -o linux_riscv_test.o user-space/risc-v/linux_riscv_test.S
-	riscv64-unknown-elf-ld -m elf32lriscv -o linux_riscv_test linux_riscv_test.o
-	riscv64-unknown-elf-objdump -d -M numeric linux_riscv_test > linux_riscv_test.dis
-	qemu-riscv32 ./linux_riscv_test # -strace
+	riscv64-unknown-elf-ld -m elf32lriscv -o linux_riscv_test.elf linux_riscv_test.o
+	riscv64-unknown-elf-objdump -d -M numeric linux_riscv_test.elf > linux_riscv_test.dis
+	qemu-riscv32 ./linux_riscv_test.elf # -strace
 
 baremetal_risc_v_test:
 	riscv64-unknown-elf-as -march=rv32i -o baremetal_riscv_test.o baremetal_riscv_test.S
