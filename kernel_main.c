@@ -244,6 +244,25 @@ void kernel_c_main( void )
         // and terminal then potentially calls other commands and updates the VGA display
         keyboard_driver_poll();
 
+
+        u8 val = COM_port_RX();
+
+#if 0
+        {
+            char code_str[15] = "AbcdAbcd";
+
+            long_to_hex(val, code_str, 8, 16);
+            //long_to_hex(val & ~0x80, code_str, 8, 16);
+
+            kernel_println(code_str);
+        }
+#endif
+
+        if (val != 0xff)
+        {
+            event_on_keypress(val & 0x7f);
+        }
+
         // TODO: First we need to program PIC otherwise the CPU will never be awaken
         //halt_cpu();
     }

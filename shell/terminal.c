@@ -277,7 +277,9 @@ void terminal_on_keypress(terminal_contex_t *terminal_context, unsigned char key
         }
     }
 
-    if (key == 10) // Enter
+    // x86 keyread produces 10 after pressing enter
+    // COM1 produces 13 after pressing enter
+    if (key == 10 || key == 13) // Enter
     {
         terminal_printline(terminal_context, terminal_context->input_line);
 
