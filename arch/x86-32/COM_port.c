@@ -15,7 +15,8 @@ void COM_port_TX(char data)
     // Write data to transmit buffer
     write_byte_to_IO_port(COM1_PORT, data);
 
-    // Add LF after CR
+    // Add LF after CR (otherwise we overwrite the prompt)
+    // TODO: This shouldn't be here, but will stay here until I fix the terminal code
     if (data == 13) write_byte_to_IO_port(COM1_PORT, 10);
 }
 

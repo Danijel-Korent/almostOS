@@ -6,4 +6,4 @@ void COM_port_TX(char data);
 
 char COM_port_RX(void);
 
-#endif // _COM_PORT_H_
+#endif

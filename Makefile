@@ -11,7 +11,7 @@
 
 # Compiler, assembler and flags
 CC = gcc
-CFLAGS = -m32 -nostdlib -nostdinc -nostartfiles -isystem system_headers -I fs/tinyfs/api -I arch/x86-32 -g  # "nostartfiles" is probably unnecessary since I've defined entry point in the .ld
+CFLAGS = -m32 -nostdlib -nostdinc -nostartfiles -isystem system_headers -I fs/tinyfs/api -I arch -I arch/x86-32 -g  # "nostartfiles" is probably unnecessary since I've defined entry point in the .ld
 
 AS = nasm
 ASFLAGS = -f elf32

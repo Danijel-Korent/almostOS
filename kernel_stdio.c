@@ -1,4 +1,5 @@
 #include "kernel_stdio.h"
+#include "tty.h"
 
 #include "util.h"
 #include "string.h"
@@ -49,17 +50,17 @@ void kernel_println(const unsigned char* const message)
     {
         if (message[i] == 0) break;
 
-        COM_port_TX(message[i]);
+        tty_write(message[i]);
     }
 
-    COM_port_TX('\n');
+    tty_write('\n');
 }
 
 void kernel_putchar(const char new_char)
 {
     terminal_putchar(&shell_terminal, new_char);
 
-    COM_port_TX(new_char);
+    tty_write(new_char);
 }
 
 /*******************************************************************************
@@ -73,7 +74,7 @@ void event_on_keypress(u8 key)
     //       And move it into x86-32 (although it is arch agnostic, it will never be used on RISC-V)
     terminal_on_keypress(&shell_terminal, key);
 
-    COM_port_TX(key);
+    tty_write(key);
 
 #if 0
     char string[] = "Key is pressed:  ";

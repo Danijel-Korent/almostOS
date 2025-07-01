@@ -10,6 +10,7 @@
  */
 
 #include "terminal.h"
+#include "tty.h"
 
 #include "shell.h"
 #include "string.h"
@@ -299,11 +300,11 @@ static void terminal_clear_input_line(terminal_contex_t *terminal_context)
 
     // TODO: This should not supposed to be done here, but need to implement more features to do it in shell.c
     // TODO2: For some reason a newline is outputed on COM port after the prompt. Need to see where
-    COM_port_TX('\n');
+    tty_write('\n');
     const char shell_prompt[] = "shell:> ";
     for (int i = 0; i < sizeof(shell_prompt) -1; i++)
     {
-        COM_port_TX(shell_prompt[i]);
+        tty_write(shell_prompt[i]);
     }
 
     terminal_context->input_line[0] = 's';

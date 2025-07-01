@@ -152,25 +152,8 @@ Terminal escape code:
 #include "fs_operations.h"
 #include "fs/tinyfs/images/image__cluster_size_100.h"
 
-
-void check_types(void)
-{
-    if (sizeof(u8) != 1) goto error;
-    if (sizeof(s8) != 1) goto error;
-    if (sizeof(u16) != 2) goto error;
-    if (sizeof(s16) != 2) goto error;
-    if (sizeof(u32) != 4) goto error;
-    if (sizeof(s32) != 4) goto error;
-
-    return;
-
-error:
-    {
-        unsigned char error_msg[] = "!!! ERROR: Wrong datatype size !!!";
-        print_string_to_VGA_display_buffer(400, error_msg, sizeof(error_msg)-1);
-        while(1);
-    }
-}
+static void tty_input_poll(void);
+static void check_types(void);
 
 
 // Entry point for kernel C code
@@ -181,19 +164,6 @@ void kernel_c_main( void )
     static int a;
     a = test_func(2,2,2);
 
-    // A COM1 port test
-    write_byte_to_IO_port(0x3F8, 'T');
-    write_byte_to_IO_port(0x3F8, 'e');
-    write_byte_to_IO_port(0x3F8, 's');
-    write_byte_to_IO_port(0x3F8, 't');
-    write_byte_to_IO_port(0x3F8, '\n');
-    write_byte_to_IO_port(0x3F8, '\r');
-    write_byte_to_IO_port(0x3F8, 'T');
-    write_byte_to_IO_port(0x3F8, 'e');
-    write_byte_to_IO_port(0x3F8, 's');
-    write_byte_to_IO_port(0x3F8, 't');
-    write_byte_to_IO_port(0x3F8, '\n');
-    write_byte_to_IO_port(0x3F8, '\r');
 
     unsigned char hello_msg[] = "Hello from C code!";
     print_string_to_VGA_display_buffer(400, hello_msg, sizeof(hello_msg)-1);
@@ -244,30 +214,52 @@ void kernel_c_main( void )
         // and terminal then potentially calls other commands and updates the VGA display
         keyboard_driver_poll();
 
-
-        u8 val = COM_port_RX();
-
-#if 0
-        {
-            char code_str[15] = "AbcdAbcd";
-
-            long_to_hex(val, code_str, 8, 16);
-            //long_to_hex(val & ~0x80, code_str, 8, 16);
-
-            kernel_println(code_str);
-        }
-#endif
-
-        if (val != 0xff)
-        {
-            event_on_keypress(val & 0x7f);
-        }
+        tty_input_poll();
 
         // TODO: First we need to program PIC otherwise the CPU will never be awaken
         //halt_cpu();
     }
 }
 
+void tty_input_poll(void)
+{
+    u8 val = tty_read();
+
+#if 0
+    {
+        char code_str[15] = "AbcdAbcd";
+
+        long_to_hex(val, code_str, 8, 16);
+        //long_to_hex(val & ~0x80, code_str, 8, 16);
+
+        kernel_println(code_str);
+    }
+#endif
+
+    if (val != 0xff)
+    {
+        event_on_keypress(val & 0x7f);
+    }
+}
+
+static void check_types(void)
+{
+    if (sizeof(u8) != 1) goto error;
+    if (sizeof(s8) != 1) goto error;
+    if (sizeof(u16) != 2) goto error;
+    if (sizeof(s16) != 2) goto error;
+    if (sizeof(u32) != 4) goto error;
+    if (sizeof(s32) != 4) goto error;
+
+    return;
+
+error:
+    {
+        unsigned char error_msg[] = "!!! ERROR: Wrong datatype size !!!";
+        print_string_to_VGA_display_buffer(400, error_msg, sizeof(error_msg)-1);
+        while(1);
+    }
+}
 
 /*******************************************************************************
  *                                    STUBS                                    *
