@@ -39,7 +39,7 @@ print_loop:
 
 
 c_main:
-    j main
+    j c_test_main
 
 infinite_loop:
     j infinite_loop

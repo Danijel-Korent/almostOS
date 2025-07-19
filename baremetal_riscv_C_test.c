@@ -3,12 +3,12 @@ unsigned char* const UART = (unsigned char*) 0x10000000;
 
 #define LSR_DATA_READY 0x01
 
-void tty_write(char data)
+static void tty_write(char data)
 {
     *UART = data;
 }
 
-char tty_read(void)
+static char tty_read(void)
 {
     unsigned char line_status_reg = *(UART + 5);
 
@@ -20,7 +20,7 @@ char tty_read(void)
     return *UART;
 }
 
-void print_string(char *str)
+static void print_string(char *str)
 {
     while (*str != '\0')
     {
@@ -30,7 +30,7 @@ void print_string(char *str)
 }
 
 
-void main(void)
+void c_test_main(void)
 {
     unsigned const char *hello_msg = "Hello from C !\n";
 
