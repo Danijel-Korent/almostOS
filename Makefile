@@ -102,6 +102,8 @@ clean:
 	rm -f *.bin
 	rm -f *.dis
 	rm -f *.map
+	rm -f *.o
+	rm -f *.elf
 	rm -f arch/x86-32/iso_image_content/boot/*.elf
 
 
@@ -112,8 +114,9 @@ linux_risc_v_test:
 	qemu-riscv32 ./linux_riscv_test.elf # -strace
 
 baremetal_risc_v_test:
-	riscv64-unknown-elf-as -march=rv32i -o baremetal_riscv_test.o baremetal_riscv_test.S
-	riscv64-unknown-elf-ld -m elf32lriscv -T baremetal_riscv_test.ld -o baremetal_riscv_test.elf baremetal_riscv_test.o
+	riscv64-unknown-elf-as -march=rv32im -o baremetal_riscv_test.o baremetal_riscv_test.S #
+	riscv64-unknown-elf-gcc -c -march=rv32im -mabi=ilp32 -o baremetal_riscv_C_test.o baremetal_riscv_C_test.c
+	riscv64-unknown-elf-ld -m elf32lriscv -T baremetal_riscv_test.ld -o baremetal_riscv_test.elf baremetal_riscv_test.o baremetal_riscv_C_test.o -Map=baremetal_riscv_test.map
 	riscv64-unknown-elf-objdump -d baremetal_riscv_test.elf > baremetal_riscv_test.dis # -M numeric
 	riscv64-unknown-elf-objcopy -O binary baremetal_riscv_test.elf baremetal_riscv_test.bin
 	qemu-system-riscv32 -nographic -machine virt -bios none -kernel baremetal_riscv_test.bin # -d guest_errors
