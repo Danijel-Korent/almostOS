@@ -5,8 +5,9 @@
 
 void kernel_stdio_init(void);
 
-void LOG(const unsigned char* const message);
+void LOG(const unsigned char* const msg);
 void kernel_putchar(const char new_char);
-void kernel_println(const unsigned char* const message);
+void kernel_println(const unsigned char* const msg);
+void kernel_printf(const char* format, ...);
 
 #endif // _KERNEL_STDIO_H_

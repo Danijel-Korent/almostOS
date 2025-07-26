@@ -148,6 +148,7 @@ Terminal escape code:
 #include "BIOS_Data_Area.h"
 #include "poors_man_VGA_driver.h"
 #include "poors_man_keyboard_driver.h"
+#include "arch/tty.h"
 
 #include "fs_operations.h"
 #include "fs/tinyfs/images/image__cluster_size_100.h"
@@ -155,10 +156,13 @@ Terminal escape code:
 static void tty_input_poll(void);
 static void check_types(void);
 
+extern void* STACK_MEM_START;
+extern void* STACK_MEM_END;
 
 // Entry point for kernel C code
 void kernel_c_main( void )
 {
+    int local_var = 0;
     check_types();
 
     static int a;
@@ -170,7 +174,14 @@ void kernel_c_main( void )
 
     kernel_stdio_init();
 
-    kernel_println("Starting kernel...");
+    kernel_println("\n\nStarting kernel... \n");
+
+    kernel_printf("kernel_c_main():  entry addr = %x \n", kernel_c_main);
+    kernel_printf("kernel_c_main():  STACK_MEM_START = %x \n", &STACK_MEM_START);
+    kernel_printf("kernel_c_main():  &local_var      = %x \n", &local_var);
+    kernel_printf("kernel_c_main():  &hello_msg      = %x \n", &hello_msg);
+    kernel_printf("kernel_c_main():  STACK_MEM_END   = %x \n", &STACK_MEM_END);
+
 
     // QTODO: this repeating code needs a function of its own
     if (run_unittests_stack() == 0)

@@ -16,9 +16,10 @@ VGA_RAM_ADDRESS        equ 0x000B8000 ;Video memory address for text mode - 32kb
                                       ;http://www.scs.stanford.edu/17wi-cs140/pintos/specs/freevga/vga/vgamem.htm
 
 
-; Export these as global functions:
+; Export these as global symbols:
 global start_kernel  ; GRUB will jump into this function (specified in the linker script "kernel.ld")
-
+global STACK_MEM_START
+global STACK_MEM_END
 
 ; declarations for outside functions:
 extern kernel_c_main ; entry point for C code
@@ -31,8 +32,8 @@ section .bss  ; standard name of the C memory segment for uninitialized data
 
     ; Reserve memory for kernel stack
     STACK_MEM_END:
-        resb 32768
-    STACK_MEM_START: ; on x86 stack grows from higher address to lower, so this is the beginning of the stack
+        resb 1048576    ; 1MB ought to be enough for everyone
+    STACK_MEM_START:    ; on x86 stack grows from higher address to lower, so this is the beginning of the stack
 
 
 ; Had to create separate mem. segment for multiboot because position of the header would move as the build order changes
@@ -71,10 +72,11 @@ start_kernel:
     inc esi
     jmp .print_hello
 
+.start_c_main:
     ; set up stack pointer for C code execution
+    mov ebp, STACK_MEM_START
     mov esp, STACK_MEM_START
 
-.start_c_main:
     call kernel_c_main ; Call the main/entry function of the C code
 
 .loop:
