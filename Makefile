@@ -87,13 +87,19 @@ $(OBJ_DIR)/%.o : %.c
 
 # TODO:
 #   In theory I could run the kernel with just "qemu-system-x86_64 -kernel arch/x86-32/iso_image_content/boot/AlmostOS_kernel.elf -serial stdio"
-#   But for that I would need to implemented some x86 specific setup and init already done by grub (like setting segment regs, VGA mode),
+#   But for that I would need to implemented some x86 specific setup/init that is already done by grub (like setting segment regs, VGA mode),
 #   and I don't want to waste my time on this right now
 qemu: iso_image
-	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -serial stdio
+	qemu-system-i386 -m 64 -cdrom AlmostOS.iso -boot d -serial stdio
+#	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -serial stdio
 
 gdb_server: iso_image
-	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -s -S
+	qemu-system-i386 -m 64 -cdrom AlmostOS.iso -boot d -serial stdio -s -S
+#	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -serial stdio -s -S
+
+# gdb uses .gdbinit file (you need to allow this path for gdb "auto-load")
+gdb_client:
+	gdb
 
 clean:
 	rm -rf ./$(OBJ_DIR)/*
