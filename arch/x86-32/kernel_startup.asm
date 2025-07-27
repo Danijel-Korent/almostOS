@@ -73,9 +73,15 @@ start_kernel:
     jmp .print_hello
 
 .start_c_main:
-    ; set up stack pointer for C code execution
-    mov ebp, STACK_MEM_START
-    mov esp, STACK_MEM_START
+    ; Set up stack pointer for C code execution
+    ; If we set SP to STACK_MEM_START (without -64), the return address would be outside of stack memory.
+    ; The kernel doesn't care about the return address as there is no return from C main(), but the GDB
+    ; tries read it to reconstruct the back trace, and without -32, the place where return address would be
+    ; is acuppied by some variable with some value, and then GDB sometimes construct crazy long backtraces
+    ; by reading this random value and interpreting it as function address on the call stack
+    ; Also -64 give us some empty space between the stack and the variables outside of stack (return addr is only 32-bit)
+    mov ebp, STACK_MEM_START - 64
+    mov esp, STACK_MEM_START - 64
 
     call kernel_c_main ; Call the main/entry function of the C code
 
