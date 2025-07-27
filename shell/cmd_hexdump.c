@@ -53,7 +53,9 @@ void execute__dump_data(int argc, char* argv[])
 
             const char START_OF_ASCII_TEXT = 62; // Offset in line string
 
-            long_to_hex(offset, line, 8, 10);
+            // Generate address string
+            // TODO: This func name is little bit missleading as the function can also generate base 10, not just base-16 hexadecimal
+            long_to_hex(offset, line, 8, 16);
 
             int hex_line_offset = 10; // Offset in line string
 
