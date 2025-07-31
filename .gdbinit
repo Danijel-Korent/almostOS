@@ -4,3 +4,4 @@ set disassembly-flavor intel
 target remote localhost:1234
 hbreak start_kernel
 hbreak kernel_c_main
+hbreak 0
