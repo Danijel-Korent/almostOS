@@ -20,7 +20,7 @@ static char tty_read(void)
     return *UART;
 }
 
-static void print_string(char *str)
+static void print_string(const char *str)
 {
     while (*str != '\0')
     {
