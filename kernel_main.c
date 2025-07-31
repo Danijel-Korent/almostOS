@@ -273,6 +273,8 @@ static void check_types(void)
     if (sizeof(s16) != 2) goto error;
     if (sizeof(u32) != 4) goto error;
     if (sizeof(s32) != 4) goto error;
+    if (sizeof(u64) != 8) goto error;
+    if (sizeof(s64) != 8) goto error;
 
     return;
 

@@ -3,6 +3,8 @@
 
 #include "kernel_stddef.h"
 
+// TODO: Move stubs to some file named stubs or something
+
 void* malloc (u32   size);
 void  free   (void* pointer);
 
