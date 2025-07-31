@@ -27,11 +27,14 @@
 // Local function definitions
 static void terminal_clear_input_line(terminal_contex_t *terminal_context);
 static void terminal_clear_VGA(terminal_contex_t *terminal_context);
+static void terminal_render_to_VGA(terminal_contex_t *terminal_context);
 
+//#define DISABLE_TERMINAL
 
 // TODO: Add argument for no-input mode
 void terminal_init(terminal_contex_t *terminal_context, int window_position_y, int window_size_y, bool is_input_enabled)
 {
+#ifndef DISABLE_TERMINAL
     if (terminal_context == NULL)
     {
         printf("ERROR: terminal_init() - terminal_context == NULL");
@@ -68,8 +71,9 @@ void terminal_init(terminal_contex_t *terminal_context, int window_position_y, i
                                             //       circular line buffer??
 
     terminal_clear_VGA(terminal_context);
-    terminal_clear_input_line(terminal_context);
+    //terminal_clear_input_line(terminal_context);
     terminal_render_to_VGA(terminal_context);
+#endif
 }
 
 static int terminal_get_current_line_count(terminal_contex_t *terminal_context)
@@ -142,7 +146,7 @@ static void terminal_clear_VGA(terminal_contex_t *terminal_context)
     }
 }
 
-void terminal_render_to_VGA(terminal_contex_t *terminal_context)
+static void terminal_render_to_VGA(terminal_contex_t *terminal_context)
 {
     int current_line = terminal_context->current_first_line;
 
@@ -184,6 +188,7 @@ void terminal_render_to_VGA(terminal_contex_t *terminal_context)
 // TODO: If I reimplement this with terminal_putchar() it will automaticaly handle spliting lines that are too long
 void terminal_printline(terminal_contex_t *terminal_context, const unsigned char* const string)
 {
+#ifndef DISABLE_TERMINAL
     if (terminal_context == NULL)
     {
         printf("ERROR: terminal_init() - terminal_context == NULL");
@@ -214,11 +219,13 @@ void terminal_printline(terminal_contex_t *terminal_context, const unsigned char
     terminal_context->current_end_x = TERMINAL_MAX_X;
 
     terminal_render_to_VGA(terminal_context);
+#endif
 }
 
 
 void terminal_putchar(terminal_contex_t *terminal_context, const char new_char)
 {
+#ifndef DISABLE_TERMINAL
     if (terminal_context == NULL)
     {
         printf("ERROR: terminal_init() - terminal_context == NULL");
@@ -252,10 +259,12 @@ void terminal_putchar(terminal_contex_t *terminal_context, const char new_char)
     line_buf[pos_x] = new_char;
 
     terminal_context->current_end_x = pos_x + 1;
+#endif
 }
 
 void terminal_on_keypress(terminal_contex_t *terminal_context, unsigned char key)
 {
+#ifndef DISABLE_TERMINAL
     if (terminal_context->is_input_enabled == DISABLE_INPUT_LINE)
     {
         return;
@@ -293,11 +302,12 @@ void terminal_on_keypress(terminal_contex_t *terminal_context, unsigned char key
     }
 
     terminal_render_to_VGA(terminal_context);
+#endif
 }
 
 static void terminal_clear_input_line(terminal_contex_t *terminal_context)
 {
-
+#ifndef DISABLE_TERMINAL
     // TODO: This should not supposed to be done here, but need to implement more features to do it in shell.c
     // TODO2: For some reason a newline is outputed on COM port after the prompt. Need to see where
     tty_write('\n');
@@ -323,4 +333,5 @@ static void terminal_clear_input_line(terminal_contex_t *terminal_context)
     }
 
     terminal_context->input_cursor_position = 8;
+#endif
 }
