@@ -153,6 +153,9 @@ Terminal escape code:
 #include "fs_operations.h"
 #include "fs/tinyfs/images/image__cluster_size_100.h"
 
+#include "scheduler.h"
+
+
 static void tty_input_poll(void);
 static void check_types(void);
 
@@ -176,11 +179,11 @@ void kernel_c_main( void )
 
     kernel_println("\n\nStarting kernel... \n");
 
-    kernel_printf("kernel_c_main():  entry addr = %x \n", kernel_c_main);
+    kernel_printf("kernel_c_main():  entry addr      = %x \n", kernel_c_main);
     kernel_printf("kernel_c_main():  STACK_MEM_START = %x \n", &STACK_MEM_START);
     kernel_printf("kernel_c_main():  &local_var      = %x \n", &local_var);
     kernel_printf("kernel_c_main():  &hello_msg      = %x \n", &hello_msg);
-    kernel_printf("kernel_c_main():  STACK_MEM_END   = %x \n", &STACK_MEM_END);
+    kernel_printf("kernel_c_main():  STACK_MEM_END   = %x \n\n", &STACK_MEM_END);
 
 
     // QTODO: this repeating code needs a function of its own
@@ -218,6 +221,11 @@ void kernel_c_main( void )
 
     kernel_println("");
 
+    scheduler_init();
+
+    // TEMP until taht terminal code abomination gets removed
+    event_on_keypress(13);
+
     while(1)
     {
         // This is where currently all the actions takes place
@@ -226,6 +234,10 @@ void kernel_c_main( void )
         keyboard_driver_poll();
 
         tty_input_poll();
+
+        // Currently only cooperative scheduling is implemented, so each thread/process
+        // yields CPU time voluntarily
+        schedule();
 
         // TODO: First we need to program PIC otherwise the CPU will never be awaken
         //halt_cpu();

@@ -1,0 +1,411 @@
+
+Starting kernel... 
+
+kernel_c_main():  entry addr      = 0x102e7b 
+kernel_c_main():  STACK_MEM_START = 0x206e90 
+kernel_c_main():  &local_var      = 0x206e3c 
+kernel_c_main():  &hello_msg      = 0x206e29 
+kernel_c_main():  STACK_MEM_END   = 0x106e90 
+
+Stack unittests: PASSED
+Memory allocator unittests: PASSED
+Parsing BIOS Data Area...
+COM1 I/O Port: 0x03F8
+LPT1 I/O Port: 0x0378
+Loading initial RAM disk: SUCCESS
+
+Called scheduler_init()
+Called init_process()
+init_process(): Created process "Test process" 
+init_process():   entry = 0x102e2a 
+init_process():   stack = 0x1e0000 
+init_process():   SP    = 0x1dffd8 
+
+
+
+-----[ Just before call to <switch_process> ]-----
+
+(gdb) disassemble
+Dump of assembler code for function schedule:
+   0x00102cb8 <+0>:     push   ebp
+   0x00102cb9 <+1>:     mov    ebp,esp
+   0x00102cbb <+3>:     push   ebx
+   0x00102cbc <+4>:     sub    esp,0x14
+   0x00102cbf <+7>:     call   0x10573c <__x86.get_pc_thunk.bx>
+   0x00102cc4 <+12>:    add    ebx,0x2f00
+   0x00102cca <+18>:    mov    eax,DWORD PTR [ebx+0x109c]
+   0x00102cd0 <+24>:    mov    DWORD PTR [ebp-0x10],eax
+   0x00102cd3 <+27>:    mov    DWORD PTR [ebp-0xc],0x0
+   0x00102cda <+34>:    mov    edx,DWORD PTR [ebx+0x109c]
+   0x00102ce0 <+40>:    lea    eax,[ebx+0x10a0]
+   0x00102ce6 <+46>:    cmp    edx,eax
+   0x00102ce8 <+48>:    jne    0x102cf5 <schedule+61>
+   0x00102cea <+50>:    lea    eax,[ebx+0x10a8]
+   0x00102cf0 <+56>:    mov    DWORD PTR [ebp-0xc],eax
+   0x00102cf3 <+59>:    jmp    0x102cfe <schedule+70>
+   0x00102cf5 <+61>:    lea    eax,[ebx+0x10a0]
+   0x00102cfb <+67>:    mov    DWORD PTR [ebp-0xc],eax
+   0x00102cfe <+70>:    sub    esp,0x8
+   0x00102d01 <+73>:    push   DWORD PTR [ebp-0xc]
+   0x00102d04 <+76>:    push   DWORD PTR [ebp-0x10]
+=> 0x00102d07 <+79>:    call   0x103dab <switch_process>
+   0x00102d0c <+84>:    add    esp,0x10
+   0x00102d0f <+87>:    lea    eax,[ebx-0x2e9d]
+   0x00102d15 <+93>:    mov    DWORD PTR [ebp-0x14],eax
+   0x00102d18 <+96>:    mov    eax,DWORD PTR [ebp-0xc]
+   0x00102d1b <+99>:    mov    DWORD PTR [ebx+0x109c],eax
+   0x00102d21 <+105>:   nop
+   0x00102d22 <+106>:   mov    ebx,DWORD PTR [ebp-0x4]
+   0x00102d25 <+109>:   leave
+   0x00102d26 <+110>:   ret
+
+(gdb) x/32x $sp
+0x206df0:       0x00106c64      0x00106c6c      0x00206e18      0x00102cc4
+0x206e00:       0x00106c6c      0x00105bc4      0x00106c64      0x00106c6c
+0x206e10:       0x0000000d      0x00105bc4      0x00206e48      0x00103051
+0x206e20:       0x00000000      0x00000000      0x6c654800      0x66206f6c
+0x206e30:       0x206d6f72      0x6f632043      0x00216564      0x00000000
+0x206e40:       0x00000000      0x0002cd80      0x00206e50      0x00103e69
+0x206e50:       0x00000000      0x00000000      0x00000000      0x00000000
+0x206e60:       0x00000000      0x00000000      0x00000000      0x00000000
+
+(gdb) info registers
+eax            0x106c6c            1076332
+ecx            0x0                 0
+edx            0x106c64            1076324
+ebx            0x105bc4            1072068
+esp            0x206df0            0x206df0
+ebp            0x206e18            0x206e18
+esi            0x103e3b            1064507
+edi            0xb8036             753718
+eip            0x102d07            0x102d07 <schedule+79>
+eflags         0x12                [ IOPL=0 AF ]
+
+------
+
+(gdb) disassemble
+Dump of assembler code for function switch_process:
+=> 0x00103dab <+0>:     pusha
+   0x00103dac <+1>:     pushf
+   0x00103dad <+2>:     mov    eax,DWORD PTR [esp+0x28]
+   0x00103db1 <+6>:     mov    DWORD PTR [eax],esp
+   0x00103db3 <+8>:     mov    eax,DWORD PTR [esp+0x2c]
+   0x00103db7 <+12>:    mov    esp,DWORD PTR [eax]
+   0x00103db9 <+14>:    popf
+   0x00103dba <+15>:    popa
+   0x00103dbb <+16>:    ret
+
+(gdb) x/32x $sp
+0x206dec:       0x00102d0c      0x00106c64      0x00106c6c      0x00206e18
+0x206dfc:       0x00102cc4      0x00106c6c      0x00105bc4      0x00106c64
+0x206e0c:       0x00106c6c      0x0000000d      0x00105bc4      0x00206e48
+0x206e1c:       0x00103051      0x00000000      0x00000000      0x6c654800
+0x206e2c:       0x66206f6c      0x206d6f72      0x6f632043      0x00216564
+0x206e3c:       0x00000000      0x00000000      0x0002cd80      0x00206e50
+0x206e4c:       0x00103e69      0x00000000      0x00000000      0x00000000
+0x206e5c:       0x00000000      0x00000000      0x00000000      0x00000000
+
+(gdb) info registers
+eax            0x106c6c            1076332
+ecx            0x0                 0
+edx            0x106c64            1076324
+ebx            0x105bc4            1072068
+esp            0x206dec            0x206dec
+ebp            0x206e18            0x206e18
+esi            0x103e3b            1064507
+edi            0xb8036             753718
+eip            0x103dab            0x103dab <switch_process>
+eflags         0x12                [ IOPL=0 AF ]
+
+(gdb) bt full
+#0  0x00103dab in switch_process ()
+#1  0x00102d0c in schedule () at kernel_main.c:242
+        process_to_save = 0x106c64 <kernel_process>
+        process_to_restore = 0x106c6c <test_process>
+        end_of_func_ptr = 0x105bc4
+#2  0x00103051 in kernel_c_main () at kernel_main.c:382
+
+------
+
+
+
+----- After "pusha" -----
+
+sp = 0x206dcc
+ip = 0x103dac
+
+----- After "pushf" -----
+
+sp = 0x206dc8
+
+----- mov eax, [esp+0x28] -----
+
+eax = 0x106c64
+
+----- move [eax], esp -----
+
+- saved SP into proc_to_save
+
+----- mov eax, [esp+0x2c] -----
+
+eax = 0x106c6c
+sp  = 0x206dc8
+
+
+----- mov sp, [eax] -----
+
+sp = 0x1dffd8
+
+(gdb) x/32x $sp
+0x1dffd8:       0x00000002      0x00000000      0x00000000      0x00000000
+0x1dffe8:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1dfff8:       0x00000000      0x001e0000      0x00102e2a      0x00000000
+0x1e0008:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e0018:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e0028:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e0038:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e0048:       0x00000000      0x00000000      0x00000000      0x00000000
+
+(gdb) bt full
+#0  0x00103db9 in switch_process ()
+No symbol table info available.
+#1  0x00000002 in ?? ()
+No symbol table info available.
+#2  0x00103051 in kernel_c_main () at kernel_main.c:382
+
+----- popf -----
+
+sp = 0x1dffdc
+
+(gdb) x/32x $sp
+0x1dffdc:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1dffec:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1dfffc:       0x001e0000      0x00102e2a      0x00000000      0x00000000
+0x1e000c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e001c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e002c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e003c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e004c:       0x00000000      0x00000000      0x00000000      0x00000000
+
+(gdb)  bt full
+#0  0x00103dba in switch_process ()
+No symbol table info available.
+#1  0x00000000 in ?? ()
+No symbol table info available.
+
+----- popa -----
+
+sp = 0x1dfffc
+
+(gdb) x/32x $sp
+
+(gdb) x/32x $sp
+0x1dfffc:       0x001e0000      0x00102e2a      0x00000000      0x00000000
+0x1e000c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e001c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e002c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e003c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e004c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e005c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e006c:       0x00000000      0x00000000      0x00000000      0x00000000
+
+(gdb) bt full
+#0  0x00103dbb in switch_process ()
+No symbol table info available.
+#1  0x001e0000 in STACK_MEM_END ()
+No symbol table info available.
+
+
+(gdb) disassemble
+Dump of assembler code for function switch_process:
+   0x00103dab <+0>:     pusha
+   0x00103dac <+1>:     pushf
+   0x00103dad <+2>:     mov    eax,DWORD PTR [esp+0x28]
+   0x00103db1 <+6>:     mov    DWORD PTR [eax],esp
+   0x00103db3 <+8>:     mov    eax,DWORD PTR [esp+0x2c]
+   0x00103db7 <+12>:    mov    esp,DWORD PTR [eax]
+   0x00103db9 <+14>:    popf
+   0x00103dba <+15>:    popa
+=> 0x00103dbb <+16>:    ret
+End of assembler dump.
+
+
+----- ret -----
+
+sp = 0x1e0000
+ip = 0x1e0000
+
+(gdb) bt full
+#0  0x001e0000 in STACK_MEM_END ()
+No symbol table info available.
+(gdb) info registers
+eax            0x0                 0
+ecx            0x0                 0
+edx            0x0                 0
+ebx            0x0                 0
+esp            0x1e0000            0x1e0000
+ebp            0x0                 0x0
+esi            0x0                 0
+edi            0x0                 0
+eip            0x1e0000            0x1e0000
+eflags         0x2                 [ IOPL=0 ]
+
+
+(gdb) disassemble
+Dump of assembler code for function STACK_MEM_END:
+   0x00106e90:  add    BYTE PTR [eax],al
+   0x00106e92:  add    BYTE PTR [eax],al
+   0x00106e94:  add    BYTE PTR [eax],al
+   0x00106e96:  add    BYTE PTR [eax],al
+   0x00106e98:  add    BYTE PTR [eax],al
+   0x00106e9a:  add    BYTE PTR [eax],al
+   0x00106e9c:  add    BYTE PTR [eax],al
+
+(gdb) bt full
+#0  0x001e0000 in STACK_MEM_END ()
+No symbol table info available.
+
+
+
+
+
+
+
+
+
+
+
+
+----------
+!!! DONE WITH OLD CODE WHERE proc_to_save/restore have diferent address !!!
+
+proc_to_save    = 0x106c44
+proc_to_restore = 0x106c4c
+
+sp = 0x206dcc   - ret address
+                - proc_to_save
+                - proc_to_restore
+
+// After "pusha"
+
+sp = 0x206dac
+
+// After "pushf"
+
+sp = 0x206da8
+
+// mov eax, [esp+0x28]
+
+eax = 0x106c44
+
+// move [eax], esp
+
+- saved SP into proc_to_save
+
+// mov eax, [esp+0x2c]
+
+eax = 0x106c4c
+sp  = 0x206da8
+
+
+// mov sp, [eax]
+
+sp = 0x1dffd8
+
+// popf
+
+sp = 0x1dffdc
+
+0x1dffdc:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1dffec:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1dfffc:       0x001e0000      0x00102e15      0x00000000      0x00000000
+0x1e000c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e001c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e002c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e003c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e004c:       0x00000000      0x00000000      0x00000000      0x00000000
+
+// popa
+
+sp = 0x1dfffc
+
+(gdb) x/32x $sp
+0x1dfffc:       0x001e0000      0x00102e15      0x00000000      0x00000000
+0x1e000c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e001c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e002c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e003c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e004c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e005c:       0x00000000      0x00000000      0x00000000      0x00000000
+0x1e006c:       0x00000000      0x00000000      0x00000000      0x00000000
+
+(gdb) bt full
+#0  0x00103dab in switch_process ()
+No symbol table info available.
+#1  0x001e0000 in STACK_MEM_END ()
+No symbol table info available.
+
+(gdb) disassemble
+Dump of assembler code for function switch_process:
+   0x00103d9b <+0>:     pusha
+   0x00103d9c <+1>:     pushf
+   0x00103d9d <+2>:     mov    eax,DWORD PTR [esp+0x28]
+   0x00103da1 <+6>:     mov    DWORD PTR [eax],esp
+   0x00103da3 <+8>:     mov    eax,DWORD PTR [esp+0x2c]
+   0x00103da7 <+12>:    mov    esp,DWORD PTR [eax]
+   0x00103da9 <+14>:    popf
+   0x00103daa <+15>:    popa
+=> 0x00103dab <+16>:    ret
+
+
+
+
+---------------/ VS Code GDB tests /--------------
+
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach to gdbserver",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/arch/x86-32/iso_image_content/boot/AlmostOS_kernel.elf",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                "description": "Allow unsafe paths",
+                "text": "set auto-load safe-path /",
+                "ignoreFailures": true
+                },
+                {
+                "description": "Load local .gdbinit",
+                "text": "source .gdbinit",
+                "ignoreFailures": true
+                },
+                {
+                    "description": "Disable terminal I/O for remote debug",
+                    "text": "set inferior-tty /dev/null"
+                }
+            ],
+            //"miDebuggerServerAddress": "localhost:1234",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "logging": {
+                "trace": true,
+                "traceResponse": true,
+                "engineLogging": true
+            }
+
+        }
+    ]
+}

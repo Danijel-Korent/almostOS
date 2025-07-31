@@ -47,6 +47,16 @@ void mem_copy(u8* const destination, int destination_size, const u8* const sourc
     }
 }
 
+void* memset(void* ptr, int value, unsigned int num)
+{
+    unsigned char* p = (unsigned char*)ptr;
+    for (unsigned int i = 0; i < num; i++)
+    {
+        p[i] = (unsigned char)value;
+    }
+    return ptr;
+}
+
 
 /*******************************************************************************
  *                         Number conversion functions                         *
