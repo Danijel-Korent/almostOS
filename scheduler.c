@@ -7,7 +7,7 @@
 ///////////////////////////////////// Scheduler test code /////////////////////////////////////
 
 // TODO: Rename to create_process
-void init_process(struct process_ctx *new_process, const char* name, void (*func_ptr)(void))
+void create_process(struct process_ctx *new_process, const char* name, void (*func_ptr)(void))
 {
     kernel_println("Called init_process()");
 
@@ -66,7 +66,7 @@ void scheduler_init(void)
     current_running_process = &kernel_process;
 
     // TEMP - test code
-    init_process(&test_process, "Test process", test_thread2_handler);
+    create_process(&test_process, "Test process", test_thread2_handler);
 }
 
 void schedule(void)
