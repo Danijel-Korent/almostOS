@@ -12,8 +12,8 @@ switch_process:
 
     ; load sp from next_proc
     mov eax, [esp+8+36]
-    mov esp, [eax+0]
+    mov esp, [eax+0]    ; Switches the stack from "current_proc" to "next_proc"
 
     popfd       ; Restore the flags register
     popad       ; Restore all general-purpose registers
-    ret
+    ret         ; ret is the one that actually switch to execting "next_proc" by jumping to "return address" on the stack of "next_proc"
