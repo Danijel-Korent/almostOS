@@ -6,5 +6,7 @@
 #define _STDDEF_H_
 
 #define NULL ((void*)0)
+typedef unsigned long size_t;
+typedef signed   long ssize_t;
 
 #endif // _STDDEF_H_
