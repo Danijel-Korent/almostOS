@@ -1,9 +1,9 @@
 # almostOS
-Something almost but not quite entirely unlike OS. Writing an OS as I go, for my own amusement and fun (some would say I'm a very boring person). Therefore there are no big upfront plans for architecture, everything is done ad-hoc and improved iteratively later.
+Something almost but not quite entirely unlike OS. Writing an OS as I go, for my own amusement and fun (some would say I'm a very boring person). Therefore, there are no big upfront plans for architecture; everything is done ad-hoc and improved iteratively later.
 
-**Current state:** At the moment it's basically just a bootable shell-like program (as there is no resource management yet) with a very basic custom filesystem on a RAM disk, supporting simple versions of 'ls' and 'cat' commands. It also has a command "dump memory", similar to the hexdump but dumping the content of memory instead of a file.
+**Current state:** At the moment, it's basically just a bootable shell-like program (as there is no resource management yet), with a very basic custom filesystem on a RAM disk, supporting simple versions of 'ls' and 'cat' commands. It also has a command "dump memory", similar to the hexdump, but dumping the content of memory instead of a file.
 
-It's at a very early stage. It boots, but currently, it can only output text to the screen and read the input from the keyboard. I'm not sure in which direction I will go with this project, but I will definitely at least implement an ATA driver to have a filesystem on the actual disk instead of in the memory. Had only tested it on QEMU and Bosch x86 PC emulator, but in theory, it should also boot on VirtualBox/VMWare.
+It's at a very early stage. It boots, but currently, it can only output text to the screen and read input from the keyboard. I'm not sure in which direction I will go with this project, but I will definitely at least implement an ATA driver to have a filesystem on the actual disk instead of an in-memory one. Had only tested it on QEMU and Bosch x86 PC emulator, but in theory, it should also boot on VirtualBox/VMWare.
 
 Currently, I'm implementing a very simple file system named TinyFS. The file system at the moment has only the most basic functionality, but it is mature enough to be mounted on Linux (and on AlmostOS)
 
@@ -16,11 +16,11 @@ Currently, I'm implementing a very simple file system named TinyFS. The file sys
 apt install nasm build-essential genisoimage qemu-system
 
 ### Running the OS
-Inside "source_code" directory run:
+Run:
 
 `make qemu`
 
-This command will compile everything, create an ISO image containing the kernel and grub and then run QEMU with the image
+This command will compile everything, create an ISO image containing the kernel and Grub, and then run QEMU with this image loaded
 
 ### Available commands in the OS
 
@@ -36,7 +36,7 @@ This command will compile everything, create an ISO image containing the kernel 
 
 ## Entry point
 
-The kernel entry point is in the file "kernel_startup.asm" which sets the Multiboot signature and defines the function start_kernel(). This function is in the linker script "kernel.ld" defined as the entry point for the compiled artifact. The start_kernel() just outputs the string "hello_msg", sets the stack pointer, and then jumps to the first C code function: kernel_c_main()
+The kernel entry point is in the file "kernel_startup.asm", which sets the Multiboot signature and defines the function start_kernel(). This function is defined in the linker script "kernel.ld" as the entry point for the compiled artifact. The start_kernel() just outputs the string "hello_msg", sets the stack pointer, and then jumps to the first C code function: kernel_c_main().
 
 ## Statistics
 
