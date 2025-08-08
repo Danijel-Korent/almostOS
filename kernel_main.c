@@ -162,6 +162,8 @@ static void check_types(void);
 extern void* STACK_MEM_START;
 extern void* STACK_MEM_END;
 
+void syscall_test(void);
+
 // Entry point for kernel C code
 void kernel_c_main( void )
 {
@@ -225,6 +227,8 @@ void kernel_c_main( void )
 
     // TEMP until taht terminal code abomination gets removed
     event_on_keypress(13);
+
+    //syscall_test();
 
     while(1)
     {

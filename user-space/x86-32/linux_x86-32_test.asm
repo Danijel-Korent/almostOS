@@ -1,30 +1,8 @@
-
-global switch_process
-
-; PROTO: void switch_process(struct process_ctx current_proc, struct process_ctx next_proc);
-switch_process:
-    pushad      ; Push all general-purpose registers (EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI) - WARNING: Not available on x86-64 !
-    pushfd      ; Push the flags register (EFLAGS)
-
-    ; save sp to current_proc
-    mov eax, [esp+4+36] ; load the pointer argument *current_proc into eax. 9 valus of 4b are already pushed to stack by pushad and pushfd
-    mov [eax+0], esp    ; process_ctx.reg_esp is first member so offset is 0
-
-    ; load sp from next_proc
-    mov eax, [esp+8+36]
-    mov esp, [eax+0]    ; Switches the stack from "current_proc" to "next_proc"
-
-    popfd       ; Restore the flags register
-    popad       ; Restore all general-purpose registers
-    ret         ; ret is the one that actually switch to execting "next_proc" by jumping to "return address" on the stack of "next_proc"
-
-
-
-
-;------------------------------------------------------/ test code for syscall impl. /------------------------------------------------------
-
 ; 32-bit x86 Linux assembly program to print "Hello World"
 
+; Compile:  nasm -f elf32 linux_x86-32_test.asm -o linux_x86-32_test.o
+; Link:     ld -m elf_i386 linux_x86-32_test.o -o linux_x86-32_test
+;
 ; A mess with x86 system call instructions in compat mode:
 ; https://reverseengineering.stackexchange.com/questions/16454/struggling-between-syscall-or-sysenter-windows
 ; https://stackoverflow.com/questions/77678700/calling-system-api-from-32-bit-processes-under-linux-64-bit/77680771#77680771
@@ -36,9 +14,9 @@ section .data
     message_length equ $ - message  ; Calculate length of message
 
 section .text
-    global syscall_test
+    global _start                   ; Entry point for linker
 
-syscall_test:
+_start:
     ; System call: write(int fd, const char *buf, size_t count)
     ; eax = 4 (sys_write)
     ; ebx = file descriptor (1 for stdout)

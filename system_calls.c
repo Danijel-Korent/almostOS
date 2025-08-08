@@ -2,6 +2,8 @@
 
 #include "system_headers/unistd.h"  // For STDOUT_FILENO
 #include "util.h"
+#include "kernel_stdio.h"
+
 
 // https://elixir.bootlin.com/linux/latest/source/include/uapi/asm-generic/errno-base.h#L18
 #define E_BAD_DESCRIPTOR     9

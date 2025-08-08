@@ -188,6 +188,7 @@ static void thread_test(const char* func_name, u32 counter_target)
         if (test_thread2_counter % counter_target == 1)
         {
             kernel_printf("[%s] Still running... ", func_name);
+            //sys_write(1, "TEST \n", 7);
         }
     
         test_thread2_counter++;
