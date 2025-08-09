@@ -155,6 +155,9 @@ Terminal escape code:
 
 #include "scheduler.h"
 
+// TODO: Move to arch/x86-32/arch_init.c
+#include "arch/x86-32/GDT_Global_Descriptor_Table.h"
+
 
 static void tty_input_poll(void);
 static void check_types(void);
@@ -210,25 +213,29 @@ void kernel_c_main( void )
     // Re-init memory allocator after tests
     init_heap_memory_allocator();
 
+    // TODO: Move this to x86-32/arch_init.c
     parse_BIOS_Data_Area();
+
+    // TODO: Move this to x86-32/arch_init.c
+    print_GDT_table();
+
+    scheduler_init();
 
     if (fs_load_ramdisk(DISK_IMAGE) == 0)
     {
-        kernel_println("Loading initial RAM disk: SUCCESS");
+        kernel_println("\nLoading initial RAM disk: SUCCESS");
     }
     else
     {
-        kernel_println("Loading initial RAM disk: FAILED");
+        kernel_println("\nLoading initial RAM disk: FAILED");
     }
 
     kernel_println("");
 
-    scheduler_init();
-
-    // TEMP until taht terminal code abomination gets removed
-    event_on_keypress(13);
-
     //syscall_test();
+
+    // TEMP until that terminal code abomination gets decoupled
+    event_on_keypress(13);
 
     while(1)
     {

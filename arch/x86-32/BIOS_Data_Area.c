@@ -20,7 +20,7 @@ void parse_BIOS_Data_Area(void)
 {
     char *BDA_base_address = (char *) 1024;
 
-    kernel_println("Parsing BIOS Data Area...");
+    kernel_println("\nParsing BIOS Data Area...");
 
     char com_string[] = "COM1 I/O Port: 0x????";
 

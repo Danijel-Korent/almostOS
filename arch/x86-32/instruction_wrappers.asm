@@ -60,3 +60,18 @@ get_timestamp:
 halt_cpu:
     hlt
     ret
+
+global get_GDT_table
+
+; void* get_GDT_table(void)
+get_GDT_table
+    sgdt [store_gdtr]
+    mov eax, store_gdtr
+    ret
+
+
+section .data
+store_gdtr:
+    dw 0    ; limit (2b)
+    dd 0    ; base  (4b)
+

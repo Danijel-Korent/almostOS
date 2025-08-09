@@ -11,5 +11,6 @@ void write_byte_to_IO_port(u16 port_address, u8 data);
 u32 get_timestamp(void);
 void halt_cpu(void);
 
+void* get_GDT_table(void);
 
 #endif // _INSTRUCTION_WRAPPERS_H_

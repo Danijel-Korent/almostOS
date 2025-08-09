@@ -78,8 +78,8 @@ void execute__dump_data(int argc, char* argv[])
                 char character = data[offset+char_no];
 
                 // Replace control characters with a star and zero address with dot
-                if (character == 0) character = '.';
-                //if (character < 32) character = '*';
+                //if (character == 0) character = '.';
+                if (character < 32) character = '.';
 
                 line[START_OF_ASCII_TEXT + char_no] = character;
             }

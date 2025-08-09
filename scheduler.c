@@ -177,7 +177,7 @@ static void create_process(struct process_ctx *new_process, const char* name, vo
 
 static void thread_test(const char* func_name, u32 counter_target)
 {
-    kernel_printf("\n>>>>>>>>>> Start of %s() <<<<<<<<<<< \n", func_name);
+    kernel_printf("\n[%s] Start of %s() \n", func_name, func_name);
 
     int test_thread2_counter = 0;
 
@@ -187,7 +187,7 @@ static void thread_test(const char* func_name, u32 counter_target)
 
         if (test_thread2_counter % counter_target == 1)
         {
-            kernel_printf("[%s] Still running... ", func_name);
+            kernel_printf("\n[%s] Still running... ", func_name);
             //sys_write(1, "TEST \n", 7);
         }
     
@@ -209,7 +209,7 @@ static void test_thread3_handler(void)
 
 static void test_thread4_handler(void)
 {
-    thread_test(__PRETTY_FUNCTION__, (4*1000*1000));
+    thread_test(__PRETTY_FUNCTION__, (8*1000*1000));
 }
 
 

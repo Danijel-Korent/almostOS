@@ -122,6 +122,10 @@ void shell_input(u8 * input)
     {
         execute__ls(argc, argv);
     }
+    else if (input[0] == 0)
+    {
+        // No-op
+    }
     else
     {
         kernel_println("");

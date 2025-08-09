@@ -25,7 +25,7 @@ void kernel_stdio_init(void)
 
 // TODO: Decouple logging with a queue to avoid circular calls to LOG
 // Prints to display in Log "window"
-// TODO: Depricated, needs to remove this, along with the "terminal" code
+// TODO: Depricated, need to remove this, along with the "terminal" code
 void LOG(const unsigned char* const message)
 {
     int timestamp = get_timestamp();
@@ -173,11 +173,11 @@ void kernel_putchar(const char new_char)
 // TODO: Move this into callbacks/integration file
 void event_on_keypress(u8 key)
 {
+    tty_write(key);
+
     // TODO: I have to rip out this "terminal" monstrosity that is lodged between the kernel and the shell
     //       And move it into x86-32 (although it is arch agnostic, it will never be used on RISC-V)
     terminal_on_keypress(&shell_terminal, key);
-
-    tty_write(key);
 
 #if 0
     char string[] = "Key is pressed:  ";
