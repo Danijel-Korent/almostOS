@@ -1,8 +1,9 @@
 ; *** x86 INSTRUCTION WRAPPER FUNCTIONS ***
 
-; By 'cdecl' calling convention, all arguments of a function are pushed onto the stack,
-; and return value from a function is passed by EAX register. Arguments are pushed to the stack
-; in left-to-right order, so first argument is pushed last on the stack and therefore closest to the stack pointer.
+; By 'cdecl' calling convention
+;   - all arguments of a function are pushed onto the stack
+;       - pushed in right-to-left order, so first argument is pushed last on the stack and therefore closest to the stack pointer
+;   - return value --> passed by EAX register
 
 ; Registers EAX, ECX, and EDX are caller-saved, and the rest are callee-saved.
 ; Instruction "push" always pushes 4 bytes in 32-bit code, or 8 in 64-bit code
@@ -16,12 +17,22 @@
 ;   nexti
 ;   x/20x $esp
 
+; TODO: Check if any if this functions modifes registers that should be preserved per cdecl convention
+;       Only EAX, ECX, and EDX are caller-saved
+
+; TODO: Implement wrapper for CPUID
 
 global test_func
 global read_byte_from_IO_port
 global write_byte_to_IO_port
 global get_timestamp
 global halt_cpu
+global get_reg_CS
+global get_reg_DS
+global get_reg_SS
+global get_reg_ES
+global get_reg_FS
+global get_reg_GS
 
 
 ; PROTO: int test_func(int base, int multiplier, int adder);
@@ -60,6 +71,32 @@ get_timestamp:
 halt_cpu:
     hlt
     ret
+
+
+get_reg_CS:
+    mov eax, cs
+    ret
+
+get_reg_DS:
+    mov eax, ds
+    ret
+
+get_reg_SS:
+    mov eax, ss
+    ret
+
+get_reg_ES:
+    mov eax, es
+    ret
+
+get_reg_FS:
+    mov eax, fs
+    ret
+
+get_reg_GS:
+    mov eax, gs
+    ret
+
 
 global get_GDT_table
 

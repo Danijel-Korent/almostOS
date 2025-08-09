@@ -23,7 +23,7 @@ static struct process_ctx test_process = {0};
 
 void scheduler_init(void)
 {
-    kernel_println("Called scheduler_init()");
+    kernel_println("\nCalled scheduler_init()");
     //kernel_printf("Called scheduler_init() --> %s \n", "TEST");
 
 #if 0
