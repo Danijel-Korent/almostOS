@@ -62,7 +62,7 @@ void kernel_println(const unsigned char* const message)
 }
 
 
-static void print_decimal(int val, char* buffer, int* buf_i, int maxlen)
+static void print_decimal(int val, char* buffer, int* buf_i, int maxlen, int width, int zero_pad)
 {
     char numbuf[16];
     int num_i = 0;
@@ -75,25 +75,43 @@ static void print_decimal(int val, char* buffer, int* buf_i, int maxlen)
         numbuf[num_i++] = '0' + (val % 10);
         val /= 10;
     } while (val && num_i < (int)sizeof(numbuf));
+
+    // Apply zero-padding if specified (but not for negative numbers)
+    if (zero_pad && width > num_i && !is_negative) {
+        int padding = width - num_i;
+        while (padding-- > 0 && *buf_i < maxlen - 1) {
+            buffer[(*buf_i)++] = '0';
+        }
+    }
+
     if (is_negative && *buf_i < maxlen - 1)
         buffer[(*buf_i)++] = '-';
     while (num_i-- > 0 && *buf_i < maxlen - 1)
         buffer[(*buf_i)++] = numbuf[num_i];
 }
 
-static void print_hex(unsigned int val, char* buffer, int* buf_i, int maxlen)
+static void print_hex(unsigned int val, char* buffer, int* buf_i, int maxlen, int width, int zero_pad, int uppercase)
 {
     char numbuf[16];
     int num_i = 0;
     do {
         unsigned int digit = val % 16;
-        numbuf[num_i++] = (digit < 10) ? ('0' + digit) : ('a' + digit - 10);
+        if (uppercase) {
+            numbuf[num_i++] = (digit < 10) ? ('0' + digit) : ('A' + digit - 10);
+        } else {
+            numbuf[num_i++] = (digit < 10) ? ('0' + digit) : ('a' + digit - 10);
+        }
         val /= 16;
     } while (val && num_i < (int)sizeof(numbuf));
-    //if (*buf_i < maxlen - 1)
-    //    buffer[(*buf_i)++] = '0';
-    //if (*buf_i < maxlen - 1)
-    //    buffer[(*buf_i)++] = 'x';
+
+    // Apply zero-padding if specified
+    if (zero_pad && width > num_i) {
+        int padding = width - num_i;
+        while (padding-- > 0 && *buf_i < maxlen - 1) {
+            buffer[(*buf_i)++] = '0';
+        }
+    }
+
     while (num_i-- > 0 && *buf_i < maxlen - 1)
         buffer[(*buf_i)++] = numbuf[num_i];
 }
@@ -112,6 +130,23 @@ void kernel_printf(const char* format, ...)
         if (format[i] == '%')
         {
             i++;
+
+            // Parse flags and width
+            int width = 0;
+            int zero_pad = 0;
+
+            // Check for zero-padding flag
+            if (format[i] == '0') {
+                zero_pad = 1;
+                i++;
+            }
+
+            // Parse width (simple integer parsing)
+            while (format[i] >= '0' && format[i] <= '9') {
+                width = width * 10 + (format[i] - '0');
+                i++;
+            }
+
             if (format[i] == 's')
             {
                 const char* s = (const char*)arg_ptr[arg_index++];
@@ -124,12 +159,17 @@ void kernel_printf(const char* format, ...)
             else if (format[i] == 'd')
             {
                 int val = (int)arg_ptr[arg_index++];
-                print_decimal(val, buffer, &buf_i, sizeof(buffer));
+                print_decimal(val, buffer, &buf_i, sizeof(buffer), width, zero_pad);
             }
             else if (format[i] == 'x')
             {
                 unsigned int val = (unsigned int)arg_ptr[arg_index++];
-                print_hex(val, buffer, &buf_i, sizeof(buffer));
+                print_hex(val, buffer, &buf_i, sizeof(buffer), width, zero_pad, 0);
+            }
+            else if (format[i] == 'X')
+            {
+                unsigned int val = (unsigned int)arg_ptr[arg_index++];
+                print_hex(val, buffer, &buf_i, sizeof(buffer), width, zero_pad, 1);
             }
             else if (format[i] == 'c')
             {
