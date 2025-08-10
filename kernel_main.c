@@ -184,11 +184,11 @@ void kernel_c_main( void )
 
     kernel_println("\n\nStarting kernel... \n");
 
-    kernel_printf("kernel_c_main():  entry addr      = %x \n", kernel_c_main);
-    kernel_printf("kernel_c_main():  STACK_MEM_START = %x \n", &STACK_MEM_START);
-    kernel_printf("kernel_c_main():  &local_var      = %x \n", &local_var);
-    kernel_printf("kernel_c_main():  &hello_msg      = %x \n", &hello_msg);
-    kernel_printf("kernel_c_main():  STACK_MEM_END   = %x \n\n", &STACK_MEM_END);
+    kernel_printf("kernel_c_main():  entry addr      = 0x%x \n", kernel_c_main);
+    kernel_printf("kernel_c_main():  STACK_MEM_START = 0x%x \n", &STACK_MEM_START);
+    kernel_printf("kernel_c_main():  &local_var      = 0x%x \n", &local_var);
+    kernel_printf("kernel_c_main():  &hello_msg      = 0x%x \n", &hello_msg);
+    kernel_printf("kernel_c_main():  STACK_MEM_END   = 0x%x \n\n", &STACK_MEM_END);
 
 
     // QTODO: this repeating code needs a function of its own

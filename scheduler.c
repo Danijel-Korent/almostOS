@@ -137,7 +137,7 @@ static void create_process(struct process_ctx *new_process, const char* name, vo
 
     if (poors_man_stack_allocator <= PROCESS_STACK_SIZE)
     {
-        kernel_printf("[ERROR] create_process(): No more stack space! poors_man_stack_allocator = %x", poors_man_stack_allocator);
+        kernel_printf("[ERROR] create_process(): No more stack space! poors_man_stack_allocator = 0x%x", poors_man_stack_allocator);
         return;
     }
 
@@ -170,9 +170,9 @@ static void create_process(struct process_ctx *new_process, const char* name, vo
     new_process->reg_esp = (u32) &process_stack[-9];
 
     kernel_printf("init_process(): Created process \"%s\" \n", name);
-    kernel_printf("init_process():   entry = %x \n", func_ptr);
-    kernel_printf("init_process():   stack = %x \n", stack_start_addr);
-    kernel_printf("init_process():   SP    = %x \n", new_process->reg_esp);
+    kernel_printf("init_process():   entry = 0x%x \n", func_ptr);
+    kernel_printf("init_process():   stack = 0x%x \n", stack_start_addr);
+    kernel_printf("init_process():   SP    = 0x%x \n", new_process->reg_esp);
 }
 
 static void thread_test(const char* func_name, u32 counter_target)

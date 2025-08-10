@@ -90,10 +90,10 @@ static void print_hex(unsigned int val, char* buffer, int* buf_i, int maxlen)
         numbuf[num_i++] = (digit < 10) ? ('0' + digit) : ('a' + digit - 10);
         val /= 16;
     } while (val && num_i < (int)sizeof(numbuf));
-    if (*buf_i < maxlen - 1)
-        buffer[(*buf_i)++] = '0';
-    if (*buf_i < maxlen - 1)
-        buffer[(*buf_i)++] = 'x';
+    //if (*buf_i < maxlen - 1)
+    //    buffer[(*buf_i)++] = '0';
+    //if (*buf_i < maxlen - 1)
+    //    buffer[(*buf_i)++] = 'x';
     while (num_i-- > 0 && *buf_i < maxlen - 1)
         buffer[(*buf_i)++] = numbuf[num_i];
 }
