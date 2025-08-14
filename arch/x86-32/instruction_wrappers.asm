@@ -98,10 +98,10 @@ get_reg_GS:
     ret
 
 
-global get_GDT_table
+global get_GDT_table_location
 
-; void* get_GDT_table(void)
-get_GDT_table
+; void* get_GDT_table_location(void)
+get_GDT_table_location
     sgdt [store_gdtr]
     mov eax, store_gdtr
     ret

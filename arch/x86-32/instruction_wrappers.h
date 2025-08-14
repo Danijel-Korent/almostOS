@@ -18,7 +18,7 @@ u32 get_reg_ES(void);
 u32 get_reg_FS(void);
 u32 get_reg_GS(void);
 
-void* get_GDT_table(void);
+void* get_GDT_table_location(void);
 
 
 #endif // _INSTRUCTION_WRAPPERS_H_
