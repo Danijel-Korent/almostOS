@@ -27,12 +27,12 @@ static uint32_t get_base_address(uint8_t* entry_addr)
     uint32_t base = 0;
 
     uint8_t base_bit_00_07 = entry_addr[2];
-    uint8_t base_bit_07_15 = entry_addr[3];
+    uint8_t base_bit_08_15 = entry_addr[3];
     uint8_t base_bit_16_23 = entry_addr[4];
     uint8_t base_bit_24_31 = entry_addr[7];
 
     base += base_bit_00_07;
-    base += base_bit_07_15 << 8;
+    base += base_bit_08_15 << 8;
     base += base_bit_16_23 << 16;
     base += base_bit_24_31 << 24;
 
@@ -44,18 +44,19 @@ static uint32_t get_limit(uint8_t* entry_addr)
     uint32_t limit = 0;
 
     uint8_t limit_bit_00_07 = entry_addr[0];
-    uint8_t limit_bit_07_15 = entry_addr[1];
-    uint8_t limit_bit_15_19 = entry_addr[6] & 0x0F;
+    uint8_t limit_bit_08_15 = entry_addr[1];
+    uint8_t limit_bit_16_19 = entry_addr[6] & 0x0F;
 
     limit += limit_bit_00_07;
-    limit += limit_bit_07_15 << 8;
-    limit += limit_bit_15_19 << 16;
+    limit += limit_bit_08_15 << 8;
+    limit += limit_bit_16_19 << 16;
 
     return limit;
 }
 
 static uint8_t get_access_byte(uint8_t* entry_addr)
 {
+    // TODO: Replace hardcoded indexes with names in all those functions
     return entry_addr[5];
 }
 

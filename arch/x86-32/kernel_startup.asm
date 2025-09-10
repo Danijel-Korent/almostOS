@@ -58,6 +58,7 @@ start_kernel:
     mov esi, hello_msg
     mov edi, VGA_RAM_ADDRESS
 
+    ;int 0x1
 
 .print_hello:         ;shit just got real
     mov cl, [esi]

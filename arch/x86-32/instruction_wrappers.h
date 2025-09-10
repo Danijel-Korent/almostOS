@@ -20,5 +20,9 @@ u32 get_reg_GS(void);
 
 void* get_GDT_table_location(void);
 
+void* get_IDT_table_location(void);
+void  set_IDT_table_location(void);
+
+void random_test(void);
 
 #endif // _INSTRUCTION_WRAPPERS_H_

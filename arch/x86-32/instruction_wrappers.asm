@@ -33,7 +33,14 @@ global get_reg_SS
 global get_reg_ES
 global get_reg_FS
 global get_reg_GS
+global random_test
 
+; void random_test(void);
+random_test
+    int 0x80
+    ; int 0x0D
+    ; int 0x00
+    ret
 
 ; PROTO: int test_func(int base, int multiplier, int adder);
 test_func:
@@ -107,8 +114,26 @@ get_GDT_table_location
     ret
 
 
+; void* get_IDT_table_location(void)
+global get_IDT_table_location
+get_IDT_table_location
+    sidt [store_idt]
+    mov eax, store_idt
+    ret
+
+; void set_IDT_table_location(void)
+global set_IDT_table_location
+set_IDT_table_location
+    lidt [store_idt]
+    ret
+
+; TODO: Replace this with just passing an argument
 section .data
 store_gdtr:
+    dw 0    ; limit (2b)
+    dd 0    ; base  (4b)
+
+store_idt:
     dw 0    ; limit (2b)
     dd 0    ; base  (4b)
 

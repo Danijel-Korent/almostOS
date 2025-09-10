@@ -145,7 +145,6 @@ Terminal escape code:
 
 #include "util.h"
 #include "string.h"
-#include "BIOS_Data_Area.h"
 #include "poors_man_VGA_driver.h"
 #include "poors_man_keyboard_driver.h"
 #include "arch/tty.h"
@@ -157,7 +156,8 @@ Terminal escape code:
 
 // TODO: Move to arch/x86-32/arch_init.c
 #include "arch/x86-32/GDT_Global_Descriptor_Table.h"
-
+#include "arch/x86-32/IDT_Interrupt_Descriptor_Table.h"
+#include "BIOS_Data_Area.h"
 
 static void tty_input_poll(void);
 static void check_types(void);
@@ -215,9 +215,12 @@ void kernel_c_main( void )
 
     // TODO: Move this to x86-32/arch_init.c
     parse_BIOS_Data_Area();
-
-    // TODO: Move this to x86-32/arch_init.c
     print_GDT_table();
+    configure_interrupt_descriptor_table();
+    print_interrupt_descriptor_table();
+
+    //random_test();
+    //int test = 5 / 0;
 
     scheduler_init();
 
