@@ -4,66 +4,40 @@
 #include "kernel_stdio.h"   // for kernel_println
 
 
-///////////////////////////////////// Scheduler test code /////////////////////////////////////
-
 static void create_process(struct process_ctx *new_process, const char* name, void (*func_ptr)(void));
 
 static void test_thread2_handler(void);
 static void test_thread3_handler(void);
 static void test_thread4_handler(void);
 
+// This array holds info about all processes in the system
+// For now, process_ctx.name == NULL means that slot is not used
 static struct process_ctx process_list[16] = {0}; // 16 processes ought to be enough for everyone (I need to stop making this jokes)
 
-static int process_list_index = 0;
+static int current_process_index = 0;
 
-static struct process_ctx *current_running_process = NULL;
-static struct process_ctx kernel_process = {0};
-static struct process_ctx test_process = {0};
 
 
 void scheduler_init(void)
 {
     kernel_println("\nCalled scheduler_init()");
-    //kernel_printf("Called scheduler_init() --> %s \n", "TEST");
 
-#if 0
-    kernel_process.name     = "Kernel process";
-    current_running_process = &kernel_process;
+    // No need to set anything execept name as other struct members will be set on the first process switch
+    current_process_index = 0;
+    process_list[current_process_index].name = "Kernel process";
 
-    // TEMP - test code
-    create_process(&test_process, "Test process", test_thread2_handler);
-#else
-    kernel_process.name     = "Kernel process";
-    process_list[0] = kernel_process;
-    //mem_copy(&process_list[0], sizeof(process_list[0]), kernel_process, sizeof(struct process_ctx));
-
-    current_running_process = &process_list[0];
-
-    //create_process(&process_list[1], "Test process 2", test_thread2_handler);
-    //create_process(&process_list[4], "Test process 3", test_thread3_handler);
+    create_process(&process_list[1], "Test process 2", test_thread2_handler);
+    create_process(&process_list[4], "Test process 3", test_thread3_handler);
     create_process(&process_list[15], "Test process 4", test_thread4_handler);
-#endif
 }
 
 void schedule(void)
 {
     //kernel_println("Called schedule()");
     struct process_ctx *process_to_restore = NULL;
-    struct process_ctx *process_to_save    = current_running_process;
+    struct process_ctx *process_to_save    = &process_list[current_process_index];
 
-#if 0
-    if (current_running_process == &kernel_process)
-    {
-        process_to_restore = &test_process;
-    }
-    else
-    {
-        process_to_restore = &kernel_process;
-    }
-#else
-    process_to_restore = current_running_process;
-
-    int i = process_list_index;
+    int i = current_process_index;
 
     while(1)
     {
@@ -77,21 +51,24 @@ void schedule(void)
         else
         {
             process_to_restore = &process_list[i];
-            process_list_index = i;
+            current_process_index = i;
             break;
         }
     }
-#endif
 
-    current_running_process = process_to_restore;
+    if (process_to_restore == NULL)
+    {
+        kernel_println("\n [ERROR] process_to_restore == NULL");
+        while(1);
+    }
 
     //kernel_printf("schedule(): Current process = \"%s\" \n", process_to_save->name);
     //kernel_printf("schedule(): Next process    = \"%s\" \n", process_to_restore->name);
 
-    // TODO: Assert that process_to_restore != current_running_process
-    // TODO: Assert that process_to_restore != process_to_save
-
-    switch_process(process_to_save, process_to_restore);
+    if (process_to_save != process_to_restore)
+    {
+        switch_process(process_to_save, process_to_restore);
+    }
 }
 
 
@@ -99,14 +76,18 @@ void schedule(void)
 // Good enough for initial testing, but we cannot dinamically create and delete processes because the pointer
 // would quickly run out of memory
 // TODO:
-//      - Use heap_malloc()
+//      1) Instead of pointer growing in one direction, split stack area into 64k chunks and keep trace of free was used
+//          - Isn't this just re-implementation of current heap_malloc() ??
+//
+//      2) Use heap_malloc()
 //          - For that I need to add support for multiple bin sizes (I need to do that anyway)
 //              or
 //          - much faster solution would be to make allocator instance based, and just make new instace with PROCESS_STACK_SIZE bins
+//
 static int poors_man_stack_allocator = 0;
 
 
-// TODO: This is x86 specific code, move to arch/x86-32
+// TODO: There is some x86 specific code that needs to be moved to arch/x86-32
 static void create_process(struct process_ctx *new_process, const char* name, void (*func_ptr)(void))
 {
     kernel_println("Called init_process()");
@@ -117,11 +98,6 @@ static void create_process(struct process_ctx *new_process, const char* name, vo
     u8 dummy_var = 0;
 
     u32 stack_start_addr = 0;
-
-#if 0
-    stack_start_addr = (u32)&dummy_var - (128 * 1024);  // TODO: A hack until I implement proper stack mem management
-    stack_start_addr = stack_start_addr & 0xFFFF0000;   // Align the address to 64K boundary for easier reading
-#else
 
     #define PROCESS_STACK_SIZE (128 * 1024)
 
@@ -142,37 +118,16 @@ static void create_process(struct process_ctx *new_process, const char* name, vo
     }
 
     stack_start_addr = (u32)poors_man_stack_allocator;
-#endif
-
 
     u32 *process_stack = (u32*) stack_start_addr;
 
     // TODO: Specific to x86 cdecl, therefore must be moved to x86 specific code
     //       More directly, this is related to the instructions call/ret, whose usage "cdecl" asumes
+    // TODO2: Remove this and only use 
     process_stack[0]  = (u32) func_ptr;     // Return address
-    // process_stack[-1] = stack_start_addr;    // Saved BP - TODO: I should probably put jmp panic to address 0 while developing this
-                                                // Update:   I thought EBP is saved here, but it is not. All this blog posts cannot be wrong?
-                                                // Updated2: Forgot that in the cdelc convention BP is pushed by callee, not by caller
-                                                //           So usually it is there after function is called, but in my switch_process()
-                                                //           I don't do that as this func doesn't call any C code and doesn't have any local stack vars
 
-    // Code for all scheduler that would use pushad to save all registers to stack
-#if 0
-    // Pushed by pushad, TODO: x86 specific
-    process_stack[-1] = 0;   // edi
-    process_stack[-2] = 0;   // esi
-    process_stack[-3] = 0;   // ebp
-    process_stack[-4] = 0;   // esp
-    process_stack[-5] = 0;   // ebx
-    process_stack[-6] = 0;   // edx
-    process_stack[-7] = 0;   // ecx
-    process_stack[-8] = 0;   // eax
-    // Pushed by pushfd
-    process_stack[-9] = 0x00000002; // EFLAGS // TODO: This value disables interupts, but that is not important at the moment
-
-    //new_process->reg_esp = (u32) &process_stack[-9];
-#endif
-
+    // This whole struct is x86-specific, so after adding RISC-V support, this part will need to be moved to arch/x86
+    // and here only use an opaque pointer containing architecture specific stuff
     new_process->reg_esp = (u32) process_stack;
     new_process->reg_ip  = (u32) func_ptr;
     new_process->reg_eflags = 0x00000002; // EFLAGS // TODO: This value disables interupts, but that is not important at the moment
@@ -182,6 +137,9 @@ static void create_process(struct process_ctx *new_process, const char* name, vo
     kernel_printf("init_process():   stack = 0x%x \n", stack_start_addr);
     kernel_printf("init_process():   SP    = 0x%x \n", new_process->reg_esp);
 }
+
+
+///////////////////////////////////// Scheduler test code /////////////////////////////////////
 
 static void thread_test(const char* func_name, u32 counter_target)
 {
