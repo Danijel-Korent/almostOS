@@ -6,7 +6,7 @@
 void scheduler_init(void);
 void schedule(void);
 
-void init_process(struct process_ctx *new_process, const char* name, void (*func_ptr)(void));
+//void create_process(struct process_ctx *new_process, const char* name, void (*func_ptr)(void));
 
 
 #endif // _SCHEDULER_H_

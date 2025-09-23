@@ -220,7 +220,10 @@ void kernel_c_main( void )
     print_interrupt_descriptor_table();
 
     //random_test();
+    void INT_80_test(void); INT_80_test();
     //int test = 5 / 0;
+
+    //void sys_write_test(void); sys_write_test();
 
     scheduler_init();
 

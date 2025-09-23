@@ -148,14 +148,17 @@ static void create_process(struct process_ctx *new_process, const char* name, vo
     u32 *process_stack = (u32*) stack_start_addr;
 
     // TODO: Specific to x86 cdecl, therefore must be moved to x86 specific code
+    //       More directly, this is related to the instructions call/ret, whose usage "cdecl" asumes
     process_stack[0]  = (u32) func_ptr;     // Return address
     // process_stack[-1] = stack_start_addr;    // Saved BP - TODO: I should probably put jmp panic to address 0 while developing this
                                                 // Update:   I thought EBP is saved here, but it is not. All this blog posts cannot be wrong?
                                                 // Updated2: Forgot that in the cdelc convention BP is pushed by callee, not by caller
                                                 //           So usually it is there after function is called, but in my switch_process()
-                                                //           I don't do that as this func doesn't call any C code and doesn't have any local vars
+                                                //           I don't do that as this func doesn't call any C code and doesn't have any local stack vars
 
-    // Pushed by pushad, x86 specific
+    // Code for all scheduler that would use pushad to save all registers to stack
+#if 0
+    // Pushed by pushad, TODO: x86 specific
     process_stack[-1] = 0;   // edi
     process_stack[-2] = 0;   // esi
     process_stack[-3] = 0;   // ebp
@@ -167,7 +170,12 @@ static void create_process(struct process_ctx *new_process, const char* name, vo
     // Pushed by pushfd
     process_stack[-9] = 0x00000002; // EFLAGS // TODO: This value disables interupts, but that is not important at the moment
 
-    new_process->reg_esp = (u32) &process_stack[-9];
+    //new_process->reg_esp = (u32) &process_stack[-9];
+#endif
+
+    new_process->reg_esp = (u32) process_stack;
+    new_process->reg_ip  = (u32) func_ptr;
+    new_process->reg_eflags = 0x00000002; // EFLAGS // TODO: This value disables interupts, but that is not important at the moment
 
     kernel_printf("init_process(): Created process \"%s\" \n", name);
     kernel_printf("init_process():   entry = 0x%x \n", func_ptr);
@@ -209,7 +217,7 @@ static void test_thread3_handler(void)
 
 static void test_thread4_handler(void)
 {
-    thread_test(__PRETTY_FUNCTION__, (8*1000*1000));
+    thread_test(__PRETTY_FUNCTION__, (2*1000*1000));
 }
 
 

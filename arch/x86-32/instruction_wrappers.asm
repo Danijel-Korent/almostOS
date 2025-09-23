@@ -36,7 +36,7 @@ global get_reg_GS
 global random_test
 
 ; void random_test(void);
-random_test
+random_test:
     int 0x80
     ; int 0x0D
     ; int 0x00
@@ -108,7 +108,7 @@ get_reg_GS:
 global get_GDT_table_location
 
 ; void* get_GDT_table_location(void)
-get_GDT_table_location
+get_GDT_table_location:
     sgdt [store_gdtr]
     mov eax, store_gdtr
     ret
@@ -116,14 +116,14 @@ get_GDT_table_location
 
 ; void* get_IDT_table_location(void)
 global get_IDT_table_location
-get_IDT_table_location
+get_IDT_table_location:
     sidt [store_idt]
     mov eax, store_idt
     ret
 
 ; void set_IDT_table_location(void)
 global set_IDT_table_location
-set_IDT_table_location
+set_IDT_table_location:
     lidt [store_idt]
     ret
 

@@ -58,6 +58,8 @@ obj_files := $(OBJS_C) $(OBJS_ASM) $(TINY_FS_OBJS)
 .PHONY: kernel
 .PHONY: qemu
 .PHONY: gdb_server
+.PHONY: gdb_client
+.PHONY: gdb_gui
 .PHONY: clean
 .PHONY: linux_risc_v_test
 .PHONY: baremetal_risc_v_test
@@ -73,7 +75,7 @@ kernel: $(obj_files)
 	ld -T kernel.ld -melf_i386 $(obj_files) -o arch/x86-32/iso_image_content/boot/AlmostOS_kernel.elf -Map=memory.map
 
 # Define a pattern rule that compiles every .asm file into an .o file
-$(OBJ_DIR)/%.o : %.asm
+$(OBJ_DIR)/%.o : %.asm arch/x86-32/arch_scheduler.h arch/x86-32/instruction_wrappers.h
 	@mkdir -p $(@D)  # Create the directory if it does not exist
 	$(AS) $(ASFLAGS) $< -o $@
 
@@ -97,9 +99,14 @@ gdb_server: iso_image
 	qemu-system-i386 -m 64 -cdrom AlmostOS.iso -boot d -serial stdio -s -S
 #	qemu-system-x86_64 -m 64 -cdrom AlmostOS.iso -boot d -serial stdio -s -S
 
-# gdb uses .gdbinit file (you need to allow this path for gdb "auto-load")
+# gdb (and gdbgui) uses .gdbinit file (you need to allow this path for gdb "auto-load")
 gdb_client:
 	gdb
+
+# A web gdb frontend run python. Needs to be installed with: pip install gdbgui
+gdb_gui:
+	gdbgui
+
 
 clean:
 	rm -rf ./$(OBJ_DIR)/*

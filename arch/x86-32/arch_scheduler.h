@@ -6,6 +6,15 @@
 struct process_ctx
 {
     u32 reg_esp;
+    u32 reg_eax;
+    u32 reg_ebx;
+    u32 reg_ecx;
+    u32 reg_edx;
+    u32 reg_esi;
+    u32 reg_edi;
+    u32 reg_ebp;
+    u32 reg_ip;     // PC
+    u32 reg_eflags;
     const char* name;
 };
 
