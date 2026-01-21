@@ -20,11 +20,13 @@
 
 void syscall_entry_point_C(uint32_t syscall_num, uint32_t arg1, uint32_t arg2, uint32_t arg3)
 {
+#if 0
     kernel_printf("\nCalled syscall_entry_point_C() with args: \n");
     kernel_printf("    syscall_num = 0x%08x / %d \n", syscall_num, syscall_num);
     kernel_printf("    arg1 = 0x%08x / %d \n", arg1, arg1);
     kernel_printf("    arg2 = 0x%08x / %d \n", arg2, arg2);
     kernel_printf("    arg3 = 0x%08x / %d \n", arg3, arg3);
+#endif
 
     //sys_write_test();
 
@@ -42,10 +44,12 @@ void sys_write_test(void)
 // is not yet even implemented
 ssize_t sys_write(int fd, const void *buf, size_t count)
 {
+#if 0
     kernel_printf("\nCalled sys_write() with args: \n");
     kernel_printf("    fd = %d \n", fd);
     kernel_printf("    buf = %x \n", buf);
     kernel_printf("    count = %d \n", count);
+#endif
 
     // Currenly we only support write to stdout
     if (fd != STDOUT_FILENO)

@@ -177,7 +177,7 @@ void kernel_c_main( void )
     a = test_func(2,2,2);
 
 
-    unsigned char hello_msg[] = "Hello from C code!";
+    unsigned char* hello_msg = "Hello from C code!";
     print_string_to_VGA_display_buffer(400, hello_msg, sizeof(hello_msg)-1);
 
     kernel_stdio_init();
@@ -187,8 +187,8 @@ void kernel_c_main( void )
     kernel_printf("kernel_c_main():  entry addr      = 0x%x \n", kernel_c_main);
     kernel_printf("kernel_c_main():  STACK_MEM_START = 0x%x \n", &STACK_MEM_START);
     kernel_printf("kernel_c_main():  &local_var      = 0x%x \n", &local_var);
-    kernel_printf("kernel_c_main():  &hello_msg      = 0x%x \n", &hello_msg);
-    kernel_printf("kernel_c_main():  STACK_MEM_END   = 0x%x \n\n", &STACK_MEM_END);
+    kernel_printf("kernel_c_main():  STACK_MEM_END   = 0x%x \n", &STACK_MEM_END);
+    kernel_printf("kernel_c_main():  hello_msg       = 0x%x \n\n", hello_msg);
 
 
     // QTODO: this repeating code needs a function of its own
@@ -220,7 +220,7 @@ void kernel_c_main( void )
     print_interrupt_descriptor_table();
 
     //random_test();
-    void INT_80_test(void); INT_80_test();
+    // void INT_80_test(void); INT_80_test();
     //int test = 5 / 0;
 
     //void sys_write_test(void); sys_write_test();

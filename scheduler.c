@@ -6,9 +6,9 @@
 
 static void create_process(struct process_ctx *new_process, const char* name, void (*func_ptr)(void));
 
-static void test_thread2_handler(void);
-static void test_thread3_handler(void);
-static void test_thread4_handler(void);
+static void test_thread_2_handler(void);
+static void test_thread_3_handler(void);
+static void test_thread_4_handler(void);
 
 // This array holds info about all processes in the system
 // For now, process_ctx.name == NULL means that slot is not used
@@ -26,35 +26,49 @@ void scheduler_init(void)
     current_process_index = 0;
     process_list[current_process_index].name = "Kernel process";
 
-    create_process(&process_list[1], "Test process 2", test_thread2_handler);
-    create_process(&process_list[4], "Test process 3", test_thread3_handler);
-    create_process(&process_list[15], "Test process 4", test_thread4_handler);
+    create_process(&process_list[1], "Test process 2", test_thread_2_handler);
+    create_process(&process_list[4], "Test process 3", test_thread_3_handler);
+    create_process(&process_list[15], "Test process 4", test_thread_4_handler);
+}
+
+struct process_ctx * get_current_process(void)
+{
+    return &process_list[current_process_index];
+}
+
+// Simple round-robin
+struct process_ctx* move_to_next_process(void)
+{
+    int i = current_process_index;
+
+    while(1)
+    {
+        i++;
+
+        // To prevent going outside of array bounds
+        i = i % (sizeof(process_list) / sizeof(process_list[0]));
+
+        if (process_list[i].name == NULL) // This means the slot is unused
+        {
+            // Skip unused slots
+            continue;
+        }
+        else
+        {
+            // Simply return the first next slot in use
+            current_process_index = i;
+            return &process_list[i];
+        }
+    }
 }
 
 void schedule(void)
 {
     //kernel_println("Called schedule()");
     struct process_ctx *process_to_restore = NULL;
-    struct process_ctx *process_to_save    = &process_list[current_process_index];
+    struct process_ctx *process_to_save    = get_current_process(); //&process_list[current_process_index];
 
-    int i = current_process_index;
-
-    while(1)
-    {
-        i++;
-        i = i % (sizeof(process_list) / sizeof(process_list[0]));
-
-        if (process_list[i].name == NULL)
-        {
-            continue;
-        }
-        else
-        {
-            process_to_restore = &process_list[i];
-            current_process_index = i;
-            break;
-        }
-    }
+    process_to_restore = move_to_next_process();
 
     if (process_to_restore == NULL)
     {
@@ -71,6 +85,29 @@ void schedule(void)
     }
 }
 
+// Need to implement it in assembly where I have full control of the stack (IRQ saves some values on stack, and reads back on iret)
+#if 0
+void schedule_in_irq_context(void)
+{
+    //kernel_println("Called schedule()");
+    struct process_ctx *process_to_restore = NULL;
+    struct process_ctx *process_to_save    = &process_list[current_process_index];
+
+    process_to_restore = move_to_next_process();
+
+    if (process_to_restore == NULL)
+    {
+        kernel_println("\n [ERROR] process_to_restore == NULL");
+        while(1);
+    }
+
+    //kernel_printf("schedule(): Current process = \"%s\" \n", process_to_save->name);
+    //kernel_printf("schedule(): Next process    = \"%s\" \n", process_to_restore->name);
+
+    // switch_process_in_irq() must be always called to execute "iret" in order to exit the interrupt handler
+    switch_process_in_irq(process_to_save, process_to_restore);
+}
+#endif
 
 // This is really just a pointer that grows in one direction, but never shrinks, so it cannot deallocate space
 // Good enough for initial testing, but we cannot dinamically create and delete processes because the pointer
@@ -123,8 +160,8 @@ static void create_process(struct process_ctx *new_process, const char* name, vo
 
     // TODO: Specific to x86 cdecl, therefore must be moved to x86 specific code
     //       More directly, this is related to the instructions call/ret, whose usage "cdecl" asumes
-    // TODO2: Remove this and only use 
-    process_stack[0]  = (u32) func_ptr;     // Return address
+    // TODO2: Remove this and only use IP reg
+    // process_stack[0]  = (u32) func_ptr;     // Return address
 
     // This whole struct is x86-specific, so after adding RISC-V support, this part will need to be moved to arch/x86
     // and here only use an opaque pointer containing architecture specific stuff
@@ -141,6 +178,9 @@ static void create_process(struct process_ctx *new_process, const char* name, vo
 
 ///////////////////////////////////// Scheduler test code /////////////////////////////////////
 
+void INT_80_test(void);
+void INT_80_test_silent(void);
+
 static void thread_test(const char* func_name, u32 counter_target)
 {
     kernel_printf("\n[%s] Start of %s() \n", func_name, func_name);
@@ -155,6 +195,8 @@ static void thread_test(const char* func_name, u32 counter_target)
         {
             kernel_printf("\n[%s] Still running... ", func_name);
             //sys_write(1, "TEST \n", 7);
+            //INT_80_test();
+            INT_80_test_silent();
         }
     
         test_thread2_counter++;
@@ -163,19 +205,19 @@ static void thread_test(const char* func_name, u32 counter_target)
     }
 }
 
-static void test_thread2_handler(void)
+static void test_thread_2_handler(void)
 {
-    thread_test(__PRETTY_FUNCTION__, (1000*1000));
+    thread_test(__PRETTY_FUNCTION__, (1*1000*1000));
 }
 
-static void test_thread3_handler(void)
+static void test_thread_3_handler(void)
 {
     thread_test(__PRETTY_FUNCTION__, (2*1000*1000));
 }
 
-static void test_thread4_handler(void)
+static void test_thread_4_handler(void)
 {
-    thread_test(__PRETTY_FUNCTION__, (2*1000*1000));
+    thread_test(__PRETTY_FUNCTION__, (3*1000*1000));
 }
 
 

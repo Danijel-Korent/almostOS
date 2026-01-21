@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 #include "instruction_wrappers.h"
+#include "arch_syscall.h"
+#include "panic.h"
 
 #include "util.h"
 #include "kernel_stdio.h"
@@ -57,6 +59,7 @@ static void set_descriptor_present_bit (uint8_t* entry_addr, uint8_t value);
 void test_INT_HANDLER_00_DIVIDE_ERROR(void)
 {
     kernel_printf("\n                             !!! CALLED INT_HANDLER_00 (Divide error) !!! \n");
+    time_to_die();
     while(1);
 }
 
@@ -78,10 +81,12 @@ void test_INT_HANDLER_0D_GENERAL_PROTECTION(void)
     while(1);
 }
 
+#if 0
 void test_INT_HANDLER_80_LINUX_SYSCALL(void)
 {
     kernel_printf("\n                             !!! CALLED INT_HANDLER_80 (Linux Syscall) !!! \n");
 }
+#endif
 
 void configure_interrupt_descriptor_table(void)
 {
@@ -118,9 +123,7 @@ void configure_interrupt_descriptor_table(void)
     add_IDT_entry(idt_hdr, VEC_INVALID_OPCODE, /*Privilege*/ 0, GATE_TYPE__32_BIT_TRAP, /*Segment*/ 0x8, test_INT_HANDLER_06_INVALID_OPCODE);
     add_IDT_entry(idt_hdr, VEC_SEGMENT_NOT_PRESENT, /*Privilege*/ 0, GATE_TYPE__32_BIT_TRAP, /*Segment*/ 0x8, test_INT_HANDLER_0B_SEGMENT_NOT_PRESENT);
     add_IDT_entry(idt_hdr, VEC_GENERAL_PROTECTION, /*Privilege*/ 0, GATE_TYPE__32_BIT_TRAP, /*Segment*/ 0x8, test_INT_HANDLER_0D_GENERAL_PROTECTION);
-    add_IDT_entry(idt_hdr, VEC_LINUX_SYSCALL_API , /*Privilege*/ 0, GATE_TYPE__32_BIT_INTERRUPT, /*Segment*/ 0x8, test_INT_HANDLER_80_LINUX_SYSCALL);
 
-    void syscall_entry_point_asm(void);
     add_IDT_entry(idt_hdr, VEC_LINUX_SYSCALL_API , /*Privilege*/ 0, GATE_TYPE__32_BIT_INTERRUPT, /*Segment*/ 0x8, syscall_entry_point_asm);
 
     // add_IDT_entry(idt_hdr, vector_ID , /*Privilege*/ 0, gate, /*Segment*/ 0x8, func);

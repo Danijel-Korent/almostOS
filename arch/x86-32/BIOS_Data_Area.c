@@ -22,6 +22,7 @@ void parse_BIOS_Data_Area(void)
 
     kernel_println("\nParsing BIOS Data Area...");
 
+    // TODO: Replace this with kernel_printf()
     char com_string[] = "COM1 I/O Port: 0x????";
 
     short int COM1 = read_16bit(BDA_base_address, COM1_OFFSET);
@@ -29,7 +30,7 @@ void parse_BIOS_Data_Area(void)
 
     kernel_println(com_string);
 
-
+    // TODO: Replace this with kernel_printf()
     char lpt_string[] = "LPT1 I/O Port: 0x????";
 
     short int LPT1 = read_16bit(BDA_base_address, LPT1_OFFSET);

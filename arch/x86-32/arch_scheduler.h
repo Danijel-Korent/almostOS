@@ -18,6 +18,10 @@ struct process_ctx
     const char* name;
 };
 
+void print_process_ctx(struct process_ctx* process);
+
+
+// Implemented in arch_scheduler.asm
 void switch_process(struct process_ctx *current_proc, struct process_ctx *next_proc);
 
 #endif

@@ -1,4 +1,48 @@
 
+Looks like the problem is here:
+
+arch/x86-32/arch_scheduler.asm:255
+
+; void INT_80_test(void);
+INT_80_test:
+    pushad
+
+    ; System call: write(int fd, const char *buf, size_t count)
+    ; eax = 4 (sys_write)
+    ; ebx = file descriptor (1 for stdout)
+    ; ecx = pointer to message
+    ; edx = length of message
+
+    mov eax, 4                     ; sys_write system call number
+    mov ebx, 1                     ; file descriptor 1 (stdout)
+    mov ecx, msg_int80_test
+    mov edx, msg_int80_test_len
+    int 0x80                       ; make system call using int 0x80
+
+    popad       <----------- After returning from int0x80, and poping registers, the return address is 0 !!!
+    ret
+
+THE PROBLEM:
+    The problem (most likely) is that existing manual schedule()/switch_process() assumes existence of
+    the return address as the last value on the stack, while IRQ version saves the SP without the IRQ part of the stack, 
+    and when doing iret, it just creates necessary stack values to use "iret" for context switching
+    That means when restoring ctx with switch_process(), that was saved in IRQ contex, the last value on stack will be overwritten
+
+        - The fix would be for schedule()/switch_process() to save SP without return address and push it to the stack before "ret"
+            - Then I need to save PC and push it to the stack befor 'ret'. 
+                - Just save the PC from the return address, that would be the most natural way
+
+What I can do:
+    - When debugging, check the value of "current_process_index" to see what is current active process
+    - Add code for printing debug info:
+        - after call to move_to_next_process() (but only for schedule_in_irq_context)
+            - print all registers of the struct process_ctx
+            - print the stack content by 32-bit values of the sp pointed by struct process_ctx
+
+
+
+--------------------------------------------------------
+
 Starting kernel... 
 
 kernel_c_main():  entry addr      = 0x102e7b 
