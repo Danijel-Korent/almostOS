@@ -1,9 +1,12 @@
 #include "scheduler.h"
 
+#include "panic.h"
 #include "util.h"           // for memset
 #include "kernel_stdio.h"   // for kernel_println
+#include "stack.h"
 
-
+static bool init_process_stack_allocator(void);
+static u8* allocate_stack_memory(void);
 static void create_process(struct process_ctx *new_process, const char* name, void (*func_ptr)(void));
 
 static void test_thread_2_handler(void);
@@ -26,9 +29,17 @@ void scheduler_init(void)
     current_process_index = 0;
     process_list[current_process_index].name = "Kernel process";
 
-    create_process(&process_list[1], "Test process 2", test_thread_2_handler);
-    create_process(&process_list[4], "Test process 3", test_thread_3_handler);
-    create_process(&process_list[15], "Test process 4", test_thread_4_handler);
+    if (init_process_stack_allocator())
+    {
+        create_process(&process_list[1], "Test process 2", test_thread_2_handler);
+        create_process(&process_list[4], "Test process 3", test_thread_3_handler);
+        create_process(&process_list[15], "Test process 4", test_thread_4_handler);
+    }
+    else
+    {
+        kernel_println("\nscheduler_init(): Failed to init init_process_stack_allocator()");
+        time_to_die();
+    }
 }
 
 struct process_ctx * get_current_process(void)
@@ -109,20 +120,6 @@ void schedule_in_irq_context(void)
 }
 #endif
 
-// This is really just a pointer that grows in one direction, but never shrinks, so it cannot deallocate space
-// Good enough for initial testing, but we cannot dinamically create and delete processes because the pointer
-// would quickly run out of memory
-// TODO:
-//      1) Instead of pointer growing in one direction, split stack area into 64k chunks and keep trace of free was used
-//          - Isn't this just re-implementation of current heap_malloc() ??
-//
-//      2) Use heap_malloc()
-//          - For that I need to add support for multiple bin sizes (I need to do that anyway)
-//              or
-//          - much faster solution would be to make allocator instance based, and just make new instace with PROCESS_STACK_SIZE bins
-//
-static int poors_man_stack_allocator = 0;
-
 
 // TODO: There is some x86 specific code that needs to be moved to arch/x86-32
 static void create_process(struct process_ctx *new_process, const char* name, void (*func_ptr)(void))
@@ -132,48 +129,126 @@ static void create_process(struct process_ctx *new_process, const char* name, vo
     memset(new_process, 0, sizeof(struct process_ctx));
     new_process->name = name;
 
-    u8 dummy_var = 0;
-
-    u32 stack_start_addr = 0;
-
-    #define PROCESS_STACK_SIZE (128 * 1024)
-
-    if (poors_man_stack_allocator == 0)
-    {
-        poors_man_stack_allocator = (u32)&dummy_var - PROCESS_STACK_SIZE;       // TODO: A hack until I implement proper stack memomory management
-        poors_man_stack_allocator = poors_man_stack_allocator & 0xFFFF0000;     // Align the address to 64K boundary for easier reading/debugging
-    }
-    else
-    {
-        poors_man_stack_allocator -= PROCESS_STACK_SIZE;
-    }
-
-    if (poors_man_stack_allocator <= PROCESS_STACK_SIZE)
-    {
-        kernel_printf("[ERROR] create_process(): No more stack space! poors_man_stack_allocator = 0x%x", poors_man_stack_allocator);
-        return;
-    }
-
-    stack_start_addr = (u32)poors_man_stack_allocator;
-
-    u32 *process_stack = (u32*) stack_start_addr;
-
-    // TODO: Specific to x86 cdecl, therefore must be moved to x86 specific code
-    //       More directly, this is related to the instructions call/ret, whose usage "cdecl" asumes
-    // TODO2: Remove this and only use IP reg
-    // process_stack[0]  = (u32) func_ptr;     // Return address
-
     // This whole struct is x86-specific, so after adding RISC-V support, this part will need to be moved to arch/x86
     // and here only use an opaque pointer containing architecture specific stuff
-    new_process->reg_esp = (u32) process_stack;
-    new_process->reg_ip  = (u32) func_ptr;
     new_process->reg_eflags = 0x00000002; // EFLAGS // TODO: This value disables interupts, but that is not important at the moment
+    new_process->reg_ip  = (u32) func_ptr;
+    new_process->reg_esp = (u32) allocate_stack_memory();
 
     kernel_printf("init_process(): Created process \"%s\" \n", name);
     kernel_printf("init_process():   entry = 0x%x \n", func_ptr);
-    kernel_printf("init_process():   stack = 0x%x \n", stack_start_addr);
-    kernel_printf("init_process():   SP    = 0x%x \n", new_process->reg_esp);
+    kernel_printf("init_process():   stack = 0x%x \n", new_process->reg_esp);
 }
+
+
+///////////////////////////////////// Stack memory management /////////////////////////////////////
+
+// Still not a great solution, not fully dynamic, but better than the previous "sliding pointer" implementation which could only move in one direction
+// Now I can now free the allocated memory, which gives me ability to freely kill and create processes
+
+#define PROCESS_STACK_SIZE  (128 * 1024) // This must always be to the power of 2, otherwise code will break in some places (like on aligment)
+#define PROCESS_STACK_COUNT (32)
+
+static u8 *process_stack_memory_base = NULL;
+
+static u8* stack_idx_to_ptr(u8 idx)
+{
+    if (idx >= PROCESS_STACK_COUNT)
+    {
+        // TODO: Log an error
+        return NULL;
+    }
+
+    return process_stack_memory_base + (idx * PROCESS_STACK_SIZE);
+}
+
+static u8 stack_ptr_to_idx(u8 *ptr)
+{
+    if (ptr >= (process_stack_memory_base + PROCESS_STACK_SIZE*PROCESS_STACK_COUNT))
+    {
+        // TODO: Log an error
+        return PROCESS_STACK_COUNT;
+    }
+
+    return (ptr - process_stack_memory_base) / PROCESS_STACK_SIZE;
+}
+
+static stack_handle_t free_blocks_stack;
+
+static u8 process_stack_memory[PROCESS_STACK_SIZE * (PROCESS_STACK_COUNT+1)]; // +1 for aligment
+
+static bool init_process_stack_allocator(void)
+{
+    kernel_println("\nCalled init_process_stack_allocator()");
+
+    //(unsigned int)();
+
+    process_stack_memory_base = (u8*) (((int)process_stack_memory + PROCESS_STACK_SIZE) & ~(PROCESS_STACK_SIZE-1)); // Align it
+
+    // Setup the stack for free blocks
+    {
+        static u8 stack_buffer[PROCESS_STACK_COUNT];
+
+        if ( ! stack_init(&free_blocks_stack, stack_buffer, sizeof(stack_buffer)))
+        {
+            return false;
+        }
+
+        // Populate free blocks list
+        for (int i = PROCESS_STACK_COUNT-1; i >= 0; i--)
+        {
+            if ( ! stack_push(&free_blocks_stack, i))
+            {
+                return false;
+            }
+        }
+    }
+}
+
+static u8* allocate_stack_memory(void)
+{
+    u8 index = 0;
+    u8* stack_address = NULL;
+
+    if (stack_pop(&free_blocks_stack, &index))
+    {
+        if (index >= PROCESS_STACK_COUNT)
+        {
+            LOG("ERROR: allocate_stack_memory() failed - invalid bin index!");
+        }
+        else
+        {
+            stack_address = stack_idx_to_ptr(index);
+
+            LOG("INFO: allocate_stack_memory() - memory successfully allocated");
+        }
+    }
+    else LOG("ERROR: allocate_stack_memory() failed - No free memory!");
+
+    return stack_address;
+}
+
+static void free_stack_memory(u8* ptr)
+{
+    if (ptr == NULL) return; // QTODO: Log an error
+
+    u8 index = stack_ptr_to_idx(ptr);
+
+    if (index >= PROCESS_STACK_COUNT)
+    {
+        LOG("ERROR: free_stack_memory() failed - wrong index");
+    }
+
+    if ( ! stack_push(&free_blocks_stack, index))
+    {
+        LOG("ERROR: free_stack_memory() failed");
+    }
+    else
+    {
+        LOG("INFO: free_stack_memory() - memory successfully freed");
+    }
+}
+
 
 
 ///////////////////////////////////// Scheduler test code /////////////////////////////////////

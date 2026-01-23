@@ -19,7 +19,7 @@ struct heap_bin_contex
 
 static struct heap_bin_contex heap_bin;
 
-#define BIN_BLOCK_COUNT    (3)
+#define BIN_BLOCK_COUNT    (3)      // Why only 3 blocs? Was this only used for testing??
 #define BIN_BLOCK_SIZE     (128)
 #define BIN_RED_ZONE_SIZE  (32)
 
