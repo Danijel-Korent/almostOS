@@ -151,7 +151,19 @@ syscall_test:
     mov edx, message_length
     int 0x80                       ; make system call using int 0x80
 
-    jmp syscall_test  ; just loop for now
+    mov eax, 4                     ; sys_write system call number
+    mov ebx, 1                     ; file descriptor 1 (stdout)
+    mov ecx, message
+    mov edx, message_length
+    int 0x80                       ; make system call using int 0x80
+
+    mov eax, 4                     ; sys_write system call number
+    mov ebx, 1                     ; file descriptor 1 (stdout)
+    mov ecx, message
+    mov edx, message_length
+    int 0x80                       ; make system call using int 0x80
+
+    ; jmp syscall_test  ; just loop for now
 
 
     ; System call: exit(int status)

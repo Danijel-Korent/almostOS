@@ -15,6 +15,7 @@ struct process_ctx
     u32 reg_ebp;
     u32 reg_ip;     // PC
     u32 reg_eflags;
+    u8* stack_mem_base;
     const char* name;
 };
 

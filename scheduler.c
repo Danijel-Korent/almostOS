@@ -7,6 +7,8 @@
 
 static bool init_process_stack_allocator(void);
 static u8* allocate_stack_memory(void);
+static void free_stack_memory(u8* ptr);
+
 static void create_process(struct process_ctx *new_process, const char* name, void (*func_ptr)(void));
 
 static void test_thread_2_handler(void);
@@ -19,7 +21,7 @@ static struct process_ctx process_list[16] = {0}; // 16 processes ought to be en
 
 static int current_process_index = 0;
 
-
+void syscall_test(void);
 
 void scheduler_init(void)
 {
@@ -33,7 +35,8 @@ void scheduler_init(void)
     {
         create_process(&process_list[1], "Test process 2", test_thread_2_handler);
         create_process(&process_list[4], "Test process 3", test_thread_3_handler);
-        create_process(&process_list[15], "Test process 4", test_thread_4_handler);
+        //create_process(&process_list[15], "Test process 4", test_thread_4_handler);
+        create_process(&process_list[15], "syscall_test", syscall_test);
     }
     else
     {
@@ -59,7 +62,7 @@ struct process_ctx* move_to_next_process(void)
         // To prevent going outside of array bounds
         i = i % (sizeof(process_list) / sizeof(process_list[0]));
 
-        if (process_list[i].name == NULL) // This means the slot is unused
+        if (process_list[i].name == NULL) // This means the slot is unused // TODO: Add function for this check
         {
             // Skip unused slots
             continue;
@@ -120,7 +123,7 @@ void schedule_in_irq_context(void)
 }
 #endif
 
-
+// TODO: Better name for this function at the moment would be init_process_ctx, but maybe later it will begin to look like create_process()
 // TODO: There is some x86 specific code that needs to be moved to arch/x86-32
 static void create_process(struct process_ctx *new_process, const char* name, void (*func_ptr)(void))
 {
@@ -133,11 +136,30 @@ static void create_process(struct process_ctx *new_process, const char* name, vo
     // and here only use an opaque pointer containing architecture specific stuff
     new_process->reg_eflags = 0x00000002; // EFLAGS // TODO: This value disables interupts, but that is not important at the moment
     new_process->reg_ip  = (u32) func_ptr;
-    new_process->reg_esp = (u32) allocate_stack_memory();
+
+    u8 *stack_mem_base = allocate_stack_memory();
+
+    new_process->stack_mem_base = stack_mem_base;
+    new_process->reg_esp  = (u32) stack_mem_base;
 
     kernel_printf("init_process(): Created process \"%s\" \n", name);
     kernel_printf("init_process():   entry = 0x%x \n", func_ptr);
     kernel_printf("init_process():   stack = 0x%x \n", new_process->reg_esp);
+}
+
+static void kill_process(int process_index)
+{
+    process_list[process_index].name = NULL; // This means the slot is unused // TODO: Add function for this check
+
+    free_stack_memory(process_list[process_index].stack_mem_base);
+}
+
+void kill_current_process(void)
+{
+    if (current_process_index != 0) // Do not kill kernel thread
+    {
+        kill_process(current_process_index);
+    }
 }
 
 

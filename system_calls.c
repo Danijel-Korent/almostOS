@@ -5,6 +5,7 @@
 #include "system_headers/unistd.h"  // For STDOUT_FILENO
 #include "util.h"
 #include "kernel_stdio.h"
+#include "scheduler.h"
 
 
 // https://elixir.bootlin.com/linux/latest/source/include/uapi/asm-generic/errno-base.h#L18
@@ -17,6 +18,8 @@
 #define SYSCALL_EXIT        (1)
 #define SYSCALL_WRITE       (4)
 
+// TODO: Maybe just move syscall_entry_point_C() to the end of the file as there will be a lot of syscall functions added
+static void sys_exit(int exit_status);
 
 void syscall_entry_point_C(uint32_t syscall_num, uint32_t arg1, uint32_t arg2, uint32_t arg3)
 {
@@ -31,6 +34,19 @@ void syscall_entry_point_C(uint32_t syscall_num, uint32_t arg1, uint32_t arg2, u
     //sys_write_test();
 
     if (syscall_num == SYSCALL_WRITE) sys_write((int) arg1, (const void*) arg2, (size_t) arg3);
+    else if (syscall_num == SYSCALL_EXIT) sys_exit((int) arg1);
+}
+
+static void sys_exit(int exit_status)
+{
+#if 1
+    kernel_printf("\nCalled sys_exit() with args: \n");
+    kernel_printf("    status = %d \n", exit_status);
+#endif
+
+    (void) exit_status; //  TODO: Not yet implemented
+
+    kill_current_process();
 }
 
 void sys_write_test(void)
