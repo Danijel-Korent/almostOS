@@ -9,7 +9,7 @@ static bool init_process_stack_allocator(void);
 static u8* allocate_stack_memory(void);
 static void free_stack_memory(u8* ptr);
 
-static void create_process(struct process_ctx *new_process, const char* name, void (*func_ptr)(void));
+static void init_process_ctx(struct process_ctx *new_process, const char* name, void (*func_ptr)(void));
 
 static void test_thread_2_handler(void);
 static void test_thread_3_handler(void);
@@ -33,10 +33,10 @@ void scheduler_init(void)
 
     if (init_process_stack_allocator())
     {
-        create_process(&process_list[1], "Test process 2", test_thread_2_handler);
-        create_process(&process_list[4], "Test process 3", test_thread_3_handler);
-        //create_process(&process_list[15], "Test process 4", test_thread_4_handler);
-        create_process(&process_list[15], "syscall_test", syscall_test);
+        init_process_ctx(&process_list[1], "Test process 2", test_thread_2_handler);
+        init_process_ctx(&process_list[4], "Test process 3", test_thread_3_handler);
+        //init_process_ctx(&process_list[15], "Test process 4", test_thread_4_handler);
+        init_process_ctx(&process_list[15], "syscall_test", syscall_test);
     }
     else
     {
@@ -123,9 +123,9 @@ void schedule_in_irq_context(void)
 }
 #endif
 
-// TODO: Better name for this function at the moment would be init_process_ctx, but maybe later it will begin to look like create_process()
+
 // TODO: There is some x86 specific code that needs to be moved to arch/x86-32
-static void create_process(struct process_ctx *new_process, const char* name, void (*func_ptr)(void))
+static void init_process_ctx(struct process_ctx *new_process, const char* name, void (*func_ptr)(void))
 {
     kernel_println("Called init_process()");
 
