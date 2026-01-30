@@ -44,7 +44,7 @@ void LOG(const unsigned char* const message)
 
 static void kernel_print(const unsigned char* const message)
 {
-    terminal_printline(&shell_terminal, message);
+    terminal_print(&shell_terminal, message);
 
     for (int i = 0; true; i++)
     {
@@ -58,7 +58,7 @@ static void kernel_print(const unsigned char* const message)
 void kernel_println(const unsigned char* const message)
 {
     kernel_print(message);
-    tty_write('\n');
+    kernel_print("\n");
 }
 
 
@@ -136,24 +136,27 @@ void kernel_printf(const char* format, ...)
             int zero_pad = 0;
 
             // Check for zero-padding flag
-            if (format[i] == '0') {
+            if (format[i] == '0')
+            {
                 zero_pad = 1;
                 i++;
             }
 
             // Parse width (simple integer parsing)
-            while (format[i] >= '0' && format[i] <= '9') {
+            while (format[i] >= '0' && format[i] <= '9')
+            {
                 width = width * 10 + (format[i] - '0');
                 i++;
             }
 
             if (format[i] == 's')
             {
-                const char* s = (const char*)arg_ptr[arg_index++];
-                if (s)
+                const char* str = (const char*)arg_ptr[arg_index++];
+
+                if (str != NULL)
                 {
-                    for (; *s && buf_i < (int)(sizeof(buffer) - 1); s++)
-                        buffer[buf_i++] = *s;
+                    for (; *str && buf_i < (int)(sizeof(buffer) - 1); str++)
+                        buffer[buf_i++] = *str;
                 }
             }
             else if (format[i] == 'd')

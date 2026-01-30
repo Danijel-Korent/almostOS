@@ -19,11 +19,12 @@ typedef struct terminal_contex_tag
     int  window_size_y;         // Size on the display (in text lines)
     int  current_first_line;    // Position of the first line to be displayed
     int  current_end_line;      // Position of the end of the buffer
-    int  current_end_x;         // Current line buffer / x-axis end
+    int  current_end_x;         // Current line buffer/x-axis end
     bool is_input_enabled;
 } terminal_contex_t;
 
 void terminal_init          (terminal_contex_t *terminal_context, int window_position_y, int window_size_y, bool is_input_enabled);
+void terminal_print         (terminal_contex_t *terminal_context, const unsigned char* const string);
 void terminal_printline     (terminal_contex_t *terminal_context, const unsigned char* const string);
 void terminal_putchar       (terminal_contex_t *terminal_context, const char new_char);
 //void terminal_render_to_VGA (terminal_contex_t *terminal_context);

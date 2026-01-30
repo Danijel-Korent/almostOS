@@ -1,15 +1,21 @@
 #include "../system_headers/string.h" // TODO: BIG PROBLEM -> I have two string.h files. Merge them
 
 // TODO: I have two implementations of strlen because I forgot that I've already implemented it once
-uint32_t strlen(const char *str)
+uint32_t strlen(const char *string)
 {
-    const char *s;
-    for (s = str; *s; ++s) {} // Increment `s` until the null terminator is found
-    return (s - str); // Return the difference, which is the length of the string
+    const char *itr;
+
+    // Find null-terminator
+    for (itr = string; *itr != 0; itr++);
+
+    // The difference between this two pointers is the length of the string
+    return (itr - string); 
 }
 
 int strncmp(const char *str1, const char *str2, uint32_t n)
 {
+    // TODO: WTF is this shit? Did I maybe use AI te get this?
+    //       I don't remember using AI, but I would also not write code like this, I hope
     while (n && *str1 && (*str1 == *str2)) {
         ++str1;
         ++str2;

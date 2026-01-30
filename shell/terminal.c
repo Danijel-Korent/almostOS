@@ -185,44 +185,27 @@ static void terminal_render_to_VGA(terminal_contex_t *terminal_context)
     }
 }
 
-// TODO: If I reimplement this with terminal_putchar() it will automaticaly handle spliting lines that are too long
-void terminal_printline(terminal_contex_t *terminal_context, const unsigned char* const string)
+
+void terminal_print(terminal_contex_t *terminal_context, const unsigned char* string)
 {
-#ifndef DISABLE_TERMINAL
-    if (terminal_context == NULL)
+    while(*string != 0)
     {
-        printf("ERROR: terminal_init() - terminal_context == NULL");
-        return;
+        terminal_putchar(terminal_context, *string);
+        string++;
     }
-
-    if (string == NULL)
-    {
-        printf("ERROR: terminal_init() - string == NULL");
-        return;
-    }
-
-    char *line = terminal_get_next_free_line_buffer(terminal_context);
-
-    if (line == NULL)
-    {
-        printf("ERROR: terminal_init() - line == NULL");
-        return;
-    }
-
-    for (int i = 0; i < TERMINAL_MAX_X; i++)
-    {
-        if (string[i] == 0) break;
-
-        line[i] = string[i];
-    }
-
-    terminal_context->current_end_x = TERMINAL_MAX_X;
 
     terminal_render_to_VGA(terminal_context);
-#endif
 }
 
+void terminal_printline(terminal_contex_t *terminal_context, const unsigned char* string)
+{
+    terminal_print(terminal_context, string);
+    terminal_putchar(terminal_context, '\n');
 
+    terminal_render_to_VGA(terminal_context);
+}
+
+// 
 void terminal_putchar(terminal_contex_t *terminal_context, const char new_char)
 {
 #ifndef DISABLE_TERMINAL
@@ -230,6 +213,12 @@ void terminal_putchar(terminal_contex_t *terminal_context, const char new_char)
     {
         printf("ERROR: terminal_init() - terminal_context == NULL");
         return;
+    }
+
+    if (new_char == '\n' || new_char == '\r') // Enter
+    {
+        (void) terminal_get_next_free_line_buffer(terminal_context);
+        terminal_context->current_end_x = 0;
     }
 
     char *line_buf = NULL;
@@ -262,6 +251,8 @@ void terminal_putchar(terminal_contex_t *terminal_context, const char new_char)
 #endif
 }
 
+// TODO: This whole terminal code is trully horrible. Even AI wouldn't write something like this
+//       I need to refactor this, or simply remove it
 void terminal_on_keypress(terminal_contex_t *terminal_context, unsigned char key)
 {
 #ifndef DISABLE_TERMINAL
@@ -287,9 +278,9 @@ void terminal_on_keypress(terminal_contex_t *terminal_context, unsigned char key
         }
     }
 
-    // x86 keyread produces 10 after pressing enter
-    // COM1 produces 13 after pressing enter
-    if (key == 10 || key == 13) // Enter
+    // x86 keyread produces 10 (\n) after pressing enter
+    // COM1 produces 13 (\r) after pressing enter
+    if (key == '\n' || key == '\r') // Enter
     {
         terminal_printline(terminal_context, terminal_context->input_line);
 
