@@ -11,13 +11,15 @@ static void free_stack_memory(u8* ptr);
 
 static void init_process_ctx(struct process_ctx *new_process, const char* name, void (*func_ptr)(void));
 
-static void test_thread_2_handler(void);
-static void test_thread_3_handler(void);
-static void test_thread_4_handler(void);
+//static void test_thread_2_handler(void);
+//static void test_thread_3_handler(void);
+//static void test_thread_4_handler(void);
+
+#define MAX_PROCESS_COUNT (16) // 16 processes ought to be enough for everyone (I need to stop making this jokes)
 
 // This array holds info about all processes in the system
 // For now, process_ctx.name == NULL means that slot is not used
-static struct process_ctx process_list[16] = {0}; // 16 processes ought to be enough for everyone (I need to stop making this jokes)
+static struct process_ctx process_list[MAX_PROCESS_COUNT] = {0};
 
 static int current_process_index = 0;
 
@@ -33,9 +35,9 @@ void scheduler_init(void)
 
     if (init_process_stack_allocator())
     {
-        init_process_ctx(&process_list[1], "Test process 2", test_thread_2_handler);
-        init_process_ctx(&process_list[4], "Test process 3", test_thread_3_handler);
-        //init_process_ctx(&process_list[15], "Test process 4", test_thread_4_handler);
+        //init_process_ctx(&process_list[5], "Test process 2", test_thread_2_handler);
+        //create_process("Test process 3", test_thread_3_handler);
+        //init_process_ctx(&process_list[14], "Test process 4", test_thread_4_handler);
         init_process_ctx(&process_list[15], "syscall_test", syscall_test);
     }
     else
@@ -45,9 +47,23 @@ void scheduler_init(void)
     }
 }
 
-struct process_ctx * get_current_process(void)
+struct process_ctx* get_current_process(void)
 {
     return &process_list[current_process_index];
+}
+
+static struct process_ctx* find_free_process_ctx(void)
+{
+    // Skip kernel process, should be always alive
+    for (int i = 1; i < (sizeof process_list / sizeof process_list[0]); i++)
+    {
+        if (process_list[i].name == NULL) // This means the slot is unused // TODO: Add function for this check
+        {
+            return &process_list[i];
+        }
+    }
+
+    return NULL;
 }
 
 // Simple round-robin
@@ -123,6 +139,19 @@ void schedule_in_irq_context(void)
 }
 #endif
 
+void create_process(const char* name, void (*func_ptr)(void))
+{
+    struct process_ctx* proc_ctx = find_free_process_ctx();
+
+    if (proc_ctx != NULL)
+    {
+        init_process_ctx(proc_ctx, name, func_ptr);
+    }
+    else
+    {
+        kernel_println("create_process(): Failed to create process, no more structs in pool!");
+    }
+}
 
 // TODO: There is some x86 specific code that needs to be moved to arch/x86-32
 static void init_process_ctx(struct process_ctx *new_process, const char* name, void (*func_ptr)(void))
@@ -147,8 +176,14 @@ static void init_process_ctx(struct process_ctx *new_process, const char* name, 
     kernel_printf("init_process():   stack = 0x%x \n", new_process->reg_esp);
 }
 
-static void kill_process(int process_index)
+void kill_process(int process_index)
 {
+    if (process_index == 0)
+    {
+        kernel_println("[Kernel] WTF dude!??");
+        return;
+    }
+
     process_list[process_index].name = NULL; // This means the slot is unused // TODO: Add function for this check
 
     free_stack_memory(process_list[process_index].stack_mem_base);
@@ -162,6 +197,28 @@ void kill_current_process(void)
     }
 }
 
+const char* get_process_name(int process_index)
+{
+    return process_list[process_index].name;
+}
+
+struct process_internals get_process_internals(int process_index)
+{
+    struct process_internals internals = {0};
+
+    internals.ip = process_list[process_index].reg_ip;
+
+    internals.stack_mem_start = (u32) process_list[process_index].stack_mem_base;
+    internals.stack_base = process_list[process_index].reg_ebp;
+    internals.stack_pointer = process_list[process_index].reg_esp;
+
+    return internals;
+}
+
+int get_max_process_count(void)
+{
+    return MAX_PROCESS_COUNT;
+}
 
 ///////////////////////////////////// Stack memory management /////////////////////////////////////
 
@@ -302,17 +359,17 @@ static void thread_test(const char* func_name, u32 counter_target)
     }
 }
 
-static void test_thread_2_handler(void)
+void test_thread_2_handler(void)
 {
     thread_test(__PRETTY_FUNCTION__, (1*1000*1000));
 }
 
-static void test_thread_3_handler(void)
+void test_thread_3_handler(void)
 {
     thread_test(__PRETTY_FUNCTION__, (2*1000*1000));
 }
 
-static void test_thread_4_handler(void)
+void test_thread_4_handler(void)
 {
     thread_test(__PRETTY_FUNCTION__, (3*1000*1000));
 }

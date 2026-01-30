@@ -166,3 +166,44 @@ void long_to_hex(long int number, char * string_buffer, int string_buffer_len, u
         LOG("ERROR: long_to_hex() - String buffer too small for input number!");
     }
 }
+
+
+int atoi(const char* str)
+{
+    if (str == NULL)
+    {
+        LOG("ERROR: hex_to_long() - received NULL arg");
+        return 0;
+    }
+
+    long int result = 0;
+    long int multiplier = 1;
+
+    int index = strlen_unsafe(str) - 1;
+
+    while( index >= 0)
+    {
+        int chr_value = 0;
+        char chr = str[index];
+
+        index--;
+
+        if (chr >= '0' && chr <= '9')
+        {
+            chr_value = chr - '0';
+        }
+        else
+        {
+            LOG("WARNING: hex_to_long() - inappropriate character");
+            continue; // Don't update multiplier and result
+        }
+
+        result += chr_value * multiplier;
+
+        multiplier = multiplier * 10;
+    }
+
+    //printf("%s calculated to: %i \n", str, result);
+
+    return result;
+}

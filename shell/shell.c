@@ -7,6 +7,9 @@
 #include "cmd_hexdump.h"
 #include "cmd_cat.h"
 #include "cmd_ls.h"
+#include "cmd_run.h"
+#include "cmd_kill.h"
+#include "cmd_ps.h"
 
 
 /**
@@ -97,7 +100,7 @@ void shell_input(u8 * input)
         return;
     }
 
-    if (input[0] == 'c')
+    if (input[0] == 'c') // hehehe
     {
         execute__cat(argc, argv);
     }
@@ -114,13 +117,28 @@ void shell_input(u8 * input)
         kernel_println("");
         kernel_println("    ls       - List files");
         kernel_println("    cat file - Output file content");
+        kernel_println("    ps       - List processes");
+        kernel_println("    kill PID - Kill a process");
+        kernel_println("    run TEST - Run a test process");
         kernel_println("    dump x   - Dump content of the memory at address x");
         kernel_println("    help     - Prints this message");
         kernel_println("");
     }
+    else if (input[0] == 'k')
+    {
+        execute__kill(argc, argv);
+    }
     else if (input[0] == 'l')
     {
         execute__ls(argc, argv);
+    }
+    else if (input[0] == 'p')
+    {
+        execute__ps(argc, argv);
+    }
+    else if (input[0] == 'r')
+    {
+        execute__run(argc, argv);
     }
     else if (input[0] == 0)
     {
