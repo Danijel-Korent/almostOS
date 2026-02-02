@@ -5,3 +5,6 @@ build/
 *.bin
 *.elf
 *.dis
+
+# temp
+linux_x86_userspace_test.bin.h

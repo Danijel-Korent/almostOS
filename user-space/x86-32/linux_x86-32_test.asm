@@ -10,8 +10,9 @@
 ; qemu-i386 ./linux_x86-32_test
 
 section .data
-    message db 'Hello World', 0xa   ; String to print with newline (0xa)
+    message db 0xa, 0xa, 'Hello World from the user space!', 0xa   ; String to print with newline (0xa)
     message_length equ $ - message  ; Calculate length of message
+
 
 section .text
     global _start                   ; Entry point for linker
@@ -23,9 +24,12 @@ _start:
     ; ecx = pointer to message
     ; edx = length of message
 
+    call get_IP
+    lea ecx, [eax + message - _start -5] ; -5 to get the IP address before executing 'call' (the _start), not after
+
     mov eax, 4                     ; sys_write system call number
     mov ebx, 1                     ; file descriptor 1 (stdout)
-    mov ecx, message
+    ; mov ecx, message
     mov edx, message_length
     int 0x80                       ; make system call using int 0x80
 
@@ -36,3 +40,9 @@ _start:
     mov eax, 1                     ; sys_exit system call number
     mov ebx, 0                     ; exit status 0 (success)
     int 0x80                       ; make system call using int 0x80
+
+
+; Need to read IP to make the binary position independent
+get_IP:
+    mov eax, [esp]            ; esp contains the return address, the IP of the instruction after 'call'
+    ret

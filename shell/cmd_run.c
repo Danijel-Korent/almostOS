@@ -4,23 +4,23 @@
 #include "scheduler.h"
 #include "util.h"
 
+#include "linux_x86_userspace_test.bin.h"
+
 
 void syscall_test(void);
 
-static void (*program_ptr)(void) = syscall_test;
-
 struct test_list_field
 {
-    const char name[16];
+    const char name[32];
     void (*process_ptr)(void);
 };
 
 static struct test_list_field test_list[] = {
     {"Syscall Test", syscall_test},
-    {"Syscall Test", syscall_test},
+    {"linux_x86_userspace_test_bin", (void (*)(void)) linux_x86_userspace_test_bin},
     {"test_thread_2", test_thread_2_handler},
     {"test_thread_3", test_thread_3_handler},
-    {"test_thread_4", test_thread_4_handler}
+    {"test_thread_4", test_thread_4_handler},
 };
 
 

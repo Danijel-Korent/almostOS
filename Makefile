@@ -71,8 +71,17 @@ all: qemu
 iso_image: kernel
 	genisoimage -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -A AlmostOS -input-charset utf8 -boot-info-table -o AlmostOS.iso arch/x86-32/iso_image_content
 
+
+# This is only temporary while testing
+linux_x86_userspace_test.bin.h: user-space/x86-32/linux_x86-32_test.asm
+	make linux_x86_userspace_test
+
+$(obj_files) : linux_x86_userspace_test.bin.h
+
+
+
 kernel: $(obj_files)
-	ld -T kernel.ld -melf_i386 $(obj_files) -o arch/x86-32/iso_image_content/boot/AlmostOS_kernel.elf -Map=memory.map
+	ld -T kernel.ld -m elf_i386 $(obj_files) -o arch/x86-32/iso_image_content/boot/AlmostOS_kernel.elf -Map=memory.map
 
 # Define a pattern rule that compiles every .asm file into an .o file
 $(OBJ_DIR)/%.o : %.asm arch/x86-32/arch_scheduler.h arch/x86-32/instruction_wrappers.h
@@ -119,6 +128,12 @@ clean:
 	rm -f *.elf
 	rm -f arch/x86-32/iso_image_content/boot/*.elf
 
+linux_x86_userspace_test:
+	nasm -f elf32 -o linux_x86_userspace_test.o user-space/x86-32/linux_x86-32_test.asm
+	ld -m elf_i386 -o linux_x86_userspace_test.elf linux_x86_userspace_test.o  # -pie
+	objdump -Dr -Mintel -M numeric linux_x86_userspace_test.elf > linux_x86_userspace_test.dis
+	objcopy -O binary linux_x86_userspace_test.elf linux_x86_userspace_test.bin
+	xxd -i linux_x86_userspace_test.bin > linux_x86_userspace_test.bin.h
 
 linux_risc_v_test:
 	riscv64-unknown-elf-as -march=rv32i -o linux_riscv_test.o user-space/risc-v/linux_riscv_test.S
