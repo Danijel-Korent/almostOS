@@ -268,7 +268,7 @@ void terminal_on_keypress(terminal_contex_t *terminal_context, unsigned char key
         terminal_context->input_cursor_position++;
     }
 
-    if (key == 8) // Backspace
+    if (key == 8 || key == 0x7f) // Backspace
     {
         if (terminal_context->input_cursor_position != 0)
         {

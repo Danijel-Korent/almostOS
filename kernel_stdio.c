@@ -216,7 +216,23 @@ void kernel_putchar(const char new_char)
 // TODO: Move this into callbacks/integration file
 void event_on_keypress(u8 key)
 {
-    tty_write(key);
+    //kernel_printf("%02x", key);
+
+    // Not a best place to do this, but will consolidate later
+    // TODO/BUG: This will also delete the shell prompt, but I will deal with this when implementing a proper solution
+    //           Basically, VGA terminal code needs to emulate a terminal, while tty code needs to communicate with a terminal
+    //           (with both VGA term and tty term), but both of these roles are just hacked together at the moment
+    if (key == 8 || key == 0x7f) // Del char
+    {
+        // Delete one char in the terminal
+        tty_write('\b');    // Move cursor left
+        tty_write(' ');     // Overwrite the character
+        tty_write('\b');    // Move back left
+    }
+    else
+    {
+        tty_write(key);
+    }
 
     // TODO: I have to rip out this "terminal" monstrosity that is lodged between the kernel and the shell
     //       And move it into x86-32 (although it is arch agnostic, it will never be used on RISC-V)
