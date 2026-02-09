@@ -1,5 +1,5 @@
-#ifndef _STRING_H_
-#define _STRING_H_
+#ifndef _UTILS_STRING_H_
+#define _UTILS_STRING_H_
 
 // TODO: BIG PROBLEM -> I have two string.h files. Merge them
 
@@ -13,4 +13,4 @@ u8* trim_string(u8* input_string);
 void append_string(u8* const destination, u32 destination_size, const u8* const source, u32 source_size);
 
 
-#endif // _STRING_H_
+#endif
