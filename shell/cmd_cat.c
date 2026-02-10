@@ -11,12 +11,15 @@
 #include "kernel_stdio.h"
 //#include "kernel_stddef.h"
 
+#include "filesystem_router.h"
+
 #include "../fs/tinyfs/code/rootdir_cluster.h" // TODO: TEMP - This needs to be handled better
 #include "../fs/tinyfs/code/cluster_operations.h" // TODO: TEMP - This needs to be handled better
 
 
 void command_cat(const char* filename)
 {
+#if 0
     //if (ERROR(filename == NULL)) return;
     if (filename == NULL) return;
 
@@ -50,6 +53,22 @@ void command_cat(const char* filename)
             kernel_putchar(byte);
         }
     }
+
+#else
+    char buffer[1024];
+    int ret_len = read_file(filename, buffer, sizeof buffer);
+
+    buffer[sizeof buffer -1] = 0;
+
+    for (int i = 0; i < ret_len; i++)
+    {
+        uint8_t byte = buffer[i];
+
+        if (byte < 32) byte = '.';
+
+        kernel_putchar(byte);
+    }
+#endif
 
     kernel_println("");
 }

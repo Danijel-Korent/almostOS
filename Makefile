@@ -20,12 +20,12 @@ ASFLAGS = -f elf32
 SRC_DIR = .
 ARCH_X86_32_DIR = ./arch/x86-32/
 ARCH_RISC_V_DIR = ./arch/risc-v/
-SKIP_DIR_1 = fs
+SKIP_DIR_1 = tinyfs
 SKIP_DIR_2 = arch
 OBJ_DIR = ./build
 
 # Include directories
-INCLUDE_DIRS := . drivers utils memory shell
+INCLUDE_DIRS := . drivers utils memory shell fs
 INCLUDE_FLAGS := $(addprefix -I, $(INCLUDE_DIRS))
 
 ###### TEMP TinyFS ######
@@ -36,7 +36,8 @@ TINY_FS_OBJS = $(TINY_FS_SRCS:.c=.o) # Define the object files based on the sour
 ###### TEMP TinyFS ######
 
 # Finding all .c and .asm files in subdirectories
-SRCS_C_COMMON   := $(shell find $(SRC_DIR) -type d \( -name $(SKIP_DIR_1) -o -name $(SKIP_DIR_2) \) -prune -o -type f -name "*.c" -print) # I don't like this anymore
+SRCS_C_COMMON := $(shell find $(SRC_DIR) -type d \( -name $(SKIP_DIR_1) -o -name $(SKIP_DIR_2) \) -prune -o -type f -name "*.c" -print) # I don't like this anymore
+SRCS_H_COMMON := $(shell find $(SRC_DIR) -type d \( -name $(SKIP_DIR_1) -o -name $(SKIP_DIR_2) \) -prune -o -type f -name "*.h" -print)
 
 # Arch specific
 SRCS_C_X86_32   := $(shell find $(ARCH_X86_32_DIR) -type d -name $(SKIP_DIR_1) -prune -o -type f -name "*.c" -print)
@@ -76,7 +77,7 @@ iso_image: kernel
 linux_x86_userspace_test.bin.h: user-space/x86-32/linux_x86-32_test.asm
 	make linux_x86_userspace_test
 
-$(obj_files) : linux_x86_userspace_test.bin.h
+$(obj_files) : linux_x86_userspace_test.bin.h $(SRCS_H_COMMON)
 
 
 

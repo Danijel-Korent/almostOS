@@ -4,7 +4,7 @@
 #include "kernel_stddef.h"
 
 int memory_is_equal(const u8* const mem1, int mem1_size, u8* const mem2, int mem2_size);
-void mem_copy(u8* const destination, int destination_size, const u8* const source, int source_size);
+int mem_copy(u8* const destination, int destination_size, const u8* const source, int source_size);
 void* memset(void* ptr, int value, unsigned int num);
 
 char byte_to_hexchar(unsigned char byte);

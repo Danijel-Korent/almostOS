@@ -12,6 +12,11 @@
 #include "cmd_ps.h"
 
 
+const char* get_current_dir(void)
+{
+    return "/";
+}
+
 /**
  * @brief Parse raw input string and returns it in argv/argc format (array of strings/arguments)
  *

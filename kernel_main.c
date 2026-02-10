@@ -148,9 +148,7 @@ Terminal escape code:
 #include "poors_man_VGA_driver.h"
 #include "poors_man_keyboard_driver.h"
 #include "arch/tty.h"
-
-#include "fs_operations.h"
-#include "fs/tinyfs/images/image__cluster_size_100.h"
+#include "filesystem_router.h"
 
 #include "scheduler.h"
 
@@ -225,18 +223,12 @@ void kernel_c_main( void )
 
     //void sys_write_test(void); sys_write_test();
 
+    fs_router_init();
+    mount_fs(FS_TYPE__TINY_FS, "/mnt");
+    mount_fs(FS_TYPE__BLOB_FS, "/blobs");
+    mount_fs(FS_TYPE__TEST_FS, "/test");
+
     scheduler_init();
-
-    if (fs_load_ramdisk(DISK_IMAGE) == 0)
-    {
-        kernel_println("\nLoading initial RAM disk: SUCCESS");
-    }
-    else
-    {
-        kernel_println("\nLoading initial RAM disk: FAILED");
-    }
-
-    kernel_println("");
 
     //syscall_test();
 
@@ -249,14 +241,13 @@ void kernel_c_main( void )
         // When the driver detects keypress, it call a callback for terminal input,
         // and terminal then potentially calls other commands and updates the VGA display
         keyboard_driver_poll();
-
         tty_input_poll();
 
         // Currently only cooperative scheduling is implemented, so each thread/process
         // yields CPU time voluntarily
         schedule();
 
-        // TODO: First we need to program PIC otherwise the CPU will never be awaken
+        // TODO: First we need to program PIC + timer, otherwise the CPU will never be awaken
         //halt_cpu();
     }
 }
@@ -267,12 +258,7 @@ void tty_input_poll(void)
 
 #if 0
     {
-        char code_str[15] = "AbcdAbcd";
-
-        long_to_hex(val, code_str, 8, 16);
-        //long_to_hex(val & ~0x80, code_str, 8, 16);
-
-        kernel_println(code_str);
+        if (val != 0xff) kernel_printf("%02x", val);
     }
 #endif
 

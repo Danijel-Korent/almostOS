@@ -33,18 +33,24 @@ int memory_is_equal(const u8* const mem1, int mem1_size, u8* const mem2, int mem
     return is_equal;
 }
 
-void mem_copy(u8* const destination, int destination_size, const u8* const source, int source_size)
+// It's like a memcpy, but with an destination overflow check. I have added this comment just so that I can find this func when searching for memcpy
+int mem_copy(u8* const destination, int destination_size, const u8* const source, int source_size)
 {
-    if (destination == NULL || source == NULL) return; //QTODO: Log an error
+    if (destination == NULL || source == NULL) return -1; //QTODO: Log an error
 
     int size = source_size;
 
-    if (source_size > destination_size) size = destination_size;
+    if (source_size > destination_size)
+    {
+        size = destination_size;
+    }
 
     for (int i = 0; i < size; i++)
     {
         destination[i] = source[i];
     }
+
+    return size;
 }
 
 void* memset(void* ptr, int value, unsigned int num)

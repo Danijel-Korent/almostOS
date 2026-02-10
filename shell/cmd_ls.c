@@ -10,6 +10,8 @@
 #include "util.h"
 #include "kernel_stdio.h"
 
+#include "filesystem_router.h"
+
 #include "../fs/tinyfs/code/rootdir_cluster.h" // TODO: TEMP - This needs to be handled better
 
 //#include "string.h"
@@ -18,6 +20,7 @@
 
 void execute__ls(int argc, char* argv[])
 {
+#if 0
     int32_t count = rootdir_get_table_size();
 
     struct file_entry entry;
@@ -43,6 +46,29 @@ void execute__ls(int argc, char* argv[])
             kernel_println(line);
         }
     }
+#else
+
+    char *directory = "/";
+
+    if (argc > 1) directory = argv[1];
+
+    char buffer[2048];
+    int ret_len = get_list_of_files(directory, buffer, sizeof buffer);
+
+    //kernel_printf("[ls] ret_len = %d \n", ret_len);
+
+    for (int i = 0; i < ret_len; i++)
+    {
+        if (buffer[i] == 0)
+        {
+            kernel_putchar('\n');
+        }
+        else
+        {
+            kernel_putchar(buffer[i]);
+        }
+    }
+#endif
 
     kernel_println("");
 }
