@@ -25,9 +25,8 @@
 // TODO/BUG: You are not suposed to be able to delete the shell prompt :O
 
 // Local function definitions
-static void terminal_clear_input_line(terminal_contex_t *terminal_context);
+//static void terminal_clear_input_line(terminal_contex_t *terminal_context);
 static void terminal_clear_VGA(terminal_contex_t *terminal_context);
-static void terminal_render_to_VGA(terminal_contex_t *terminal_context);
 
 //#define DISABLE_TERMINAL
 
@@ -146,7 +145,7 @@ static void terminal_clear_VGA(terminal_contex_t *terminal_context)
     }
 }
 
-static void terminal_render_to_VGA(terminal_contex_t *terminal_context)
+void terminal_render_to_VGA(terminal_contex_t *terminal_context)
 {
     int current_line = terminal_context->current_first_line;
 
@@ -178,7 +177,9 @@ static void terminal_render_to_VGA(terminal_contex_t *terminal_context)
 
             int y = terminal_context->window_position_y + line_counter; // TODO: Move out of loop
 
-            set_cursor_position(terminal_context->input_cursor_position, y); // TODO: Move out of loop
+            // TODO: This code is stale now
+            //set_cursor_position(terminal_context->input_cursor_position, y); // TODO: Move out of loop
+            set_cursor_position(80, 80); // TODO: Move out of loop
 
             print_char_to_VGA_display(x, y, character, DEFAULT_BACKGROUND_COLOR, DEFAULT_FOREGROUND_COLOR);
         }
@@ -217,8 +218,10 @@ void terminal_putchar(terminal_contex_t *terminal_context, const char new_char)
 
     if (new_char == '\n' || new_char == '\r') // Enter
     {
+        terminal_render_to_VGA(terminal_context);
         (void) terminal_get_next_free_line_buffer(terminal_context);
         terminal_context->current_end_x = 0;
+        return;
     }
 
     char *line_buf = NULL;
@@ -235,6 +238,7 @@ void terminal_putchar(terminal_contex_t *terminal_context, const char new_char)
     }
     else
     {
+        // TODO: This code is so bad that I no longer have any idea what it is doing, and I have written it
         int last_line = terminal_context->current_end_line - 1;
 
         if (last_line < 0) last_line = TERMINAL_MAX_Y - 1;
@@ -244,13 +248,24 @@ void terminal_putchar(terminal_contex_t *terminal_context, const char new_char)
 
     int pos_x = terminal_context->current_end_x % TERMINAL_MAX_X;
 
-    // TODO: implement CR and LF handling
-    line_buf[pos_x] = new_char;
+    if (new_char == 8 || new_char == 0x7f) // Backspace
+    {
+        if (pos_x > 0)
+        {
+            line_buf[pos_x-1] = ' ';
+            terminal_context->current_end_x--;
+        }
+    }
+    else
+    {
+        line_buf[pos_x] = new_char;
 
-    terminal_context->current_end_x = pos_x + 1;
+        terminal_context->current_end_x = pos_x + 1;
+    }
 #endif
 }
 
+#if 0
 // TODO: This whole terminal code is trully horrible. Even AI wouldn't write something like this
 //       I need to refactor this, or simply remove it
 void terminal_on_keypress(terminal_contex_t *terminal_context, unsigned char key)
@@ -287,9 +302,9 @@ void terminal_on_keypress(terminal_contex_t *terminal_context, unsigned char key
         // Copy the line
         // Pass the line to callback_process_input()
         // I should really decouple this from terminal_on_keypress()
-        shell_input(terminal_context->input_line + 8);
+        //shell_input(terminal_context->input_line + 8);
 
-        terminal_clear_input_line(terminal_context);
+        //terminal_clear_input_line(terminal_context);
     }
 
     terminal_render_to_VGA(terminal_context);
@@ -299,6 +314,8 @@ void terminal_on_keypress(terminal_contex_t *terminal_context, unsigned char key
 static void terminal_clear_input_line(terminal_contex_t *terminal_context)
 {
 #ifndef DISABLE_TERMINAL
+
+#if 0
     // TODO: This should not supposed to be done here, but need to implement more features to do it in shell.c
     // TODO2: For some reason a newline is outputed on COM port after the prompt. Need to see where
     tty_write('\n');
@@ -316,6 +333,7 @@ static void terminal_clear_input_line(terminal_contex_t *terminal_context)
     terminal_context->input_line[5] = ':';
     terminal_context->input_line[6] = '>';
     terminal_context->input_line[7] = ' ';
+#endif
 
     // Clear the rest of the input line
     for (int x = 8; x < sizeof(terminal_context->input_line); x++)
@@ -326,3 +344,5 @@ static void terminal_clear_input_line(terminal_contex_t *terminal_context)
     terminal_context->input_cursor_position = 8;
 #endif
 }
+
+#endif // disabled terminal_on_keypress() and terminal_clear_input_line()

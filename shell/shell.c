@@ -89,6 +89,38 @@ static char** parse_arguments(char* input_string, int* argc)
     return argv;
 }
 
+char input_line[50] = "";
+int  input_len = 0;
+
+// TODO: This should event exist on this layer, but it is a workaround for now
+void shell_on_input(char key)
+{
+    kernel_putchar(key);
+
+    if (key == '\n' || key == '\r') // Enter
+    {
+        shell_input(input_line);
+        input_len = 0;
+    }
+    else if (key == 8 || key == 0x7f) // Del char
+    {
+        if (input_len > 0)
+        {
+            input_len--;
+            input_line[input_len] = 0;
+        }
+    }
+    else
+    {
+        // Add char to the input line
+        input_line[input_len] = key;
+        input_len++;
+
+        input_line[input_len] = 0;
+        input_line[sizeof input_line] = 0;
+    }
+}
+
 // TODO: Temp code for testing!
 void shell_input(u8 * input)
 {
@@ -153,8 +185,17 @@ void shell_input(u8 * input)
     {
         kernel_println("");
         kernel_println("Unknown command!");
+        kernel_printf("command = %s", input);
+
+        kernel_printf("\n hex =");
+        kernel_printf(" %x", input[0]);
+        kernel_printf(" %x", input[1]);
+        kernel_printf(" %x", input[2]);
+        kernel_printf(" %x", input[3]);
         kernel_println("");
     }
+
+    kernel_printf("[shell: /]$ ");
 
     free(argv);
 }

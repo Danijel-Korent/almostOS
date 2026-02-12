@@ -27,7 +27,7 @@ void terminal_init          (terminal_contex_t *terminal_context, int window_pos
 void terminal_print         (terminal_contex_t *terminal_context, const unsigned char* const string);
 void terminal_printline     (terminal_contex_t *terminal_context, const unsigned char* const string);
 void terminal_putchar       (terminal_contex_t *terminal_context, const char new_char);
-//void terminal_render_to_VGA (terminal_contex_t *terminal_context);
+void terminal_render_to_VGA (terminal_contex_t *terminal_context);
 void terminal_on_keypress   (terminal_contex_t *terminal_context, unsigned char key);
 
 #endif // _TERMINAL_H_
