@@ -101,6 +101,7 @@ void shell_on_input(char key)
     {
         shell_input(input_line);
         input_len = 0;
+        input_line[0] = 0;
     }
     else if (key == 8 || key == 0x7f) // Del char
     {
@@ -195,7 +196,7 @@ void shell_input(u8 * input)
         kernel_println("");
     }
 
-    kernel_printf("[shell: /]$ ");
+    kernel_printf("[shell: %s]$ ", get_current_dir());
 
     free(argv);
 }

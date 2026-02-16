@@ -7,10 +7,11 @@
 #include "cmd_ls.h"
 
 #include <stdint.h>
+#include "shell.h"
 #include "util.h"
 #include "kernel_stdio.h"
-
 #include "filesystem_router.h"
+#include "string.h"
 
 #include "../fs/tinyfs/code/rootdir_cluster.h" // TODO: TEMP - This needs to be handled better
 
@@ -47,13 +48,36 @@ void execute__ls(int argc, char* argv[])
         }
     }
 #else
+    char path[100] = "";
 
-    char *directory = "/";
+    const char *current_dir = get_current_dir();
 
-    if (argc > 1) directory = argv[1];
+    if (argc > 1)
+    {
+        const char *arg = argv[1];
+
+        if (arg[0] == '/')
+        {
+            // Absolute path, no need to use current dir
+            append_string(path, sizeof path, arg, strlen_unsafe(arg));
+        }
+        else
+        {
+            // Relative path, use current dir to get absolute path
+            append_string(path, sizeof path, current_dir, strlen_unsafe(current_dir));
+            append_string(path, sizeof path, arg, strlen_unsafe(arg));
+        }
+    }
+    else
+    {
+        // No path specified, use current dir
+        append_string(path, sizeof path, current_dir, strlen_unsafe(current_dir));
+    }
+
+    kernel_printf("\n[ls] path: %s \n", path);
 
     char buffer[2048];
-    int ret_len = get_list_of_files(directory, buffer, sizeof buffer);
+    int ret_len = get_list_of_files(path, buffer, sizeof buffer);
 
     //kernel_printf("[ls] ret_len = %d \n", ret_len);
 
