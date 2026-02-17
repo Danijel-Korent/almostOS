@@ -7,9 +7,10 @@
 #include "cmd_cat.h"
 
 //#include "util.h"
-//#include "string.h"
+#include "string.h"
 #include "kernel_stdio.h"
 //#include "kernel_stddef.h"
+#include "shell.h"
 
 #include "filesystem_router.h"
 
@@ -55,8 +56,31 @@ void command_cat(const char* filename)
     }
 
 #else
+
+    char path[100] = "";
+
+    {
+        const char *arg = filename;
+        const char *current_dir = get_current_dir();
+
+        if (arg[0] == '/')
+        {
+            // Absolute path, no need to use current dir
+            append_string(path, sizeof path, arg, strlen_unsafe(arg));
+        }
+        else
+        {
+            // Relative path, use current dir to get absolute path
+            append_string(path, sizeof path, current_dir, strlen_unsafe(current_dir));
+            append_string(path, sizeof path, arg, strlen_unsafe(arg));
+        }
+    }
+
+    kernel_printf("\n[cat] file path: %s \n", path);
+
     char buffer[1024];
-    int ret_len = read_file(filename, buffer, sizeof buffer);
+
+    int ret_len = read_file(path, buffer, sizeof buffer);
 
     buffer[sizeof buffer -1] = 0;
 
