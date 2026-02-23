@@ -4,8 +4,9 @@
 #include "kernel_stddef.h"
 
 void shell_on_input(char key);
-void shell_input(u8 * input);
+void shell_execute_command(u8 * input);
 
 const char* get_current_dir(void);
+void set_current_dir(char *path);
 
 #endif // _SHELL_H_

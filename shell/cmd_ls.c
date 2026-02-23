@@ -48,7 +48,7 @@ void execute__ls(int argc, char* argv[])
         }
     }
 #else
-    char path[100] = "";
+    char abs_path[100] = "";
 
     const char *current_dir = get_current_dir();
 
@@ -58,26 +58,26 @@ void execute__ls(int argc, char* argv[])
 
         if (arg[0] == '/')
         {
-            // Absolute path, no need to use current dir
-            append_string(path, sizeof path, arg, strlen_unsafe(arg));
+            // Already bsolute path, no need to use current dir
+            mem_copy(abs_path, sizeof abs_path, arg, strlen_unsafe(arg)+1);
         }
         else
         {
             // Relative path, use current dir to get absolute path
-            append_string(path, sizeof path, current_dir, strlen_unsafe(current_dir));
-            append_string(path, sizeof path, arg, strlen_unsafe(arg));
+            append_string(abs_path, sizeof abs_path, current_dir, strlen_unsafe(current_dir)+1);
+            append_string(abs_path, sizeof abs_path, arg, strlen_unsafe(arg)+1);
         }
     }
     else
     {
         // No path specified, use current dir
-        append_string(path, sizeof path, current_dir, strlen_unsafe(current_dir));
+        append_string(abs_path, sizeof abs_path, current_dir, strlen_unsafe(current_dir));
     }
 
-    kernel_printf("\n[ls] path: %s \n", path);
+    kernel_printf("\n[ls] path: %s \n\n", abs_path);
 
     char buffer[2048];
-    int ret_len = get_list_of_files(path, buffer, sizeof buffer);
+    int ret_len = get_list_of_files(abs_path, buffer, sizeof buffer);
 
     //kernel_printf("[ls] ret_len = %d \n", ret_len);
 

@@ -4,7 +4,6 @@
 #include "kernel_stdio.h"
 
 
-// TODO: Add explicit null-terminator
 void append_string(u8* const destination, u32 destination_size, const u8* const source, u32 source_size)
 {
     if (destination == NULL || source == NULL) return; //QTODO: Log an error
@@ -19,6 +18,9 @@ void append_string(u8* const destination, u32 destination_size, const u8* const 
     u32 space_left_in_buffer = (destination + destination_size) - end_of_first_string;
 
     mem_copy(end_of_first_string, space_left_in_buffer-1, source, source_size);
+
+    // In case destination was too short for the whole source string
+    destination[destination_size-1] = 0;
 }
 
 /**
@@ -83,6 +85,7 @@ u32 strlen_unsafe(const u8* input_string)
         if (i > 100) // TODO: Move this hardcoded number into a define
         {
             LOG("ERROR: strlen() smashed protection limit!");
+            kernel_println("ERROR: strlen() smashed protection limit!");
             return 0;
         }
     }

@@ -302,7 +302,7 @@ void terminal_on_keypress(terminal_contex_t *terminal_context, unsigned char key
         // Copy the line
         // Pass the line to callback_process_input()
         // I should really decouple this from terminal_on_keypress()
-        //shell_input(terminal_context->input_line + 8);
+        //shell_execute_command(terminal_context->input_line + 8);
 
         //terminal_clear_input_line(terminal_context);
     }

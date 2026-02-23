@@ -3,6 +3,7 @@
 #include "string.h"
 #include "kernel_main.h"
 #include "kernel_stdio.h"
+#include "util.h"
 
 #include "cmd_hexdump.h"
 #include "cmd_cat.h"
@@ -10,12 +11,23 @@
 #include "cmd_run.h"
 #include "cmd_kill.h"
 #include "cmd_ps.h"
+#include "cmd_cd.h"
 
+
+static char current_dir[100] = "/";
 
 const char* get_current_dir(void)
 {
-    return "/";
+    return current_dir;
 }
+
+void set_current_dir(char *path)
+{
+    // TODO: Check if the directy actually exists
+    mem_copy(current_dir, sizeof current_dir, path, strlen_unsafe(path)+1);
+    current_dir[sizeof(current_dir)-1] = 0;
+}
+
 
 /**
  * @brief Parse raw input string and returns it in argv/argc format (array of strings/arguments)
@@ -99,7 +111,7 @@ void shell_on_input(char key)
 
     if (key == '\n' || key == '\r') // Enter
     {
-        shell_input(input_line);
+        shell_execute_command(input_line);
         input_len = 0;
         input_line[0] = 0;
     }
@@ -123,7 +135,7 @@ void shell_on_input(char key)
 }
 
 // TODO: Temp code for testing!
-void shell_input(u8 * input)
+void shell_execute_command(u8 * input)
 {
     if (input == NULL) return;
 
@@ -140,7 +152,14 @@ void shell_input(u8 * input)
 
     if (input[0] == 'c') // hehehe
     {
-        execute__cat(argc, argv);
+        if (input[1] == 'd') // Oh my!
+        {
+            execute__cd(argc, argv);
+        }
+        else
+        {
+            execute__cat(argc, argv);
+        }
     }
     else if (input[0] == 'd')
     {
