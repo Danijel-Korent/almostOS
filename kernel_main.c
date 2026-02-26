@@ -225,7 +225,7 @@ void kernel_c_main( void )
 
     fs_router_init();
     mount_fs(FS_TYPE__TINY_FS, "/mnt");
-    mount_fs(FS_TYPE__BLOB_FS, "/blobs");
+    mount_fs(FS_TYPE__VIRTUAL_FS, "/vfs");
     mount_fs(FS_TYPE__TEST_FS, "/test");
 
     scheduler_init();

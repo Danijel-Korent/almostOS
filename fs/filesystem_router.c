@@ -35,7 +35,7 @@ struct mount_table_entry
     char directory_path[64];
 };
 
-struct  mount_table_entry mount_table[8] = {};
+struct mount_table_entry mount_table[8] = {};
 
 // TODO: At one point I will have to add source device or some kind of a handler for the source of FS,
 //       but for now every FS type will be hardcoded to a single source instance
@@ -79,7 +79,7 @@ int mount_fs(int fs_type, const char* directory_path)
     return -1; // TODO: I need to define error values
 }
 
-int get_first_dir_in_path(const char *dir_path, char *output_buf, int output_buf_len)
+static int get_first_dir_in_path(const char *dir_path, char *output_buf, int output_buf_len)
 {
     int path_len = strlen_unsafe(dir_path);
 
@@ -294,7 +294,7 @@ int get_list_of_files(const char* directory_path, char* buffer, int buffer_len)
 
         return output_len;
     }
-    else if (fs_type == FS_TYPE__BLOB_FS)
+    else if (fs_type == FS_TYPE__VIRTUAL_FS)
     {
         // TODO: To implement
         kernel_println("get_list_of_files(): BlobFS not yet integrated!");
@@ -319,8 +319,9 @@ struct file_info_entry
 
 int get_file_info(const char *file_path, struct file_info_entry *file_info)
 {
-    // TODO: This function is unimplemented !!!
     if (file_path == NULL || file_info == NULL) return -1;
+
+    // TODO: This function is not implemented !!!
 
     // For testing always say it is a directory
     file_info->is_directory = 1;
@@ -399,7 +400,7 @@ int read_file(const char* file_path, char* buffer, int buffer_len)
 
         return output_len;
     }
-    else if (fs_type == FS_TYPE__BLOB_FS)
+    else if (fs_type == FS_TYPE__VIRTUAL_FS)
     {
         // TODO: To implement
         kernel_println("get_list_of_files(): BlobFS not yet integrated!");
