@@ -8,9 +8,10 @@
 // TinyFS funcs
 #include "fs_operations.h"
 #include "tinyfs/images/image__cluster_size_100.h"
-
 #include "../fs/tinyfs/code/rootdir_cluster.h" // for struct file_entry;  TODO: TEMP - This needs to be handled in the fs_operations.c/h acting as frontend
 #include "../fs/tinyfs/code/cluster_operations.h" // for cluster_read_8bit();  TODO: TEMP - This needs to be handled better
+
+#include "virtual_fs.h"
 
 
 void fs_router_init(void)
@@ -296,9 +297,7 @@ int get_list_of_files(const char* directory_path, char* buffer, int buffer_len)
     }
     else if (fs_type == FS_TYPE__VIRTUAL_FS)
     {
-        // TODO: To implement
-        kernel_println("get_list_of_files(): BlobFS not yet integrated!");
-        return -1;
+        return vfs_get_list_of_files(directory_path, buffer, buffer_len);
     }
     else if (fs_type == FS_TYPE__TEST_FS)
     {
@@ -402,9 +401,7 @@ int read_file(const char* file_path, char* buffer, int buffer_len)
     }
     else if (fs_type == FS_TYPE__VIRTUAL_FS)
     {
-        // TODO: To implement
-        kernel_println("get_list_of_files(): BlobFS not yet integrated!");
-        return -1;
+        return vfs_read_file(file_path, buffer, buffer_len);
     }
     else if (fs_type == FS_TYPE__TEST_FS)
     {
