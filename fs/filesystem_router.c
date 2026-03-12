@@ -207,8 +207,8 @@ int get_list_of_files(const char* directory_path, char* buffer, int buffer_len)
 #endif
 
     // TODO: Dirty hack until I finish everything else and see how to deal with this
-    //       I'm pretty sure that in Linux that the folder used as mounting point needs to exist before calling mount (but I need to check to be 100% sure)
-    //       But at the moment TinyFS doesn't support folders so I cannot use it for this by making it root fs. Will probably add some kind of virtual fs
+    //       I'm pretty sure that in Linux the folder used as mounting point needs to exist before calling mount (but I need to check to be 100% sure)
+    //       But at the moment TinyFS doesn't support folders so I cannot use it for this by making it as root fs. Will probably add some kind of virtual fs
     if (directory_path[0] == '/' && directory_path[1] == 0)
     {
         int mount_list_count = sizeof(mount_table) / sizeof(mount_table[0]);
@@ -253,6 +253,9 @@ int get_list_of_files(const char* directory_path, char* buffer, int buffer_len)
         kernel_println("get_list_of_files(): failed in find_mount");
         return -1;
     }
+
+    // Exclude the mount dir from the path
+    directory_path += strlen_unsafe(mount_path) +1;
 
     // TODO: For initial impl it is hardcoded if/else switch. Later it will be replaced with func pointer interface, I swear!
     if (fs_type == FS_TYPE__TINY_FS)
@@ -301,7 +304,7 @@ int get_list_of_files(const char* directory_path, char* buffer, int buffer_len)
     }
     else if (fs_type == FS_TYPE__TEST_FS)
     {
-        static const char test_ret[] = "file1\0" "file2\0" "file3\0";
+        static const char test_ret[] = "file1\0" "file2\0" "file3\0" "hello.bin\0";
 
         //kernel_printf("[get_list_of_files] buffer_len = %d \n", buffer_len);
         //kernel_printf("[get_list_of_files] sizeof test_ret = %d \n", sizeof test_ret);
@@ -343,6 +346,7 @@ int read_file(const char* file_path, char* buffer, int buffer_len)
 
     //kernel_printf("[read_file(): mount found = %s] \n", mount_path);
 
+    // Exclude the mount dir from the path
     file_path += strlen_unsafe(mount_path) +1;
 
     //kernel_printf("read_file(): mount relative file path: %s \n\n", file_path);
@@ -410,6 +414,7 @@ int read_file(const char* file_path, char* buffer, int buffer_len)
         const char *file1_path = "file1";
         const char *file2_path = "file2";
         const char *file3_path = "file3";
+        const char *hello_world_bin_path = "hello.bin";
 
         if(strncmp(file_path, file1_path, 30) == 0)
         {
@@ -427,6 +432,13 @@ int read_file(const char* file_path, char* buffer, int buffer_len)
         {
             static const char test_ret[] = "Hardcoded file3";
             return mem_copy(buffer, buffer_len, test_ret, sizeof test_ret);
+        }
+
+        if (strncmp(file_path, hello_world_bin_path, 30) == 0)
+        {
+            extern unsigned int linux_x86_userspace_test_bin_len;
+            extern unsigned char linux_x86_userspace_test_bin[]; // TODO: Solve the issue with hardcoded size
+            return mem_copy(buffer, buffer_len, linux_x86_userspace_test_bin, linux_x86_userspace_test_bin_len);
         }
 
         //kernel_printf("[get_list_of_files] buffer_len = %d \n", buffer_len);

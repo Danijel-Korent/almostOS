@@ -169,17 +169,25 @@ void shell_execute_command(u8 * input)
     }
     else if (input[0] == 'h')
     {
-        kernel_println("");
-        kernel_println("Available commands:");
-        kernel_println("");
-        kernel_println("    ls       - List files");
-        kernel_println("    cat file - Output file content");
-        kernel_println("    ps       - List processes");
-        kernel_println("    kill PID - Kill a process");
-        kernel_println("    run TEST - Run a test process");
-        kernel_println("    dump x   - Dump content of the memory at address x");
-        kernel_println("    help     - Prints this message");
-        kernel_println("");
+        if (input[2] == 'x') // Oh my!
+        {
+            execute__hexdump(argc, argv);
+        }
+        else
+        {
+            kernel_println("");
+            kernel_println("Available commands:");
+            kernel_println("");
+            kernel_println("    ls       - List files");
+            kernel_println("    cat file - Output file content");
+            kernel_println("    ps       - List processes");
+            kernel_println("    kill PID - Kill a process");
+            kernel_println("    run TEST - Run a test process");
+            kernel_println("    dump x   - Dump content of the memory at address x");
+            kernel_println("    hex x    - Dump content of the file x");
+            kernel_println("    help     - Prints this message");
+            kernel_println("");
+        }
     }
     else if (input[0] == 'k')
     {

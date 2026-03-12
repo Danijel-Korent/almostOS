@@ -9,9 +9,14 @@
 
 ; qemu-i386 ./linux_x86-32_test
 
-section .data
-    message db 0xa, 0xa, 'Hello World from the user space!', 0xa   ; String to print with newline (0xa)
-    message_length equ $ - message  ; Calculate length of message
+; MOTE:
+;   Commented out .data, and put data between CPU instructions to make exported flat binary smaller. Otherwise objcopy produce .data at 4k address
+;   The space is probably added by linker when producing elf file. There is maybe a way to move .text and .data closer without a need for linker script,
+;   but I was not in a mood to search how to do it
+;
+;section .data
+;    message db 0xa, 0xa, 'Hello World from the user space!', 0xa   ; String to print with newline (0xa)
+;    message_length equ $ - message  ; Calculate length of message
 
 
 section .text
@@ -23,8 +28,20 @@ _start:
     ; ebx = file descriptor (1 for stdout)
     ; ecx = pointer to message
     ; edx = length of message
-
     call get_IP
+
+
+    ; ---- DATA BETWEEN INSTRUCTIONS ----
+    jmp main
+
+    ; I have put data inside .text segment to make exported flat binary smaller
+    message db 0xa, 0xa, 'Hello World from the user space!', 0xa   ; String to print with newline (0xa)
+    message_length equ $ - message  ; Calculate length of message
+
+main:
+    ; ---- DATA BETWEEN INSTRUCTIONS ----
+
+
     lea ecx, [eax + message - _start -5] ; -5 to get the IP address before executing 'call' (the _start), not after
 
     mov eax, 4                     ; sys_write system call number
@@ -46,3 +63,6 @@ _start:
 get_IP:
     mov eax, [esp]            ; esp contains the return address, the IP of the instruction after 'call'
     ret
+
+    ; Just to serve as visual marker
+    message_app_end db '[End of code]'   ; String to print with newline (0xa)

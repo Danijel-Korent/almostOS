@@ -3,5 +3,6 @@
 
 
 void execute__dump_data(int argc, char* argv[]);
+void execute__hexdump(int argc, char* argv[]);
 
 #endif // _HEXDUMP_H_

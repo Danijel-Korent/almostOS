@@ -10,6 +10,9 @@
 #include "string.h"
 #include "kernel_stdio.h"
 #include "kernel_stddef.h"
+#include "shell.h"
+#include "filesystem_router.h"
+
 
 #define BYTES_PER_LINE (16)
 
@@ -91,4 +94,56 @@ void execute__dump_data(int argc, char* argv[])
     }
 
     kernel_println("");
+}
+
+
+
+void execute__hexdump(int argc, char* argv[])
+{
+    if (argc < 2)
+    {
+        kernel_println("hexdump: Missing arguments!");
+        return;
+    }
+
+    if (argv == NULL)
+    {
+        LOG("ERROR: execute__hexdump() - received NULL arg");
+        return;
+    }
+
+    const char* filename = argv[1];
+
+    // TODO: This code is C/P-ed from cmd_cat
+    char abs_path[100] = "";
+
+    {
+        const char *arg = filename;
+
+        if (arg[0] == '/')
+        {
+            // Already absolute path, no need to use current dir
+            mem_copy(abs_path, sizeof abs_path, arg, strlen_unsafe(arg)+1);
+        }
+        else
+        {
+            // Relative path, use current dir to get absolute path
+            const char *current_dir = get_current_dir();
+            append_string(abs_path, sizeof abs_path, current_dir, strlen_unsafe(current_dir)+1);
+            append_string(abs_path, sizeof abs_path, arg, strlen_unsafe(arg)+1);
+        }
+    }
+
+    kernel_printf("\n[hexdump] file path: %s \n\n", abs_path);
+
+    char buffer[128] = {0};
+
+    int ret_len = read_file(abs_path, buffer, sizeof buffer);
+
+    // TODO: A horrible hack, so I didn't need to spend extra 10 minutes on a proper solution
+    char hex_addr[10] = {0};
+    long_to_hex((int) buffer, hex_addr, sizeof(hex_addr)-1, 16);
+    char* data_dump_argv[2] = {"", hex_addr};
+
+    execute__dump_data(2, data_dump_argv); //TODO: Should not be called here, but will deal with this later
 }

@@ -128,6 +128,7 @@ clean:
 	rm -f *.o
 	rm -f *.elf
 	rm -f arch/x86-32/iso_image_content/boot/*.elf
+	rm -f linux_x86_userspace_test.bin.h
 
 linux_x86_userspace_test:
 	nasm -f elf32 -o linux_x86_userspace_test.o user-space/x86-32/linux_x86-32_test.asm
