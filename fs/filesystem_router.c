@@ -333,7 +333,9 @@ int get_file_info(const char *file_path, struct file_info_entry *file_info)
 // The syscall should in the end look like this: https://man7.org/linux/man-pages/man2/read.2.html
 int read_file(const char* file_path, char* buffer, int buffer_len)
 {
-    //kernel_printf("[read_file(): file_path = %s] \n", file_path);
+    //kernel_printf("[read_file(): file_path  = %s] \n", file_path);
+    //kernel_printf("[read_file(): buffer     = %x] \n", buffer);
+    //kernel_printf("[read_file(): buffer_len = %d] \n", buffer_len);
 
     int fs_type = FS_TYPE__NONE;
     char mount_path[64] = {0}; // Don't care about the perf
@@ -441,8 +443,8 @@ int read_file(const char* file_path, char* buffer, int buffer_len)
             return mem_copy(buffer, buffer_len, linux_x86_userspace_test_bin, linux_x86_userspace_test_bin_len);
         }
 
-        //kernel_printf("[get_list_of_files] buffer_len = %d \n", buffer_len);
-        //kernel_printf("[get_list_of_files] sizeof test_ret = %d \n", sizeof test_ret);
+        //kernel_printf("[read_file()] buffer_len = %d \n", buffer_len);
+        //kernel_printf("[read_file()] sizeof test_ret = %d \n", sizeof test_ret);
 
         return -1;
     }

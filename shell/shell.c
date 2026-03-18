@@ -28,6 +28,11 @@ void set_current_dir(char *path)
     current_dir[sizeof(current_dir)-1] = 0;
 }
 
+void print_prompt(void)
+{
+    kernel_printf("[shell: %s]$ ", get_current_dir());
+}
+
 
 /**
  * @brief Parse raw input string and returns it in argv/argc format (array of strings/arguments)
@@ -223,7 +228,14 @@ void shell_execute_command(u8 * input)
         kernel_println("");
     }
 
-    kernel_printf("[shell: %s]$ ", get_current_dir());
+    print_prompt(); //kernel_printf("[shell: %s]$ ", get_current_dir());
 
     free(argv);
+}
+
+
+void shell_init(void)
+{
+    kernel_println("Called shell_init()\n\n");
+    print_prompt();
 }

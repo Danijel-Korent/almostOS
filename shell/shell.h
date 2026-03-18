@@ -3,6 +3,7 @@
 
 #include "kernel_stddef.h"
 
+void shell_init(void);
 void shell_on_input(char key);
 void shell_execute_command(u8 * input);
 

@@ -35,7 +35,7 @@ _start:
     jmp main
 
     ; I have put data inside .text segment to make exported flat binary smaller
-    message db 0xa, 0xa, 'Hello World from the user space!', 0xa   ; String to print with newline (0xa)
+    message db 0xa, 0xa, 0xa, ' >>>> Hello World from the user space! <<<<', 0xa   ; String to print with newline (0xa)
     message_length equ $ - message  ; Calculate length of message
 
 main:

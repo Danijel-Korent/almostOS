@@ -151,6 +151,7 @@ Terminal escape code:
 #include "filesystem_router.h"
 
 #include "scheduler.h"
+#include "shell.h"
 
 // TODO: Move to arch/x86-32/arch_init.c
 #include "arch/x86-32/GDT_Global_Descriptor_Table.h"
@@ -230,10 +231,12 @@ void kernel_c_main( void )
 
     scheduler_init();
 
+    shell_init();
+
     //syscall_test();
 
     // TEMP until that terminal code abomination gets decoupled
-    event_on_keypress(13);
+    //event_on_keypress(13);
 
     while(1)
     {

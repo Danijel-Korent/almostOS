@@ -38,7 +38,7 @@ void scheduler_init(void)
         //init_process_ctx(&process_list[5], "Test process 2", test_thread_2_handler);
         //create_process("Test process 3", test_thread_3_handler);
         //init_process_ctx(&process_list[14], "Test process 4", test_thread_4_handler);
-        init_process_ctx(&process_list[15], "syscall_test", syscall_test);
+        //init_process_ctx(&process_list[15], "syscall_test", syscall_test);
     }
     else
     {

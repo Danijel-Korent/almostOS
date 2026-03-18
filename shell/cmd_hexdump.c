@@ -114,7 +114,7 @@ void execute__hexdump(int argc, char* argv[])
 
     const char* filename = argv[1];
 
-    // TODO: This code is C/P-ed from cmd_cat
+    // TODO: This code is C/P-ed from cmd_hexdunp (where it is copied from cmd_cat)
     char abs_path[100] = "";
 
     {
@@ -136,14 +136,22 @@ void execute__hexdump(int argc, char* argv[])
 
     kernel_printf("\n[hexdump] file path: %s \n\n", abs_path);
 
+    // TODO: Hardcoded size
     char buffer[128] = {0};
 
     int ret_len = read_file(abs_path, buffer, sizeof buffer);
 
-    // TODO: A horrible hack, so I didn't need to spend extra 10 minutes on a proper solution
-    char hex_addr[10] = {0};
-    long_to_hex((int) buffer, hex_addr, sizeof(hex_addr)-1, 16);
-    char* data_dump_argv[2] = {"", hex_addr};
+    if (ret_len > 0)
+    {
+        // TODO: A horrible hack, so I didn't need to spend extra 10 minutes on a proper solution
+        char hex_addr[10] = {0};
+        long_to_hex((int) buffer, hex_addr, sizeof(hex_addr)-1, 16);
+        char* data_dump_argv[2] = {"", hex_addr};
 
-    execute__dump_data(2, data_dump_argv); //TODO: Should not be called here, but will deal with this later
+        execute__dump_data(2, data_dump_argv); //TODO: Should not be called here, but will deal with this later
+    }
+    else
+    {
+        kernel_printf("\n[hexdump] Unable to read file! ret = %d \n\n", ret_len);
+    }
 }
